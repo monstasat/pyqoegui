@@ -3,53 +3,73 @@ from gi.repository import Gtk,Gdk
 
 import constants
 
-class RendererOne():
+#One instance of video renderer (includes renderer window, prog name label, volume button)
+class RendererOne(Gtk.Grid):
 
-	def __init__(self):
-		pass
+	def __init__(self, index):
+		Gtk.Grid.__init__(self)
 
-	def create_renderer(self, index):
-		grid = Gtk.Grid()
-		grid.set_hexpand_set(True)
-		grid.set_hexpand(True)
-		grid.set_halign(Gtk.Align.FILL)
-		grid.set_valign(Gtk.Align.FILL)
+		#should be horizontally expandable and fill all available space
+		self.set_hexpand_set(True)
+		self.set_hexpand(True)
+		self.set_halign(Gtk.Align.FILL)
+		self.set_valign(Gtk.Align.FILL)
 
-
+		#creating renderer window - drawing area
 		drawarea = Gtk.DrawingArea()
-		drawarea.set_size_request(200,200)
+		#minimum renderer size (4:3)
+		#drawarea.set_size_request(400,300)
+		#horizontally and vertically expandable - should fill all free area of the grid
 		drawarea.set_hexpand(True)
 		drawarea.set_vexpand(True)
+		#setting initial renderer color
 		color = Gdk.color_parse("black")
 		rgba = Gdk.RGBA.from_color(color)
 		drawarea.override_background_color(0, rgba)
+
+		#creating volume button
 		volbtn = Gtk.VolumeButton()
+		#place at the right edge of a renderer instance
 		volbtn.set_halign(Gtk.Align.END)
+
+		#creating a program label
 		progname = Gtk.Label(label=constants.prog_names[index])
 		progname.set_halign(Gtk.Align.END)
-		grid.attach(drawarea, 0, 0, 2, 1)
-		grid.attach(progname, 0, 1, 1, 1)
-		grid.attach(volbtn, 1, 1, 1, 1)
-		return grid
 
-class Renderer:
-	def __init__(self):
-		pass
+		#attach elements to grid
+		self.attach(drawarea, 0, 0, 2, 1)
+		self.attach(progname, 0, 1, 1, 1)
+		self.attach(volbtn, 1, 1, 1, 1)
 
-	def create_renderer(self):
-		grid = Gtk.Grid()
-		grid.set_hexpand_set(True)
-		grid.set_hexpand(True)
-		grid.set_halign(Gtk.Align.FILL)
-		grid.set_valign(Gtk.Align.FILL)
-		grid.set_column_spacing(constants.DEF_SPACING)
+#A grid of video renderers
+class Renderer(Gtk.FlowBox):
+	def __init__(self, progNum):
+		Gtk.Grid.__init__(self)
 
-		for i in range(5):
-			rend = RendererOne()
-			grid.attach(rend.create_renderer(i), i, 0, 1, 1)
+		##should be horizontally expandable and fill all available space
+		self.set_hexpand_set(True)
+		self.set_hexpand(True)
+		self.set_halign(Gtk.Align.FILL)
+		self.set_valign(Gtk.Align.FILL)
 
-		for i in range(5):
-			rend = RendererOne()
-			grid.attach(rend.create_renderer(i+5), i, 1, 1, 1)
+		#set selection mode to None
+		self.set_selection_mode(0)
 
-		return grid
+		#set rows and cols homogeneous
+		self.set_homogeneous(True)
+
+		#set some space between renderers
+		self.set_column_spacing(constants.DEF_SPACING)
+
+		#add renderers
+		self.draw_renderers(progNum)
+
+	#draw necessary number of renderers
+	def draw_renderers(self, progNum):
+     		#set max children per line
+		if progNum > 3:
+			self.set_max_children_per_line(progNum/2)
+		renderers = []
+		for i in range(progNum):
+			renderers.append(RendererOne(i))
+			self.insert(renderers[i], -1)

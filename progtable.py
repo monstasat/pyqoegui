@@ -11,30 +11,32 @@ COLS_NUM = 3 + PARAMETERS_NUM
 
 import constants
 
-#def map_color(param):
-#	return clrs[param]
-
 #class for viewing current program status (such as artifacts/loudndess) in a table
 class ProgramTable(Gtk.TreeView):
 
+	#table heading array
 	table_heading = []
 
+	#associates status code with a cell color
 	clrs = {'1' : '#80FF80', '2': '#FFFF80', '3': '#FF7878', '0' : 'FFFFFF'}
-	stattxt = {'0' : "", '2' : "Опасно", '3' : "Брак"}
-	print("ok")
-	test = ([1, '#FFFFFF', constants.prog_names[0], '#FFFFFF', '%g'%(-22.9), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[3, '#FFFFFF', constants.prog_names[1], '#FFFFFF', '%g'%(-20.4), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[2, '#FFFFFF', constants.prog_names[2], '#FFFFFF', '%g'%(-21.2), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[4, '#FFFFFF', constants.prog_names[3], '#FFFFFF', '%g'%(-19.1), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[5, '#FFFFFF', constants.prog_names[4], '#FFFFFF', '%g'%(-22.4), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["3"], clrs['3'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[6, '#FFFFFF', constants.prog_names[5], '#FFFFFF', '%g'%(-12.4), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[7, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[8, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[9, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']],
-			[10, '#FFFFFF',constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["2"], clrs['2'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1'], stattxt["0"], clrs['1']])
-	print("not ok")
-	def __init__(self):
+
+	#associates status code with a cell text (temporary)
+	stattxt = {'1' : "", '2' : "Опасно", '3' : "Брак"}
+
+	test = ([1, '#FFFFFF', constants.prog_names[0], '#FFFFFF', '%g'%(-22.9), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[2, '#FFFFFF', constants.prog_names[1], '#FFFFFF', '%g'%(-20.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[3, '#FFFFFF', constants.prog_names[2], '#FFFFFF', '%g'%(-21.2), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[4, '#FFFFFF', constants.prog_names[3], '#FFFFFF', '%g'%(-19.1), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[5, '#FFFFFF', constants.prog_names[4], '#FFFFFF', '%g'%(-22.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["3"], clrs['3'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[6, '#FFFFFF', constants.prog_names[5], '#FFFFFF', '%g'%(-12.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[7, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[8, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[9, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[10, '#FFFFFF',constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']])
+
+	def __init__(self, progNum):
 		Gtk.TreeView.__init__(self)
+		#
 		self.set_hexpand_set(True)
 		self.set_hexpand(True)
 		self.set_halign(Gtk.Align.FILL)
@@ -45,8 +47,8 @@ class ProgramTable(Gtk.TreeView):
 		print("success")
 		print(enumerate(constants.heading_labels))
 		self.set_model(self.store)
-		for i in self.test:
-			treeiter = self.store.append(list(i))
+		for i in range(progNum):
+			treeiter = self.store.append(self.test[i])
 
 		for i in range(0, 20, 2):
 			color = i + 1
@@ -62,6 +64,7 @@ class ProgramTable(Gtk.TreeView):
 				column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i, background=color)
 			if i > 0:
 				column.set_expand(1)
+				column.set_alignment(0.5)
 			self.append_column(column)
 
 
