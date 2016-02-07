@@ -10,6 +10,7 @@ ROWS_NUM = 1 + MAX_ANALYZED_PROG_NUM
 COLS_NUM = 3 + PARAMETERS_NUM
 
 import constants
+from constants import create_icon_from_name
 
 #class for viewing current program status (such as artifacts/loudndess) in a table
 class ProgramTable(Gtk.TreeView):
@@ -32,7 +33,17 @@ class ProgramTable(Gtk.TreeView):
 			[7, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
 			[8, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
 			[9, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[10, '#FFFFFF',constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']])
+			[10, '#FFFFFF',constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[11, '#FFFFFF', constants.prog_names[1], '#FFFFFF', '%g'%(-20.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[12, '#FFFFFF', constants.prog_names[2], '#FFFFFF', '%g'%(-21.2), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[13, '#FFFFFF', constants.prog_names[3], '#FFFFFF', '%g'%(-19.1), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[14, '#FFFFFF', constants.prog_names[4], '#FFFFFF', '%g'%(-22.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["3"], clrs['3'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[15, '#FFFFFF', constants.prog_names[5], '#FFFFFF', '%g'%(-12.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[16, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[17, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[18, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[19, '#FFFFFF', constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
+			[20, '#FFFFFF', constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']])
 
 	def __init__(self, progNum):
 		Gtk.TreeView.__init__(self)
@@ -61,7 +72,13 @@ class ProgramTable(Gtk.TreeView):
 			else:
 				renderer = Gtk.CellRendererText()
 				renderer.set_alignment(0.5, 0.5)
-				column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i, background=color)
+				if i > 4:
+					renderer.set_property("foreground", "black")
+					column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i, background=color)
+					column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+					column.set_fixed_width(100)
+				else:
+					column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i)
 			if i > 0:
 				column.set_expand(1)
 				column.set_alignment(0.5)

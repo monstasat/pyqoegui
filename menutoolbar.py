@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from gi.repository import Gtk, Gio
 
+from constants import create_icon_from_name
+
 class BtnToolbar(Gtk.Toolbar):
 
 	#themed icon names
@@ -12,9 +14,9 @@ class BtnToolbar(Gtk.Toolbar):
 				"Запись потока", "О программе", "Выход"]
 
 	#button tooltip text
-	tooltip_arr = ["Запуск/остановка анализа","Выбор программ для анализа",
+	tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
 			"Настройки ТВ тюнера",
-			"Настройки параметров определения искажений изображения и звука",
+			"Настройки алгоритмов определения искажений изображения и звука",
 			"Запись потока на внутренний диск или съемный носитель",
 			"О программе",
 			"Выход из программы"]
@@ -30,7 +32,7 @@ class BtnToolbar(Gtk.Toolbar):
 
 		#create tool buttons
 		for i in range(len(self.ico_arr) - 1):
-			self.btn_arr.append(Gtk.ToolButton.new(self.create_icon_from_name(self.ico_arr[i]), self.text_arr[i]))
+			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(self.ico_arr[i]), self.text_arr[i]))
 			self.btn_arr[i].set_is_important(True)
 			self.btn_arr[i].set_has_tooltip(True)
 			self.btn_arr[i].set_tooltip_text(self.tooltip_arr[i])
@@ -69,18 +71,14 @@ class BtnToolbar(Gtk.Toolbar):
 		#if current state is "start"
 		if widget.get_label() == "Старт":
 			#change label and icon of toolbutton
+			self.tooltip_arr[0] = "Остановить анализ"
 			widget.set_label("Стоп")
-			widget.set_icon_widget(self.create_icon_from_name("media-playback-stop"))
+			widget.set_icon_widget(create_icon_from_name("media-playback-stop"))
 		#if current state is "stop"
 		else:
 			#change label and icon of toolbutton
+			self.tooltip_arr[0] = "Запустить анализ"
 			widget.set_label("Старт")
-			widget.set_icon_widget(self.create_icon_from_name("media-playback-start"))
-
-	#for creating Gtk.Image from themed icon name
-	def create_icon_from_name(self, iconName):
-		icon = Gio.ThemedIcon(name=iconName)
-		image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-		image.show()
-		return image
+			widget.set_icon_widget(create_icon_from_name("media-playback-start"))
+		widget.set_tooltip_text(self.tooltip_arr[0])
 		
