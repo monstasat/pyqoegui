@@ -117,6 +117,12 @@ class MyWindow(Gtk.Window):
 		curResultsPage = self.get_cur_results_page()
 		return curResultsPage.get_child_at(1, 0)
 
+	def get_prog_table(self):
+		curResultsPage = self.get_cur_results_page()
+		revealer = curResultsPage.get_child_at(1,1)
+		return revealer.get_child()
+
+
 	#returns first stack page (cur results)
 	def get_cur_results_page(self):
 		stack = self.get_child()
@@ -141,6 +147,9 @@ class MyWindow(Gtk.Window):
 		num = self.edit.get_text()
 		flowbox = self.get_renderers_grid()
 		flowbox.draw_renderers(int(num))
+
+		table = self.get_prog_table()
+		table.add_rows(int(num))
 
 	#about button was clicked
 	def on_about_clicked(self, widget):

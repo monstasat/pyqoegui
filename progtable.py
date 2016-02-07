@@ -65,8 +65,7 @@ class ProgramTable(Gtk.TreeView):
 		self.set_model(self.store)
 
 		#adding rows of information
-		for i in range(progNum):
-			treeiter = self.store.append(self.test[i])
+		self.add_rows(progNum)
 
 		#constructing columns and cells of the table
 		for i in range(0, 20, 2):
@@ -105,6 +104,13 @@ class ProgramTable(Gtk.TreeView):
 			column.set_alignment(0.5)
 			#adding column to treeview
 			self.append_column(column)
+
+	def add_rows(self, progNum):
+		store = self.get_model()
+		store.clear()
+		for i in range(progNum):
+			treeiter = store.append(self.test[i])
+
 
 
 
