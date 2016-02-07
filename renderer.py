@@ -58,6 +58,7 @@ class Renderer(Gtk.FlowBox):
 		#set rows and cols homogeneous
 		self.set_homogeneous(True)
 
+		#flow box should have horizontal orientation
 		self.set_orientation(Gtk.Orientation.HORIZONTAL)
 
 		#set some space between renderers
@@ -69,8 +70,10 @@ class Renderer(Gtk.FlowBox):
 
 	#draw necessary number of renderers
 	def draw_renderers(self, progNum):
+
 		#first of all delete all previous renderers
 		self.remove_renderers()
+
      	#set max children per line
 		if progNum > 3:
 			if(progNum%2):
@@ -81,14 +84,19 @@ class Renderer(Gtk.FlowBox):
 			max_ch = progNum
 		self.set_max_children_per_line(max_ch)
 		self.set_min_children_per_line(5)
-		renderers = []
+
+		#add number of renderers
 		for i in range(progNum):
+			#each renderer is placed into aspect frame widget (4:3)
 			af = Gtk.AspectFrame()
 			af.set(0.5, 0.5, 4/3, False)
-			renderers.append(RendererOne(i))
-			af.add(renderers[i])
+			af.add(RendererOne(i))
+			#insert renderer to flow box
 			self.insert(af, -1)
+
+		#show all renderers
 		self.show_all()
+
 		print("renderers added: " + str(progNum))
 
   	#delete all renderers

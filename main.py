@@ -76,6 +76,9 @@ class MyWindow(Gtk.Window):
 		hb.set_custom_title(switch)
 
 		#connect buttons to events
+		#get start button
+		startBtn = toolbar.get_nth_item(0)
+		startBtn.connect('clicked', self.on_start_clicked)
 		#get dump button from toolbar
 		dumpBtn = toolbar.get_nth_item(4)
 		dumpBtn.connect('clicked', self.on_dump_clicked)
@@ -121,7 +124,9 @@ class MyWindow(Gtk.Window):
 
 	#start button was clicked
 	def on_start_clicked(self, widget):
-		pass
+		hb = widget.get_parent()
+		hb.change_start_icon(widget)
+
 
 	#prog select button was clicked
 	def on_prog_select_clicked(self, widget):
@@ -134,8 +139,7 @@ class MyWindow(Gtk.Window):
 	#dump button was clicked (temporary for drawing renderers)
 	def on_dump_clicked(self, widget):
 		num = self.edit.get_text()
-		page = self.get_cur_results_page()
-		flowbox = page.get_child_at(1, 0)
+		flowbox = self.get_renderers_grid()
 		flowbox.draw_renderers(int(num))
 
 	#about button was clicked

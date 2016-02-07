@@ -3,23 +3,22 @@ from gi.repository import Gtk, Gio
 
 from constants import create_icon_from_name
 
+#themed icon names
+ico_arr = ["media-playback-start", "tv-symbolic", "network-wireless", "gnome-tweak-tool",
+	   "drive-harddisk", "help-about"]
+
+#button labels
+text_arr = ["Старт","Выбор программ", "Настройки RF", "Настройки анализа",
+		"Запись потока", "О программе"]
+
+#button tooltip text
+tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
+		"Настройки ТВ тюнера",
+		"Настройки алгоритмов определения искажений изображения и звука",
+		"Запись потока на внутренний диск или съемный носитель",
+		"О программе"]
+
 class BtnToolbar(Gtk.Toolbar):
-
-	#themed icon names
-	ico_arr = ["media-playback-start", "tv-symbolic", "network-wireless", "gnome-tweak-tool",
-		   "drive-harddisk", "help-about","application-exit"]
-
-	#button labels
-	text_arr = ["Старт","Выбор программ", "Настройки RF", "Настройки анализа",
-				"Запись потока", "О программе", "Выход"]
-
-	#button tooltip text
-	tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
-			"Настройки ТВ тюнера",
-			"Настройки алгоритмов определения искажений изображения и звука",
-			"Запись потока на внутренний диск или съемный носитель",
-			"О программе",
-			"Выход из программы"]
 
 	#array with gtk toolbuttons
 	btn_arr = []
@@ -31,19 +30,13 @@ class BtnToolbar(Gtk.Toolbar):
 		self.get_style_context().add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
 
 		#create tool buttons
-		for i in range(len(self.ico_arr) - 1):
-			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(self.ico_arr[i]), self.text_arr[i]))
+		for i in range(len(ico_arr)):
+			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(ico_arr[i]), text_arr[i]))
 			self.btn_arr[i].set_is_important(True)
 			self.btn_arr[i].set_has_tooltip(True)
-			self.btn_arr[i].set_tooltip_text(self.tooltip_arr[i])
+			self.btn_arr[i].set_tooltip_text(tooltip_arr[i])
 			self.insert(self.btn_arr[i], i)
 			self.btn_arr[i].show()
-
-   		#associate buttons with functions
-		#exit
-		#self.btn_arr[-1].connect("clicked", self.on_app_exit)
-		#start/stop
-		self.btn_arr[0].connect("clicked", self.on_start)
 
 		#how to show buttons in toolbar
 		#ICONS, TEXT, BOTH, BOTH_HORIZ
@@ -62,23 +55,19 @@ class BtnToolbar(Gtk.Toolbar):
 		#show the toolbar
 		self.show()
 
-	#on exit button
-	def on_app_exit(self, widget):
-		 Gtk.main_quit()
-
-	#on start/stop button
-	def on_start(self, widget):
+	def change_start_icon(self, widget):
 		#if current state is "start"
 		if widget.get_label() == "Старт":
 			#change label and icon of toolbutton
-			self.tooltip_arr[0] = "Остановить анализ"
+			tooltip_arr[0] = "Остановить анализ"
 			widget.set_label("Стоп")
 			widget.set_icon_widget(create_icon_from_name("media-playback-stop"))
 		#if current state is "stop"
 		else:
 			#change label and icon of toolbutton
-			self.tooltip_arr[0] = "Запустить анализ"
+			tooltip_arr[0] = "Запустить анализ"
 			widget.set_label("Старт")
 			widget.set_icon_widget(create_icon_from_name("media-playback-start"))
-		widget.set_tooltip_text(self.tooltip_arr[0])
+		widget.set_tooltip_text(tooltip_arr[0])
+
 		
