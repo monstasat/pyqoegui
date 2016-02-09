@@ -2,14 +2,11 @@
 from gi.repository import Gtk, Gio
 
 from constants import create_icon_from_name
+from constants import toolbar_buttons_text
 
 #themed icon names
-ico_arr = ["media-playback-start", "tv-symbolic", "network-wireless", "gnome-tweak-tool",
+ico_arr = ["media-playback-start", "video-display", "network-wireless", "gnome-tweak-tool",
 	   "drive-harddisk", "help-about"]
-
-#button labels
-text_arr = ["Старт","Выбор программ", "Настройки RF", "Настройки анализа",
-		"Запись потока", "О программе"]
 
 #button tooltip text
 tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
@@ -31,7 +28,7 @@ class BtnToolbar(Gtk.Toolbar):
 
 		#create tool buttons
 		for i in range(len(ico_arr)):
-			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(ico_arr[i]), text_arr[i]))
+			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(ico_arr[i]), toolbar_buttons_text[i]))
 			self.btn_arr[i].set_is_important(True)
 			self.btn_arr[i].set_has_tooltip(True)
 			self.btn_arr[i].set_tooltip_text(tooltip_arr[i])

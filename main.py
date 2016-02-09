@@ -1,21 +1,53 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GObject
 
+import sys
 import constants
 import menutoolbar
 import progtable
 import renderer
+import progselectdlg
 
 from constants import create_icon_from_name
 from aboutdlg import AtsAboudDlg
 
-class MyWindow(Gtk.Window):
+class Placeholder(Gtk.VBox):
+
+	#init func
+	def __init__(self, ico_name, label_text, size):
+		Gtk.VBox.__init__(self)
+
+		#set alignment
+		self.set_valign(Gtk.Align.CENTER)
+		self.set_halign(Gtk.Align.CENTER)
+		self.set_spacing(constants.DEF_ROW_SPACING)
+
+		#construct image
+		image = Gtk.Image()
+		image.set_from_icon_name(ico_name, Gtk.IconSize.DIALOG)
+		image.set_pixel_size(size)
+		styleContext = image.get_style_context()
+		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
+
+		#construct label
+		label = Gtk.Label(label=label_text)
+		styleContext = label.get_style_context()
+		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
+
+		#add elements to vbox
+		self.add(image)
+		self.add(label)
+
+
+class MyWindow(Gtk.ApplicationWindow):
 
 	edit = Gtk.Entry()
-	def __init__(self):
-		Gtk.Window.__init__(self, title="Анализатор АТС-3")
+	def __init__(self, app):
+		Gtk.Window.__init__(self, title="Анализатор АТС-3", application=app)
 		self.set_border_width(constants.DEF_BORDER)
-		#self.maximize()
+		#self.connect("delete-event", Gtk.main_quit)
+		self.maximize()
+		#settings.set_property("gtk-titlebar-double-click", 'none')
 
   		#add header bar to the window
 		hb = Gtk.HeaderBar()
@@ -24,26 +56,47 @@ class MyWindow(Gtk.Window):
 		self.set_titlebar(hb)
 
 		#temp
+		self.edit.connect('activate', self.on_entry_enter)
 		hb.pack_end(self.edit)
 
 		#creating left side bar with buttons
 		toolbar = menutoolbar.BtnToolbar()
 		#creating prog table
-		prgtbl = progtable.ProgramTable(constants.DEF_PROG_NUM)
-		#creating renderer
-		rend = renderer.Renderer(constants.DEF_PROG_NUM)
+		prgtbl = progtable.ProgramTable(0)
+
+		#creating renderers
+		rend = renderer.Renderer(0)
 		#creating prog table revealer
 		tableRevealer = Gtk.Revealer()
 		tableRevealer.add(prgtbl)
 		tableRevealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
 		tableRevealer.set_reveal_child(True)
+		tableRevealer.set_valign(Gtk.Align.END)
 		tableRevealer.show_all()
+
+		#creating renderers overlay
+		overlay = Gtk.Overlay()
+		overlay.add(rend)
+		holder = Placeholder("face-smirk-symbolic", "Нет программ для анализа, но их можно добавить!", 72)
+		overlay.add_overlay(holder)
+
+		#add menu button to header bar
+		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True)
+		menuBtn.set_image(create_icon_from_name("open-menu-symbolic"))
+		menuBtn.set_property("has-tooltip", True)
+		menuBtn.set_tooltip_text("Меню")
+		popover = Gtk.PopoverMenu()
+		darkThemeCheck = Gtk.CheckButton(label='Использовать тёмное оформление')
+		darkThemeCheck.show()
+		darkThemeCheck.connect('toggled', self.on_dark_theme_check)
+		popover.add(darkThemeCheck)
+		menuBtn.set_popover(popover)
+		hb.pack_end(menuBtn)
 
 		#add prgtbl button to header bar
 		showTableBtn = Gtk.ToggleButton(always_show_image=True, name="table_btn")
-		icon = Gio.ThemedIcon(name="go-bottom-symbolic")
-		image = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
-		showTableBtn.set_image(image)
+		showTableBtn.set_active(True)
+		showTableBtn.set_image(create_icon_from_name("view-list-symbolic"))
 		showTableBtn.set_property("has-tooltip", True)
 		#connect to the callback function of the tooltip
 		showTableBtn.connect("query-tooltip", self.tooltip_callback)
@@ -55,9 +108,8 @@ class MyWindow(Gtk.Window):
 		grid.set_column_spacing(constants.DEF_COL_SPACING)
 		grid.set_row_spacing(constants.DEF_ROW_SPACING)
 		#attach - left, top, width, height
-		grid.attach(toolbar, 0, 0, 1, 2)
-		grid.attach(rend, 1, 0, 1, 1)
-		grid.attach(tableRevealer, 1, 1, 1, 1)
+		grid.attach(overlay, 0, 0, 1, 1)
+		grid.attach(tableRevealer, 0, 1, 1, 1)
 		#set grid alignment
 		grid.set_valign(Gtk.Align.FILL)
 
@@ -67,8 +119,8 @@ class MyWindow(Gtk.Window):
 		stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
 		stack.add_titled(grid, "cur_results", "Текущие результаты")
 		unavailable = "Ведётся разработка интерфейса. Окно временно недоступно."
-		stack.add_titled(Gtk.Label(label=unavailable), "plots", "Графики")
-		stack.add_titled(Gtk.Label(label=unavailable), "all_results", "Общие результаты")
+		stack.add_titled(Placeholder("action-unavailable-symbolic", unavailable, 72), "plots", "Графики")
+		stack.add_titled(Placeholder("action-unavailable-symbolic", unavailable, 72), "all_results", "Общие результаты")
 		#add stack switcher
 		switch = Gtk.StackSwitcher()
 		switch.set_stack(stack)
@@ -79,6 +131,15 @@ class MyWindow(Gtk.Window):
 		#get start button
 		startBtn = toolbar.get_nth_item(0)
 		startBtn.connect('clicked', self.on_start_clicked)
+		#get analysis settings button
+		progSelectBtn = toolbar.get_nth_item(1)
+		progSelectBtn.connect('clicked', self.on_prog_select_clicked)
+		#get rf settings
+		rfSetBtn = toolbar.get_nth_item(2)
+		rfSetBtn.connect('clicked', self.on_rf_set_clicked)
+		#get analysis settings button
+		analysisSetBtn = toolbar.get_nth_item(3)
+		analysisSetBtn.connect('clicked', self.on_analysis_set_clicked)
 		#get dump button from toolbar
 		dumpBtn = toolbar.get_nth_item(4)
 		dumpBtn.connect('clicked', self.on_dump_clicked)
@@ -86,8 +147,16 @@ class MyWindow(Gtk.Window):
 		aboutBtn = toolbar.get_nth_item(5)
 		aboutBtn.connect('clicked', self.on_about_clicked)
 
+		hbox = Gtk.Grid()
+		hbox.attach(toolbar, 0, 0, 1, 1)
+		hbox.attach(stack, 1, 0, 1, 1)
+		hbox.set_row_spacing(constants.DEF_ROW_SPACING)
+		hbox.set_column_spacing(constants.DEF_COL_SPACING)
+		hbox.set_vexpand(True)
+		hbox.set_valign(Gtk.Align.FILL)
+
 		#top window can have only one widget - this is Gtk.Stack in our case
-		self.add(stack)
+		self.add(hbox)
 
 	#on reveal table button (in header bar) clicked
 	def reveal_child(self, button, revealer):
@@ -95,7 +164,7 @@ class MyWindow(Gtk.Window):
 
 	#tooltip callback for reveal table button (in header bar)
 	def tooltip_callback(self, widget, x, y, keyboad_mode, tooltip):
-		if widget.get_active() == False:
+		if widget.get_active() == True:
 			tooltip.set_text("Скрыть таблицу результатов")
 		else:
 			tooltip.set_text("Показать таблицу результатов")
@@ -115,17 +184,18 @@ class MyWindow(Gtk.Window):
 	#return flowbox with renderers
 	def get_renderers_grid(self):
 		curResultsPage = self.get_cur_results_page()
-		return curResultsPage.get_child_at(1, 0)
+		overlay = curResultsPage.get_child_at(0, 0)
+		return overlay.get_child()
 
 	def get_prog_table(self):
 		curResultsPage = self.get_cur_results_page()
-		revealer = curResultsPage.get_child_at(1,1)
+		revealer = curResultsPage.get_child_at(0,1)
 		return revealer.get_child()
-
 
 	#returns first stack page (cur results)
 	def get_cur_results_page(self):
-		stack = self.get_child()
+		grid = self.get_child()
+		stack = grid.get_child_at(1, 0)
 		return stack.get_child_by_name("cur_results")
 
 	#start button was clicked
@@ -133,23 +203,23 @@ class MyWindow(Gtk.Window):
 		hb = widget.get_parent()
 		hb.change_start_icon(widget)
 
-
 	#prog select button was clicked
 	def on_prog_select_clicked(self, widget):
+		progDlg = progselectdlg.ProgSelectDlg()
+		progDlg.set_transient_for(self)
+		progDlg.show()
+
+	#rf settings button was clicked
+	def on_rf_set_clicked(self, widget):
 		pass
 
 	#analysis settings button was clicked
 	def on_analysis_set_clicked(self, widget):
 		pass
 
-	#dump button was clicked (temporary for drawing renderers)
+	#dump button was clicked
 	def on_dump_clicked(self, widget):
-		num = self.edit.get_text()
-		flowbox = self.get_renderers_grid()
-		flowbox.draw_renderers(int(num))
-
-		table = self.get_prog_table()
-		table.add_rows(int(num))
+		pass
 
 	#about button was clicked
 	def on_about_clicked(self, widget):
@@ -159,7 +229,41 @@ class MyWindow(Gtk.Window):
 		if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
 			aboutDlg.hide()
 
-win = MyWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.show_all()
-Gtk.main()
+	def on_dark_theme_check(self, widget):
+		settings = Gtk.Settings.get_default()
+		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())
+
+	def on_entry_enter(self, widget):
+		num = self.edit.get_text()
+
+		page = self.get_cur_results_page()
+		overlay = page.get_child_at(0, 0)
+		children = overlay.get_children()
+		if num == "" or int(num) == 0 :
+			children[1].show()
+			progNum = 0
+		else:
+			children[1].hide()
+			progNum = int(num)
+
+		flowbox = self.get_renderers_grid()
+		flowbox.draw_renderers(progNum)
+
+		table = self.get_prog_table()
+		table.add_rows(progNum, table.test)
+
+class MyApplication(Gtk.Application):
+
+	def __init__(self):
+		Gtk.Application.__init__(self)
+
+	def do_activate(self):
+		win = MyWindow(self)
+		win.show_all()
+
+	def do_startup(self):
+		Gtk.Application.do_startup(self)
+
+app = MyApplication()
+exit_status = app.run(sys.argv)
+sys.exit(exit_status)
