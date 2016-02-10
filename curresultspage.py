@@ -24,6 +24,7 @@ class CurResultsPage(Gtk.Grid):
 
 		#creating prog table
 		prgtbl = progtable.ProgramTable(progNum)
+		prgtbl.add_rows(0, prgtbl.test)
 
 		#creating prog table revealer
 		tableRevealer = Gtk.Revealer()

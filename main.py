@@ -25,9 +25,10 @@ class MyWindow(Gtk.ApplicationWindow):
 		self.set_border_width(constants.DEF_BORDER)
 		#set maximized
 		self.maximize()
+		self.set_resizable(False)
 		#can't resize window by double click on header bar
 		settings = Gtk.Settings.get_default()
-		#settings.set_property("gtk-titlebar-double-click", 'none')
+		settings.set_property("gtk-titlebar-double-click", 'none')
 
   		#add header bar to the window
 		hb = Gtk.HeaderBar()
@@ -169,9 +170,11 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	#prog select button was clicked
 	def on_prog_select_clicked(self, widget):
-		progDlg = progselectdlg.ProgSelectDlg()
-		progDlg.set_transient_for(self)
-		progDlg.show()
+		progDlg = progselectdlg.ProgSelectDlg(self)
+		#progDlg.set_transient_for(self)
+		responce = progDlg.run()
+
+		progDlg.destroy()
 
 	#rf settings button was clicked
 	def on_rf_set_clicked(self, widget):
@@ -215,7 +218,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		else:
 			children[1].hide()
 			table.show_all()
-			num = int(num)
+			num = int(progNum)
 
 		flowbox = self.get_renderers_grid()
 		flowbox.draw_renderers(num)
