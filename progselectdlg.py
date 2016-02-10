@@ -12,7 +12,6 @@ class ProgSelectDlg(Gtk.Dialog):
 		self.set_border_width(constants.DEF_BORDER)
 		#self.set_resizable(False)
 		self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
-		self.set_property('use-header-bar', 1)
 		self.set_default_size(500,0)
 
 		#custom header bar

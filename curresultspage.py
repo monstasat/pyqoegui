@@ -16,7 +16,7 @@ class CurResultsPage(Gtk.Grid):
 		#creating renderers overlay
 		overlay = Gtk.Overlay()
 		overlay.add(rend)
-		holder = Placeholder("face-smirk-symbolic", 'Не выбрано программ для анализа. Но их можно добавить!', 72)
+		holder = Placeholder("face-smirk-symbolic", 'Нет анализируемых программ :( \nНо их можно добавить в меню "Выбор программ для анализа"!', 72)
 		overlay.add_overlay(holder)
 		overlay.set_valign(Gtk.Align.FILL)
 		overlay.set_hexpand(True)

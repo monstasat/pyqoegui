@@ -91,8 +91,8 @@ class MyWindow(Gtk.ApplicationWindow):
 
 		#add prgtbl button to header bar
 		showTableBtn = Gtk.ToggleButton(always_show_image=True, name="table_btn")
-		showTableBtn.set_active(True)
-		showTableBtn.set_image(create_icon_from_name("view-list-symbolic"))
+		showTableBtn.set_active(False)
+		showTableBtn.set_image(create_icon_from_name("pan-down-symbolic"))
 		showTableBtn.set_property("has-tooltip", True)
 		#connect to the callback function of the tooltip
 		showTableBtn.connect("query-tooltip", self.tooltip_callback)
@@ -125,7 +125,7 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	#tooltip callback for reveal table button (in header bar)
 	def tooltip_callback(self, widget, x, y, keyboad_mode, tooltip):
-		if widget.get_active() == True:
+		if widget.get_active() == False:
 			tooltip.set_text("Скрыть таблицу результатов")
 		else:
 			tooltip.set_text("Показать таблицу результатов")
