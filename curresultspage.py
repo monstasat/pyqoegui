@@ -1,10 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
 from gi.repository import Gtk, Gio
 
 import constants
 import renderer
 import progtable
-from placeholder import Placeholder
+from constants import Placeholder
 
 class CurResultsPage(Gtk.Grid):
 	def __init__(self, progNum):

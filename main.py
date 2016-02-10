@@ -10,10 +10,11 @@ import progselectdlg
 import curresultspage
 import plotpage
 import allrespage
+import basedialog
 
 from constants import create_icon_from_name
 from aboutdlg import AtsAboudDlg
-from placeholder import Placeholder
+from constants import Placeholder
 
 class MyWindow(Gtk.ApplicationWindow):
 
@@ -171,14 +172,15 @@ class MyWindow(Gtk.ApplicationWindow):
 	#prog select button was clicked
 	def on_prog_select_clicked(self, widget):
 		progDlg = progselectdlg.ProgSelectDlg(self)
-		#progDlg.set_transient_for(self)
 		responce = progDlg.run()
-
 		progDlg.destroy()
 
 	#rf settings button was clicked
 	def on_rf_set_clicked(self, widget):
-		pass
+		rfDlg = basedialog.BaseDialog("Настройки тюнера", self)
+		rfDlg.show_all()
+		responce = rfDlg.run()
+		rfDlg.destroy()
 
 	#analysis settings button was clicked
 	def on_analysis_set_clicked(self, widget):

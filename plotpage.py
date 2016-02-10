@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
 from gi.repository import Gtk, Gio
 
 import constants
-from placeholder import Placeholder
+from constants import Placeholder
 
 class PlotPage(Gtk.VBox):
 	def __init__(self):

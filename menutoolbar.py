@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
 from gi.repository import Gtk, Gio
 
 from constants import create_icon_from_name
