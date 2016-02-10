@@ -47,7 +47,6 @@ class Renderer(Gtk.FlowBox):
 		Gtk.FlowBox.__init__(self)
 
 		##should be horizontally expandable and fill all available space
-		self.set_hexpand_set(True)
 		self.set_hexpand(True)
 		self.set_halign(Gtk.Align.FILL)
 		self.set_valign(Gtk.Align.FILL)

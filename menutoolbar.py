@@ -8,6 +8,10 @@ from constants import toolbar_buttons_text
 ico_arr = ["media-playback-start", "video-display", "network-wireless", "gnome-tweak-tool",
 	   "drive-harddisk", "help-about"]
 
+ico_arr = ["media-playback-start-symbolic", "tv-symbolic", "network-wireless-symbolic", "gnome-tweak-tool-symbolic",
+	   "drive-harddisk-symbolic", "help-about-symbolic"]
+
+
 #button tooltip text
 tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
 		"Настройки ТВ тюнера",
@@ -58,13 +62,13 @@ class BtnToolbar(Gtk.Toolbar):
 			#change label and icon of toolbutton
 			tooltip_arr[0] = "Остановить анализ"
 			widget.set_label("Стоп")
-			widget.set_icon_widget(create_icon_from_name("media-playback-stop"))
+			widget.set_icon_widget(create_icon_from_name("media-playback-stop-symbolic"))
 		#if current state is "stop"
 		else:
 			#change label and icon of toolbutton
 			tooltip_arr[0] = "Запустить анализ"
 			widget.set_label("Старт")
-			widget.set_icon_widget(create_icon_from_name("media-playback-start"))
+			widget.set_icon_widget(create_icon_from_name("media-playback-start-symbolic"))
 		widget.set_tooltip_text(tooltip_arr[0])
 
 		

@@ -49,11 +49,11 @@ class ProgramTable(Gtk.TreeView):
 		Gtk.TreeView.__init__(self)
 
 		#our table should be horizontally expandable
-		self.set_hexpand_set(True)
 		self.set_hexpand(True)
 		self.set_halign(Gtk.Align.FILL)
 
 		#our table should be attached to the bottom of main app window
+		self.set_vexpand(False)
 		self.set_valign(Gtk.Align.END)
 
 		#table should be with horizontal and vertical lines that divide cells

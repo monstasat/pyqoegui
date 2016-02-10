@@ -7,46 +7,26 @@ import menutoolbar
 import progtable
 import renderer
 import progselectdlg
+import curresultspage
+import plotpage
+import allrespage
 
 from constants import create_icon_from_name
 from aboutdlg import AtsAboudDlg
-
-class Placeholder(Gtk.VBox):
-
-	#init func
-	def __init__(self, ico_name, label_text, size):
-		Gtk.VBox.__init__(self)
-
-		#set alignment
-		self.set_valign(Gtk.Align.CENTER)
-		self.set_halign(Gtk.Align.CENTER)
-		self.set_spacing(constants.DEF_ROW_SPACING)
-
-		#construct image
-		image = Gtk.Image()
-		image.set_from_icon_name(ico_name, Gtk.IconSize.DIALOG)
-		image.set_pixel_size(size)
-		styleContext = image.get_style_context()
-		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
-
-		#construct label
-		label = Gtk.Label(label=label_text)
-		styleContext = label.get_style_context()
-		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
-
-		#add elements to vbox
-		self.add(image)
-		self.add(label)
-
+from placeholder import Placeholder
 
 class MyWindow(Gtk.ApplicationWindow):
 
 	edit = Gtk.Entry()
 	def __init__(self, app):
 		Gtk.Window.__init__(self, title="Анализатор АТС-3", application=app)
+
+		#main window border width
 		self.set_border_width(constants.DEF_BORDER)
-		#self.connect("delete-event", Gtk.main_quit)
+		#set maximized
 		self.maximize()
+		#can't resize window by double click on header bar
+		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
   		#add header bar to the window
@@ -58,27 +38,6 @@ class MyWindow(Gtk.ApplicationWindow):
 		#temp
 		self.edit.connect('activate', self.on_entry_enter)
 		hb.pack_end(self.edit)
-
-		#creating left side bar with buttons
-		toolbar = menutoolbar.BtnToolbar()
-		#creating prog table
-		prgtbl = progtable.ProgramTable(0)
-
-		#creating renderers
-		rend = renderer.Renderer(0)
-		#creating prog table revealer
-		tableRevealer = Gtk.Revealer()
-		tableRevealer.add(prgtbl)
-		tableRevealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
-		tableRevealer.set_reveal_child(True)
-		tableRevealer.set_valign(Gtk.Align.END)
-		tableRevealer.show_all()
-
-		#creating renderers overlay
-		overlay = Gtk.Overlay()
-		overlay.add(rend)
-		holder = Placeholder("face-smirk-symbolic", "Нет программ для анализа, но их можно добавить!", 72)
-		overlay.add_overlay(holder)
 
 		#add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True)
@@ -93,6 +52,42 @@ class MyWindow(Gtk.ApplicationWindow):
 		menuBtn.set_popover(popover)
 		hb.pack_end(menuBtn)
 
+		#create stack pages
+		pages = []
+		pages.append((curresultspage.CurResultsPage(0), "cur_results", "Текущие результаты"))
+		pages.append((plotpage.PlotPage(), "plots", "Графики"))
+		pages.append((allrespage.AllResPage(), "all_results", "Общие результаты"))
+
+		#create stack
+		stack = Gtk.Stack()
+		stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+		#add pages to stack
+		for i in pages:
+			stack.add_titled(i[0], i[1], i[2])
+
+		#create stack switcher
+		switch = Gtk.StackSwitcher()
+		switch.set_stack(stack)
+		#add callback when page is switched
+		stack.connect("notify::visible-child", self.page_switched)
+		#add stack switcher to the header bar
+		hb.set_custom_title(switch)
+
+		#creating left side bar with buttons
+		toolbar = menutoolbar.BtnToolbar()
+
+		#main window grid
+		mainGrid = Gtk.Grid()
+		mainGrid.attach(toolbar, 0, 0, 1, 1)
+		mainGrid.attach(stack, 1, 0, 1, 1)
+		mainGrid.set_row_spacing(constants.DEF_ROW_SPACING)
+		mainGrid.set_column_spacing(constants.DEF_COL_SPACING)
+		mainGrid.set_halign(Gtk.Align.FILL)
+		mainGrid.set_valign(Gtk.Align.FILL)
+
+		#top window can have only one widget - this is Gtk.Stack in our case
+		self.add(mainGrid)
+
 		#add prgtbl button to header bar
 		showTableBtn = Gtk.ToggleButton(always_show_image=True, name="table_btn")
 		showTableBtn.set_active(True)
@@ -100,32 +95,8 @@ class MyWindow(Gtk.ApplicationWindow):
 		showTableBtn.set_property("has-tooltip", True)
 		#connect to the callback function of the tooltip
 		showTableBtn.connect("query-tooltip", self.tooltip_callback)
-		showTableBtn.connect("clicked", self.reveal_child, tableRevealer)
+		showTableBtn.connect("clicked", self.reveal_child, self.get_table_revealer())
 		hb.pack_end(showTableBtn)
-
-		#main gui grid
-		grid = Gtk.Grid()
-		grid.set_column_spacing(constants.DEF_COL_SPACING)
-		grid.set_row_spacing(constants.DEF_ROW_SPACING)
-		#attach - left, top, width, height
-		grid.attach(overlay, 0, 0, 1, 1)
-		grid.attach(tableRevealer, 0, 1, 1, 1)
-		#set grid alignment
-		grid.set_valign(Gtk.Align.FILL)
-
-		#add page switcher (Gtk.StackSwitcher) to the header bar
-		#add stack
-		stack = Gtk.Stack()
-		stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-		stack.add_titled(grid, "cur_results", "Текущие результаты")
-		unavailable = "Ведётся разработка интерфейса. Окно временно недоступно."
-		stack.add_titled(Placeholder("action-unavailable-symbolic", unavailable, 72), "plots", "Графики")
-		stack.add_titled(Placeholder("action-unavailable-symbolic", unavailable, 72), "all_results", "Общие результаты")
-		#add stack switcher
-		switch = Gtk.StackSwitcher()
-		switch.set_stack(stack)
-		stack.connect("notify::visible-child", self.page_switched)
-		hb.set_custom_title(switch)
 
 		#connect buttons to events
 		#get start button
@@ -146,17 +117,6 @@ class MyWindow(Gtk.ApplicationWindow):
 		#get about button from toolbar
 		aboutBtn = toolbar.get_nth_item(5)
 		aboutBtn.connect('clicked', self.on_about_clicked)
-
-		hbox = Gtk.Grid()
-		hbox.attach(toolbar, 0, 0, 1, 1)
-		hbox.attach(stack, 1, 0, 1, 1)
-		hbox.set_row_spacing(constants.DEF_ROW_SPACING)
-		hbox.set_column_spacing(constants.DEF_COL_SPACING)
-		hbox.set_vexpand(True)
-		hbox.set_valign(Gtk.Align.FILL)
-
-		#top window can have only one widget - this is Gtk.Stack in our case
-		self.add(hbox)
 
 	#on reveal table button (in header bar) clicked
 	def reveal_child(self, button, revealer):
@@ -186,6 +146,10 @@ class MyWindow(Gtk.ApplicationWindow):
 		curResultsPage = self.get_cur_results_page()
 		overlay = curResultsPage.get_child_at(0, 0)
 		return overlay.get_child()
+
+	def get_table_revealer(self):
+		curResultsPage = self.get_cur_results_page()
+		return curResultsPage.get_child_at(0, 1)
 
 	def get_prog_table(self):
 		curResultsPage = self.get_cur_results_page()
@@ -235,22 +199,28 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	def on_entry_enter(self, widget):
 		num = self.edit.get_text()
+		self.on_new_prog_list(num)
 
+	def on_new_prog_list(self, progNum):
 		page = self.get_cur_results_page()
+		table = self.get_prog_table()
+
 		overlay = page.get_child_at(0, 0)
 		children = overlay.get_children()
-		if num == "" or int(num) == 0 :
+
+		if progNum == "" or int(progNum) == 0 :
 			children[1].show()
-			progNum = 0
+			table.hide()
+			num = 0
 		else:
 			children[1].hide()
-			progNum = int(num)
+			table.show_all()
+			num = int(num)
 
 		flowbox = self.get_renderers_grid()
-		flowbox.draw_renderers(progNum)
+		flowbox.draw_renderers(num)
 
-		table = self.get_prog_table()
-		table.add_rows(progNum, table.test)
+		table.add_rows(num, table.test)
 
 class MyApplication(Gtk.Application):
 
