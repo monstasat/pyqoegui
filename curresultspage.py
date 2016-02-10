@@ -15,25 +15,18 @@ class CurResultsPage(Gtk.Grid):
 		rend = renderer.Renderer(progNum)
 
 		#creating renderers overlay
-		overlay = Gtk.Overlay()
+		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
 		overlay.add(rend)
 		holder = Placeholder("face-smirk-symbolic", 'Нет анализируемых программ :( \nНо их можно добавить в меню "Выбор программ для анализа"!', 72)
 		overlay.add_overlay(holder)
-		overlay.set_valign(Gtk.Align.FILL)
-		overlay.set_hexpand(True)
-		overlay.set_vexpand(True)
 
 		#creating prog table
 		prgtbl = progtable.ProgramTable(progNum)
-		prgtbl.add_rows(0, prgtbl.test)
+		prgtbl.add_rows(progNum, prgtbl.test)
 
 		#creating prog table revealer
-		tableRevealer = Gtk.Revealer()
+		tableRevealer = Gtk.Revealer(reveal_child=True, valign=Gtk.Align.END, transition_type=Gtk.RevealerTransitionType.SLIDE_UP)
 		tableRevealer.add(prgtbl)
-		tableRevealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
-		tableRevealer.set_reveal_child(True)
-		tableRevealer.set_valign(Gtk.Align.END)
-		tableRevealer.hide()
 
 		#attach - left, top, width, height
 		self.attach(overlay, 0, 0, 1, 1)

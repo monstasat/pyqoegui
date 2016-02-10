@@ -16,25 +16,19 @@ class RendererOne(Gtk.Grid):
 		self.set_valign(Gtk.Align.FILL)
 
 		#creating renderer window - drawing area
-		drawarea = Gtk.DrawingArea()
+		drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		#minimum renderer size (4:3)
 		drawarea.set_size_request(100,75)
-		#horizontally and vertically expandable - should fill all free area of the grid
-		drawarea.set_hexpand(True)
-		drawarea.set_vexpand(True)
 		#setting initial renderer color
 		color = Gdk.color_parse("black")
 		rgba = Gdk.RGBA.from_color(color)
 		drawarea.override_background_color(0, rgba)
 
-		#creating volume button
-		volbtn = Gtk.VolumeButton()
-		#place at the right edge of a renderer instance
-		volbtn.set_halign(Gtk.Align.END)
+		#creating volume button at the right edge of a renderer instance
+		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END)
 
 		#creating a program label
-		progname = Gtk.Label(label=constants.prog_names[index])
-		progname.set_halign(Gtk.Align.END)
+		progname = Gtk.Label(label=constants.prog_names[index], halign=Gtk.Align.END)
 
 		#attach elements to grid
 		self.attach(drawarea, 0, 0, 2, 1)

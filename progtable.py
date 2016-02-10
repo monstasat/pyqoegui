@@ -74,7 +74,7 @@ class ProgramTable(Gtk.TreeView):
 			#3rd column is a progress bar for lufs levels
 			if i == 4:
 				renderer = Gtk.CellRendererProgress()
-				renderer.props.inverted = True
+				#renderer.props.inverted = True
 				column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i)
 			#other colums are text labels
 			else:

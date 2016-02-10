@@ -5,8 +5,8 @@ from gi.repository import Gtk, Gio
 import constants
 
 class BaseDialog(Gtk.Dialog):
-	def __init__(self, title, parent):
-		Gtk.Dialog.__init__(self, title, parent, Gtk.DialogFlags.USE_HEADER_BAR)
+	def __init__(self, myTitle, parent):
+		Gtk.Dialog.__init__(self, myTitle, parent, Gtk.DialogFlags.USE_HEADER_BAR)
 		self.set_modal(True)
 		self.set_border_width(constants.DEF_BORDER)
 		#self.set_resizable(False)
@@ -14,10 +14,9 @@ class BaseDialog(Gtk.Dialog):
 		self.set_default_size(500, 500)
 
 		#custom header bar
-		header = Gtk.HeaderBar()
+		header = Gtk.HeaderBar(title=myTitle)
 		#not showing 'x' at the header bar
 		header.set_show_close_button(False)
-		header.set_title(title)
 		cancelBtn = Gtk.Button(stock=Gtk.STOCK_CANCEL)
 		cancelBtn.connect('clicked', self.on_btn_clicked_cancel)
 		#cancelBtn.get_style_context().add_class(Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION)
