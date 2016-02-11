@@ -167,6 +167,8 @@ class MyWindow(Gtk.ApplicationWindow):
 	def on_prog_select_clicked(self, widget):
 		progDlg = progselectdlg.ProgSelectDlg(self)
 		responce = progDlg.run()
+		if responce == Gtk.ResponseType.APPLY:
+			print(progDlg.get_prog_list())
 		progDlg.destroy()
 
 	#rf settings button was clicked

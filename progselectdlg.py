@@ -7,10 +7,20 @@ import basedialog
 
 btn_txt = [">", ">>", "<", "<<"]
 
-tree_icons = {"ts" : "view-grid-symbolic",
+TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 							"program" : "applications-multimedia-symbolic",
-							"video" : "video-x-generic-symbolic",
-							"audio" : "audio-x-generic-symbolic",}
+							"0" : "video-x-generic-symbolic",
+							"1" : "audio-x-generic-symbolic",}
+
+prglist = "0:*:2010:11 РЕН-ТВ:РТРС:2:2011:0:h264:0:2012:1:aac:0:1234:0:*:2020:12 Спас:РТРС:2:2021:0:h264:0:2022:1:aac:0:1234:1	"
+
+TREE_ICONS = {"ts" : "view-grid-symbolic",
+							"program" : "applications-multimedia",
+							"0" : "video-x-generic",
+							"1" : "audio-x-generic",}
+
+PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
+PID_PARAMS = {}
 
 class ProgSelectDlg(basedialog.BaseDialog):
 
@@ -31,19 +41,22 @@ class ProgSelectDlg(basedialog.BaseDialog):
 			buttonBox.add(Gtk.Button(label=btn_txt[i]))
 
 		#packing elements to dialog
-		box = Gtk.Box()
+		box = Gtk.Box(vexpand=True, hexpand=True,
+									halign=Gtk.Align.FILL, valign=Gtk.Align.FILL)
 		box.set_spacing(constants.DEF_COL_SPACING)
-		box.add(ProgList())
-		#box.add(buttonBox)
-		#box.add(ProgList())
-		box.set_halign(Gtk.Align.FILL)
-		box.set_valign(Gtk.Align.FILL)
-		box.set_hexpand(True)
-		box.set_vexpand(True)
+		progList = ProgList()
+		box.add(progList)
 
+		#add box container to mainBox
 		mainBox.add(box)
 
 		self.show_all()
+
+	def on_btn_clicked_apply(self, widget):
+		basedialog.BaseDialog.on_btn_clicked_apply(self, widget)
+
+	def get_prog_list(self):
+		return "assumed that prog list will be here in the nearest future"
 
 class ProgList(Gtk.TreeView):
 
@@ -60,13 +73,10 @@ class ProgList(Gtk.TreeView):
 		#data stored in treeview
 		#icon, name, is_analyzed
 		store = Gtk.TreeStore(str, str, bool)
-		#fill the model
-		for i in range(1):
-			piter = store.append(None, [tree_icons["ts"], "TS 1", False])
-			for j in range(1):
-				ppiter = store.append(piter, [tree_icons["program"], "11 РЕН-ТВ", False])
-				for k in range(2):
-					store.append(ppiter, [tree_icons["audio"], "PID 2011", True])
+		#set the model
+		self.set_model(store)
+
+		self.show_prog_list(prglist)
 
 		#the cellrenderer for the first column - icon
 		renderer_icon = Gtk.CellRendererPixbuf()
@@ -92,20 +102,59 @@ class ProgList(Gtk.TreeView):
 		self.append_column(column_prog)
 
 		#create second column
-		column_check = Gtk.TreeViewColumn("Анализировать?", renderer_check, active=1)
+		column_check = Gtk.TreeViewColumn("Анализировать?", renderer_check, active=2)
 		column_check.set_alignment(0.5)
 		column_check.set_expand(False)
 		#column_check.pack_start(renderer_check, False)
 		#append second column
 		self.append_column(column_check)
 
-		#set the model
-		self.set_model(store)
+		self.show_all()
+
+	def show_prog_list(self, progList):
+		#get tree model
+		store = self.get_model()
+		store.clear()
+
+		progs = progList.split(':*:')
+
+		#stream id
+			#num
+			#name
+			#provider
+			#pids num
+				#pid
+				#pid type
+				#codec name
+				#to be analyzed
+			#xid
+			#to be analyzed
+
+		#fill the model
+		piter = store.append(None, [TREE_ICONS["ts"], "Поток №"+str(int(progs[0])+1), False])
+		for i, prog in enumerate(progs[1:]):
+
+			#get prog params
+			progParams = prog.split(':')
+			progName = progParams[PROG_PARAMS['prog_name']]
+			provName = progParams[PROG_PARAMS['prov_name']]
+			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
+			progAnalyzed = bool(progParams[4 + 4 + 1])
+
+			ppiter = store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), progAnalyzed])
+			for j in range(pidsNum):
+				pid = progParams[4 + j*4]
+				pidType = progParams[5 + j*4]
+				codecName = progParams[6 + j*4]
+				pidAnalyzed = bool(progParams[7 + j*4])
+				print(pid)
+				store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , pidAnalyzed])
 
 		#open all program rows
 		for row in range(len(store)):
 			path = Gtk.TreePath(row)
 			self.expand_row(path, False)
 
+	def pack_prog_list_to_string(self):
+		pass
 
-		self.show_all()
