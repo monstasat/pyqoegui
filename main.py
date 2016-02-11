@@ -24,11 +24,11 @@ class MyWindow(Gtk.ApplicationWindow):
 
 		#main window border width
 		self.set_border_width(constants.DEF_BORDER)
-		self.maximize()
+		#self.maximize()
 		#self.set_resizable(False)
 		#can't resize window by double click on header bar
 		settings = Gtk.Settings.get_default()
-		settings.set_property("gtk-titlebar-double-click", 'none')
+		#settings.set_property("gtk-titlebar-double-click", 'none')
 
   		#add header bar to the window
 		hb = Gtk.HeaderBar(title="Анализатор АТС-3")
@@ -96,7 +96,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		#get start button
 		btnCallbacks = [self.on_start_clicked, self.on_prog_select_clicked,
 						self.on_rf_set_clicked, self.on_analysis_set_clicked,
-						self.on_dump_clicked]
+						self.on_dump_clicked, self.on_about_clicked]
 		btns = toolbar.get_children()
 		for i, func in enumerate(btnCallbacks):
 			btns[i].connect('clicked', func)
@@ -186,8 +186,7 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	#about button was clicked
 	def on_about_clicked(self, widget):
-		aboutDlg = AtsAboudDlg()
-		aboutDlg.set_transient_for(self)
+		aboutDlg = AtsAboudDlg(self)
 		responce = aboutDlg.run()
 		if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
 			aboutDlg.hide()

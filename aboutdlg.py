@@ -5,8 +5,8 @@ import constants
 
 #about ats analyzer dialog based on Gtk.AboutDialog
 class AtsAboudDlg(Gtk.AboutDialog):
-	def __init__(self):
-		Gtk.AboutDialog.__init__(self)
+	def __init__(self, aboutParent):
+		Gtk.AboutDialog.__init__(self, parent=aboutParent)
 		#about dialog should be modal - no other windows are active
 		self.set_modal(True)
 
