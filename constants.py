@@ -11,6 +11,12 @@ DEF_PROG_NUM = 10
 #version number
 VERSION = "0.1"
 
+# dividers for string with program parameters
+
+PROG_DIVIDER = ':*:'
+PARAM_DIVIDER = '^:'
+
+# prog table column names
 heading_labels = ["№",         "Программа", 	"Громкость",
 					  "Нет видео", "Чёрный кадр",	"Заморозка",
 					  "Блочность", "Нет аудио", 	"Тихо",

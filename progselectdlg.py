@@ -10,14 +10,26 @@ TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 							"0" : "video-x- generic-symbolic",
 							"1" : "audio-x-generic-symbolic",}
 
+# stream id
+	# num
+	# name
+	# provider
+	# pids num
+		# pid
+		# pid type
+		# codec name
+		# to be analyzed
+	# xid
+	# to be analyzed
+
 prglist = "0:*:\
-2010^:11 РЕН-ТВ^:РТРС^:2^:2011^:0^:h264^:2012^:1^:aac^:1234:*:\
-2020^:12 Спас^:РТРС^:2^:2021^:0^:h264^:2022^:1^:aac^:1234:*:\
-2030^:13 Porno-TV^:РТРС^:3^:2031^:0^:h264^:2032^:1^:aac^:2033^:1^:aac^:1234:*:\
-2040^:14 Домашний^:РТРС^:2^:2041^:0^:h264^:2042^:1^:aac^:1234:*:\
-2050^:15 ТВ3^:РТРС^:2^:2051^:0^:h264^:2052^:1^:aac^:1234:*:\
-2060^:16 Пятница!^:РТРС^:2^:2061^:0^:h264^:2062^:1^:aac^:1234:*:\
-2070^:17 Радио Жесть^:РТРС^:1^:2072^:1^:aac^:1234"
+2010^:11 РЕН-ТВ^:РТРС^:2^:2011^:0^:h264^:2012^:1^:aac:*:\
+2020^:12 Спас^:РТРС^:2^:2021^:0^:h264^:2022^:1^:aac:*:\
+2030^:13 Porno-TV^:РТРС^:3^:2031^:0^:h264^:2032^:1^:aac^:2033^:1^:aac:*:\
+2040^:14 Домашний^:РТРС^:2^:2041^:0^:h264^:2042^:1^:aac:*:\
+2050^:15 ТВ3^:РТРС^:2^:2051^:0^:h264^:2052^:1^:aac:*:\
+2060^:16 Пятница!^:РТРС^:2^:2061^:0^:h264^:2062^:1^:aac:*:\
+2070^:17 Радио Жесть^:РТРС^:1^:2072^:1^:aac"
 
 TREE_ICONS = {	"ts" : "view-grid-symbolic",
 				"program" : "applications-multimedia",
@@ -52,8 +64,8 @@ class ProgSelectDlg(basedialog.BaseDialog):
 
 		basedialog.BaseDialog.on_btn_clicked_apply(self, widget)
 
-	def get_prog_list(self):
-		return self.progTree.get_prog_string()
+	def get_selected_prog_params(self):
+		return self.progTree.get_selected_prog_params()
 
 	def get_prog_num(self):
 		return self.progTree.get_prog_num()
@@ -72,12 +84,16 @@ class ProgTree(Gtk.TreeView):
 		sel = self.get_selection()
 		sel.set_mode(Gtk.SelectionMode.NONE)
 
+		#initialize prog list
+		self.curProgList = ""
+
 		# data stored in treeview
 		# icon, name, is_analyzed
 		self.store = Gtk.TreeStore(str, str, bool, bool)
 		# set the model
 		self.set_model(self.store)
 
+		#temp
 		self.show_prog_list(prglist)
 
 		# the cellrenderer for the first column - icon
@@ -115,6 +131,37 @@ class ProgTree(Gtk.TreeView):
 
 		self.show_all()
 
+	def get_selected_prog_params(self):
+
+		progNames = []
+		progNum = 0
+
+		#get root iter
+		piter = self.store.get_iter_first()
+		citer = self.store.iter_children(piter)
+
+		# get current prog string and split it into prog array, excluding first element (stream id)
+		progs = self.curProgList.split(constants.PROG_DIVIDER)[1:]
+		print(progs)
+
+		i = 0
+		while citer is not None:
+			if (self.store[citer][2] is True) or (self.store[citer][3] is True):
+				progParams = progs[i].split(constants.PARAM_DIVIDER)
+				progNames.append(progParams[PROG_PARAMS['prog_name']])
+				progNum = progNum + 1
+			citer = self.store.iter_next(citer)
+			i = i + 1
+
+		return [progNum, progNames]
+		# split top-level string
+
+		#for i, prog in enumerate(progs[1:]):
+		#	# split string with program parameters
+		#	progParams = prog.split(constants.PARAM_DIVIDER)
+
+
+
 	# show new program list received from backend
 	def show_prog_list(self, progList):
 
@@ -122,26 +169,14 @@ class ProgTree(Gtk.TreeView):
 		self.store.clear()
 
 		# split received string buffer by programs
-		progs = progList.split(':*:')
-
-		# stream id
-			# num
-			# name
-			# provider
-			# pids num
-				# pid
-				# pid type
-				# codec name
-				# to be analyzed
-			# xid
-			# to be analyzed
+		progs = progList.split(constants.PROG_DIVIDER)
 
 		# fill the model
 		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(int(progs[0])+1), False, False])
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
-			progParams = prog.split('^:')
+			progParams = prog.split(constants.PARAM_DIVIDER)
 			progName = progParams[PROG_PARAMS['prog_name']]
 			provName = progParams[PROG_PARAMS['prov_name']]
 			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
@@ -155,7 +190,8 @@ class ProgTree(Gtk.TreeView):
 				codecName = progParams[6 + j*3]
 				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False])
 
-		self.progString = progList
+		#remember current prog list and prog num
+		self.curProgList = progList
 		self.progNum = len(progs[1:])
 
 		# open all program rows
@@ -163,11 +199,8 @@ class ProgTree(Gtk.TreeView):
 			path = Gtk.TreePath(row)
 			self.expand_row(path, False)
 
-	def pack_prog_list_to_string(self):
-		pass
-
-	def get_prog_string(self):
-		return self.progString
+	def get_cur_prog_list(self):
+		return self.curProgList
 
 	def get_prog_num(self):
 		return self.progNum
@@ -307,18 +340,13 @@ class ProgTree(Gtk.TreeView):
 
 	# set default pids if program state changes to 'choosen'
 	def set_default_pids(self, pidIter):
-		# saving first pid iter
-		origIter = pidIter
-
 		# 0 - video_found, 1 - audio_found, 2 - video_selected, 3 - audio_selected
 		pid_status = self.scan_pids(pidIter)
 
 		# if no selected video pid was found and video pid present, set default pid
 		if (pid_status[2] is False) and (pid_status[0] is True):
-			pidIter = origIter
 			self.set_default_pid(pidIter, '0')
 		if (pid_status[3] is False) and (pid_status[1] is True):
-			pidIter = origIter
 			self.set_default_pid(pidIter, '1')
 
 	# sets the default pid

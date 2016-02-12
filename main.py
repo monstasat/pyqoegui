@@ -31,6 +31,8 @@ class MyWindow(Gtk.ApplicationWindow):
 		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
+		self.progDlg = None
+
 		#add header bar to the window
 		hb = Gtk.HeaderBar(title="Анализатор АТС-3")
 		self.set_titlebar(hb)
@@ -162,35 +164,23 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	#prog select button was clicked
 	def on_prog_select_clicked(self, widget):
-		progDlg = progselectdlg.ProgSelectDlg(self)
-		responce = progDlg.run()
+
+		if self.progDlg is None:
+			self.progDlg = progselectdlg.ProgSelectDlg(self)
+		responce = self.progDlg.run()
 
 		#here we receive program string
 		#should modify its content slightly
 		if responce == Gtk.ResponseType.APPLY:
-			progNum = progDlg.get_prog_num()
-			progList = progDlg.get_prog_list()
-			progs = progList.split(':*:')
+			progParams = self.progDlg.get_selected_prog_params()
 
-			progNames = []
-			for prog in progs[1:]:
-				params = prog.split('^:')
-				progNames.append(params[1])
-
-			self.on_new_prog_list(progNum, progNames)
+			self.on_new_prog_list(progParams[0], progParams[1])
 
 			renderers = self.get_renderers_grid()
 			xids = renderers.get_renderers_xid()
 
-			#for i, prog in enumerate(progs[1:]):
-			#	params = prog.split('^:')
-			#	params[4 + int(params[3])*3] = str(xids[i])
-			#	progs[i+1] = self.concatenate_string(params, '^:')
-
-			#cat_progs = self.concatenate_string(progs, ':*:')
-			#print(cat_progs)
-
-		progDlg.destroy()
+		self.progDlg.hide()
+		#progDlg.destroy()
 
 	def concatenate_string(self, arr, separator):
 		cat_str = ""
