@@ -19,38 +19,21 @@ class ProgramTable(Gtk.TreeView):
 	table_heading = []
 
 	#associates status code with a cell color
-	clrs = {'1' : '#80FF80', '2': '#FFFF80', '3': '#FF7878', '0' : 'FFFFFF'}
+	clrs = {'1' : '#80FF80', '2': '#FFFF80', '3': '#FF7878', '0' : '#CCCCCC'}
 
 	#associates status code with a cell text (temporary)
 	stattxt = {'1' : "", '2' : "Опасно", '3' : "Брак"}
 
-	test = ([1, '#FFFFFF', constants.prog_names[0], '#FFFFFF', '%g'%(-22.9), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[2, '#FFFFFF', constants.prog_names[1], '#FFFFFF', '%g'%(-20.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[3, '#FFFFFF', constants.prog_names[2], '#FFFFFF', '%g'%(-21.2), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[4, '#FFFFFF', constants.prog_names[3], '#FFFFFF', '%g'%(-19.1), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[5, '#FFFFFF', constants.prog_names[4], '#FFFFFF', '%g'%(-22.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["3"], clrs['3'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[6, '#FFFFFF', constants.prog_names[5], '#FFFFFF', '%g'%(-12.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[7, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[8, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[9, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[10, '#FFFFFF',constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[11, '#FFFFFF', constants.prog_names[1], '#FFFFFF', '%g'%(-20.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[12, '#FFFFFF', constants.prog_names[2], '#FFFFFF', '%g'%(-21.2), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[13, '#FFFFFF', constants.prog_names[3], '#FFFFFF', '%g'%(-19.1), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[14, '#FFFFFF', constants.prog_names[4], '#FFFFFF', '%g'%(-22.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["3"], clrs['3'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[15, '#FFFFFF', constants.prog_names[5], '#FFFFFF', '%g'%(-12.4), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[16, '#FFFFFF', constants.prog_names[6], '#FFFFFF', '%g'%(-32.5), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[17, '#FFFFFF', constants.prog_names[7], '#FFFFFF', '%g'%(-18.8), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[18, '#FFFFFF', constants.prog_names[8], '#FFFFFF', '%g'%(-22.6), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[19, '#FFFFFF', constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']],
-			[20, '#FFFFFF', constants.prog_names[9], '#FFFFFF', '%g'%(-20.7), '#FFFFFF', stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["2"], clrs['2'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1'], stattxt["1"], clrs['1']])
-
-	def __init__(self, progNum):
+	def __init__(self):
 		Gtk.TreeView.__init__(self)
 
 		#our table should be horizontally expandable
 		self.set_hexpand(True)
 		self.set_halign(Gtk.Align.FILL)
+
+		#remove any selections
+		sel = self.get_selection()
+		sel.set_mode(Gtk.SelectionMode.NONE)
 
 		#our table should be attached to the bottom of main app window
 		self.set_vexpand(False)
@@ -102,11 +85,20 @@ class ProgramTable(Gtk.TreeView):
 			#adding column to treeview
 			self.append_column(column)
 
-	def add_rows(self, progNum, rowsData):
+	def add_rows(self, progNum, progNames):
 		store = self.get_model()
 		store.clear()
 		for i in range(progNum):
-			treeiter = store.append(rowsData[i])
+			treeiter = store.append([i+1, '#FFFFFF',													#prog num
+															progNames[i], '#FFFFFF',							#prog name
+															'%g'%(0.0), '#FFFFFF',								#lufs level
+															self.stattxt["1"], self.clrs['0'],		#video loss
+															self.stattxt["1"], self.clrs['0'],		#black frame
+															self.stattxt["1"], self.clrs['0'],		#freeze
+															self.stattxt["1"], self.clrs['0'],		#blockiness
+															self.stattxt["1"], self.clrs['0'],		#audio loss
+															self.stattxt["1"], self.clrs['0'],		#silence
+															self.stattxt["1"], self.clrs['0']])		#loudness
 		print("rows added: " + str(progNum))
 
 	def add_single_row(self, rowNum, rowData):

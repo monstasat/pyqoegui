@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-from gi.repository import Gtk,Gdk
+from gi.repository import Gtk,Gdk, GdkX11
 
 import constants
 
 #One instance of video renderer (includes renderer window, prog name label, volume button)
 class RendererOne(Gtk.Grid):
 
-	def __init__(self, index):
+	def __init__(self, progName):
 		Gtk.Grid.__init__(self)
 
 		#should be horizontally expandable and fill all available space
@@ -16,28 +16,31 @@ class RendererOne(Gtk.Grid):
 		self.set_valign(Gtk.Align.FILL)
 
 		#creating renderer window - drawing area
-		drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
+		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		#minimum renderer size (4:3)
-		drawarea.set_size_request(100,75)
+		self.drawarea.set_size_request(100,75)
 		#setting initial renderer color
 		color = Gdk.color_parse("black")
 		rgba = Gdk.RGBA.from_color(color)
-		drawarea.override_background_color(0, rgba)
+		self.drawarea.override_background_color(0, rgba)
 
 		#creating volume button at the right edge of a renderer instance
 		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END)
 
 		#creating a program label
-		progname = Gtk.Label(label=constants.prog_names[index], halign=Gtk.Align.END)
+		progname = Gtk.Label(label=progName, halign=Gtk.Align.END)
 
 		#attach elements to grid
-		self.attach(drawarea, 0, 0, 2, 1)
+		self.attach(self.drawarea, 0, 0, 2, 1)
 		self.attach(progname, 0, 1, 1, 1)
 		self.attach(volbtn, 1, 1, 1, 1)
 
+	def get_drawing_area_xid(self):
+		return self.drawarea.get_property('window').get_xid()
+
 #A grid of video renderers
 class Renderer(Gtk.FlowBox):
-	def __init__(self, progNum):
+	def __init__(self):
 		Gtk.FlowBox.__init__(self)
 
 		##should be horizontally expandable and fill all available space
@@ -46,7 +49,7 @@ class Renderer(Gtk.FlowBox):
 		self.set_valign(Gtk.Align.FILL)
 
 		#set selection mode to None
-		self.set_selection_mode(0)
+		self.set_selection_mode(Gtk.SelectionMode.NONE)
 
 		#set rows and cols homogeneous
 		self.set_homogeneous(True)
@@ -58,11 +61,8 @@ class Renderer(Gtk.FlowBox):
 		self.set_column_spacing(constants.DEF_COL_SPACING)
 		self.set_row_spacing(constants.DEF_ROW_SPACING)
 
-		#add renderers
-		self.draw_renderers(progNum)
-
 	#draw necessary number of renderers
-	def draw_renderers(self, progNum):
+	def draw_renderers(self, progNum, progNames):
 
 		#first of all delete all previous renderers
 		self.remove_renderers()
@@ -83,7 +83,7 @@ class Renderer(Gtk.FlowBox):
 			#each renderer is placed into aspect frame widget (4:3)
 			af = Gtk.AspectFrame()
 			af.set(0.5, 0.5, 4/3, False)
-			af.add(RendererOne(i))
+			af.add(RendererOne(progNames[i]))
 			#insert renderer to flow box
 			self.insert(af, -1)
 
@@ -97,3 +97,9 @@ class Renderer(Gtk.FlowBox):
 		children = self.get_children()
 		for child in children:
 			child.destroy()
+
+	def get_renderers_xid(self):
+		xids = []
+		for child in self.get_children():
+			xids.append(child.get_children()[0].get_children()[0].get_drawing_area_xid())
+		return xids

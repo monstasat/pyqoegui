@@ -48,7 +48,7 @@ class BtnToolbar(Gtk.Toolbar):
 		self.set_orientation(Gtk.Orientation.VERTICAL)
 
 		#toolbar shouldn't expand horizontally
-		#self.set_hexpand(False)
+		self.set_hexpand(False)
 		#toolbar should expand vertically
 		self.set_vexpand(True)
 

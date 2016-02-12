@@ -12,6 +12,7 @@ import plotpage
 import allrespage
 import basedialog
 
+from functools import reduce
 from constants import create_icon_from_name
 from aboutdlg import AtsAboudDlg
 from constants import Placeholder
@@ -30,13 +31,9 @@ class MyWindow(Gtk.ApplicationWindow):
 		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
-  		#add header bar to the window
+		#add header bar to the window
 		hb = Gtk.HeaderBar(title="Анализатор АТС-3")
 		self.set_titlebar(hb)
-
-		#temp
-		self.edit.connect('activate', self.on_entry_enter)
-		hb.pack_end(self.edit)
 
 		#add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
@@ -54,7 +51,7 @@ class MyWindow(Gtk.ApplicationWindow):
 
 		#create stack pages
 		pages = []
-		pages.append((curresultspage.CurResultsPage(0), "cur_results", "Текущие результаты"))
+		pages.append((curresultspage.CurResultsPage(), "cur_results", "Текущие результаты"))
 		pages.append((plotpage.PlotPage(), "plots", "Графики"))
 		pages.append((allrespage.AllResPage(), "all_results", "Общие результаты"))
 
@@ -167,9 +164,43 @@ class MyWindow(Gtk.ApplicationWindow):
 	def on_prog_select_clicked(self, widget):
 		progDlg = progselectdlg.ProgSelectDlg(self)
 		responce = progDlg.run()
+
+		#here we receive program string
+		#should modify its content slightly
 		if responce == Gtk.ResponseType.APPLY:
-			print(progDlg.get_prog_list())
+			progNum = progDlg.get_prog_num()
+			progList = progDlg.get_prog_list()
+			progs = progList.split(':*:')
+
+			progNames = []
+			for prog in progs[1:]:
+				params = prog.split('^:')
+				progNames.append(params[1])
+
+			self.on_new_prog_list(progNum, progNames)
+
+			renderers = self.get_renderers_grid()
+			xids = renderers.get_renderers_xid()
+
+			#for i, prog in enumerate(progs[1:]):
+			#	params = prog.split('^:')
+			#	params[4 + int(params[3])*3] = str(xids[i])
+			#	progs[i+1] = self.concatenate_string(params, '^:')
+
+			#cat_progs = self.concatenate_string(progs, ':*:')
+			#print(cat_progs)
+
 		progDlg.destroy()
+
+	def concatenate_string(self, arr, separator):
+		cat_str = ""
+		for i in range(len(arr)):
+			if i < len(arr)-1:
+				cat_str = cat_str + arr[i] + separator
+			else:
+				cat_str = cat_str + arr[i]
+		return cat_str
+
 
 	#rf settings button was clicked
 	def on_rf_set_clicked(self, widget):
@@ -197,11 +228,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		settings = Gtk.Settings.get_default()
 		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())
 
-	def on_entry_enter(self, widget):
-		num = self.edit.get_text()
-		self.on_new_prog_list(num)
-
-	def on_new_prog_list(self, progNum):
+	def on_new_prog_list(self, progNum, progNames):
 		page = self.get_cur_results_page()
 		table = self.get_prog_table()
 
@@ -218,9 +245,9 @@ class MyWindow(Gtk.ApplicationWindow):
 			num = int(progNum)
 
 		flowbox = self.get_renderers_grid()
-		flowbox.draw_renderers(num)
+		flowbox.draw_renderers(num, progNames)
 
-		table.add_rows(num, table.test)
+		table.add_rows(num, progNames)
 		self.check_prog_table_visible(table)
 
 class MyApplication(Gtk.Application):

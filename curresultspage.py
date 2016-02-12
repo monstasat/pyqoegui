@@ -8,11 +8,11 @@ import progtable
 from constants import Placeholder
 
 class CurResultsPage(Gtk.Grid):
-	def __init__(self, progNum):
+	def __init__(self):
 		Gtk.Grid.__init__(self)
 
-     	#creating renderers
-		rend = renderer.Renderer(progNum)
+		#creating renderers
+		rend = renderer.Renderer()
 
 		#creating renderers overlay
 		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
@@ -21,8 +21,8 @@ class CurResultsPage(Gtk.Grid):
 		overlay.add_overlay(holder)
 
 		#creating prog table
-		prgtbl = progtable.ProgramTable(progNum)
-		prgtbl.add_rows(progNum, prgtbl.test)
+		prgtbl = progtable.ProgramTable()
+		#prgtbl.add_rows(progNum, prgtbl.test)
 
 		#creating prog table revealer
 		tableRevealer = Gtk.Revealer(reveal_child=True, valign=Gtk.Align.END, transition_type=Gtk.RevealerTransitionType.SLIDE_UP)
