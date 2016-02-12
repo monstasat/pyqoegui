@@ -44,7 +44,7 @@ class ProgSelectDlg(basedialog.BaseDialog):
 		basedialog.BaseDialog.__init__(self, "Выбор программ для анализа", parent)
 		self.set_default_size(500, 0)
 
-		#get dialog box
+		# get dialog box
 		mainBox = self.get_content_area()
 
 		# packing elements to dialog
@@ -84,7 +84,7 @@ class ProgTree(Gtk.TreeView):
 		sel = self.get_selection()
 		sel.set_mode(Gtk.SelectionMode.NONE)
 
-		#initialize prog list
+		# initialize prog list
 		self.curProgList = ""
 
 		# data stored in treeview
@@ -93,7 +93,7 @@ class ProgTree(Gtk.TreeView):
 		# set the model
 		self.set_model(self.store)
 
-		#temp
+		# temp
 		self.show_prog_list(prglist)
 
 		# the cellrenderer for the first column - icon
@@ -142,13 +142,21 @@ class ProgTree(Gtk.TreeView):
 
 		# get current prog string and split it into prog array, excluding first element (stream id)
 		progs = self.curProgList.split(constants.PROG_DIVIDER)[1:]
-		print(progs)
 
 		i = 0
 		while citer is not None:
 			if (self.store[citer][2] is True) or (self.store[citer][3] is True):
 				progParams = progs[i].split(constants.PARAM_DIVIDER)
 				progNames.append(progParams[PROG_PARAMS['prog_name']])
+
+				# iterate over program pids
+				pidNum = 0
+				piditer = self.store.iter_children(citer)
+				while piditer is not None:
+					#if pid is selected
+					if self.store[piditer][2] is True:
+						pidNum = pidNum + 1
+					piditer = self.store.iter_next(piditer)
 				progNum = progNum + 1
 			citer = self.store.iter_next(citer)
 			i = i + 1

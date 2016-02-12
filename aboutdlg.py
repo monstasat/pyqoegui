@@ -3,7 +3,7 @@ from gi.repository import Gtk, Gio
 
 import constants
 
-#about ats analyzer dialog based on Gtk.AboutDialog
+# about ats analyzer dialog based on Gtk.AboutDialog
 class AtsAboudDlg(Gtk.AboutDialog):
 	def __init__(self, aboutParent):
 		Gtk.AboutDialog.__init__(self, parent=aboutParent)
