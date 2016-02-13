@@ -100,11 +100,11 @@ class ProgTree(Gtk.TreeView):
 		sel.set_mode(Gtk.SelectionMode.NONE)
 
 		# initialize prog list
-		self.curProgList = ""
+		self.curProgList = []
 
 		# data stored in treeview
 		# icon, name, is_analyzed
-		self.store = Gtk.TreeStore(str, str, bool, bool)
+		self.store = Gtk.TreeStore(str, str, bool, bool, int)
 		# set the model
 		self.set_model(self.store)
 
@@ -155,26 +155,50 @@ class ProgTree(Gtk.TreeView):
 		piter = self.store.get_iter_first()
 		citer = self.store.iter_children(piter)
 
-		# get current prog string and split it into prog array, excluding first element (stream id)
-		progs = self.curProgList.split(constants.PROG_DIVIDER)[1:]
+		total_prog_cnt = 0
+		stream_cnt = 0
 
-		i = 0
-		while citer is not None:
-			if (self.store[citer][2] is True) or (self.store[citer][3] is True):
-				progParams = progs[i].split(constants.PARAM_DIVIDER)
-				progNames.append(progParams[PROG_PARAMS['prog_name']])
+		#iteration
+		while piter is not None:
 
-				# iterate over program pids
-				pidNum = 0
-				piditer = self.store.iter_children(citer)
-				while piditer is not None:
-					#if pid is selected
-					if self.store[piditer][2] is True:
-						pidNum = pidNum + 1
-					piditer = self.store.iter_next(piditer)
-				progNum = progNum + 1
-			citer = self.store.iter_next(citer)
-			i = i + 1
+			# prog counter in one stream
+			prog_cnt = 0
+			# get current prog string and split it into prog array, excluding first element (stream id)
+			progs = self.curProgList[stream_cnt].split(constants.PROG_DIVIDER)[1:]
+
+			#iterating over stream programs
+			while citer is not None:
+
+				print("program in list:")
+				#if program is selected
+				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
+					print("selected")
+					progParams = progs[prog_cnt].split(constants.PARAM_DIVIDER)
+					progNames.append(progParams[PROG_PARAMS['prog_name']])
+
+					pidNum = 0
+					piditer = self.store.iter_children(citer)
+
+					# iterate over program pids
+					while piditer is not None:
+						#if pid is selected
+						if self.store[piditer][2] is True:
+							pidNum = pidNum + 1
+						piditer = self.store.iter_next(piditer)
+					progNum = progNum + 1
+				else:
+					print("not selected")
+
+				citer = self.store.iter_next(citer)
+				prog_cnt = prog_cnt + 1
+				total_prog_cnt = total_prog_cnt + 1
+			# increment stream counter
+			stream_cnt = stream_cnt + 1
+			# get next stream iter
+			piter = self.store.iter_next(piter)
+			citer = self.store.iter_children(piter)
+
+		print(progNum)
 
 		return [progNum, progNames]
 		# split top-level string
@@ -189,13 +213,24 @@ class ProgTree(Gtk.TreeView):
 	def show_prog_list(self, progList):
 
 		# clear tree model
-		self.store.clear()
+		# self.store.clear()
 
 		# split received string buffer by programs
 		progs = progList.split(constants.PROG_DIVIDER)
 
+		# get stream id
+		stream_id = int(progs[0])
+
+		rootIter = self.store.get_iter_first()
+		if rootIter is not None:
+			while rootIter is not None:
+				if self.store[rootIter][4] == stream_id:
+					self.store.remove(rootIter)
+					break
+				rootIter = self.store.iter_next(rootIter)
+
 		# fill the model
-		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(int(progs[0])+1), False, False])
+		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id])
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
@@ -204,17 +239,17 @@ class ProgTree(Gtk.TreeView):
 			provName = progParams[PROG_PARAMS['prov_name']]
 			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
 
-			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False])
+			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id])
 			for j in range(pidsNum):
 
 				# get pid params
 				pid = progParams[4 + j*3]
 				pidType = progParams[5 + j*3]
 				codecName = progParams[6 + j*3]
-				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False])
+				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False, stream_id])
 
 		#remember current prog list and prog num
-		self.curProgList = progList
+		self.curProgList.append(progList)
 		self.progNum = len(progs[1:])
 
 		# open all program rows
