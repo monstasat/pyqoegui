@@ -3,6 +3,7 @@
 from gi.repository import Gtk, Gio
 
 from constants import Placeholder
+from constants import write_log_message_without_time, write_log_message
 import constants
 import basedialog
 
@@ -10,6 +11,9 @@ TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 							"program" : "applications-multimedia-symbolic",
 							"0" : "video-x- generic-symbolic",
 							"1" : "audio-x-generic-symbolic",}
+
+PID_TYPE = {"0": "video",
+			"1": "audio"}
 
 # stream id
 	# num
@@ -158,6 +162,9 @@ class ProgTree(Gtk.TreeView):
 		total_prog_cnt = 0
 		stream_cnt = 0
 
+		# write log
+		write_log_message("new programs added to analysis")
+
 		#iteration
 		while piter is not None:
 
@@ -172,22 +179,38 @@ class ProgTree(Gtk.TreeView):
 				print("program in list:")
 				#if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
-					print("selected")
 					progParams = progs[prog_cnt].split(constants.PARAM_DIVIDER)
 					progNames.append(progParams[PROG_PARAMS['prog_name']])
 
 					pidNum = 0
 					piditer = self.store.iter_children(citer)
 
+					# start forming log string
+					log_str = progParams[PROG_PARAMS['prog_name']] + "(" + progParams[PROG_PARAMS['prov_name']] + ") "
+					log_str = log_str + "with "
+
+					# total pid counter
+					total_pids_cnt = 0
 					# iterate over program pids
 					while piditer is not None:
-						#if pid is selected
+
+						# if pid is selected
 						if self.store[piditer][2] is True:
+							# read selected pid params
+							pid = progParams[4 + total_pids_cnt*3]
+							pidType = progParams[5 + total_pids_cnt*3]
+							# increment selected pids counter
 							pidNum = pidNum + 1
+							# write pid types to log
+							log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
+						# increment total pid counter
+						total_pids_cnt = total_pids_cnt + 1
 						piditer = self.store.iter_next(piditer)
+
+					# increment selected prog counter
 					progNum = progNum + 1
-				else:
-					print("not selected")
+					# write added program info to log
+					write_log_message_without_time(log_str)
 
 				citer = self.store.iter_next(citer)
 				prog_cnt = prog_cnt + 1
@@ -198,7 +221,8 @@ class ProgTree(Gtk.TreeView):
 			piter = self.store.iter_next(piter)
 			citer = self.store.iter_children(piter)
 
-		print(progNum)
+		# write total progs added number to log
+		write_log_message("total programs added: " + str(progNum))
 
 		return [progNum, progNames]
 		# split top-level string
@@ -239,6 +263,9 @@ class ProgTree(Gtk.TreeView):
 			provName = progParams[PROG_PARAMS['prov_name']]
 			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
 
+			# start prepairing log string
+			log_str = progName + " (" + provName + ") with "
+
 			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id])
 			for j in range(pidsNum):
 
@@ -246,7 +273,14 @@ class ProgTree(Gtk.TreeView):
 				pid = progParams[4 + j*3]
 				pidType = progParams[5 + j*3]
 				codecName = progParams[6 + j*3]
+
+				# add pid types to log string
+				log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
+
 				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False, stream_id])
+
+			# write prog info string to log
+			write_log_message_without_time(log_str)
 
 		#remember current prog list and prog num
 		self.curProgList.append(progList)
@@ -256,6 +290,9 @@ class ProgTree(Gtk.TreeView):
 		for row in range(len(self.store)):
 			path = Gtk.TreePath(row)
 			self.expand_row(path, False)
+
+		# write total prog num to log
+		write_log_message("total programs received: " + str(self.progNum))
 
 		# return the number of added programs
 		return self.progNum

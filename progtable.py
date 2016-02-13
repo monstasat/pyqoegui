@@ -10,6 +10,7 @@ ROWS_NUM = 1 + MAX_ANALYZED_PROG_NUM
 COLS_NUM = 3 + PARAMETERS_NUM
 
 import constants
+from constants import write_log_message
 from constants import create_icon_from_name
 
 #class for viewing current program status (such as artifacts/loudndess) in a table
@@ -99,7 +100,6 @@ class ProgramTable(Gtk.TreeView):
 															self.stattxt["1"], self.clrs['0'],		#audio loss
 															self.stattxt["1"], self.clrs['0'],		#silence
 															self.stattxt["1"], self.clrs['0']])		#loudness
-		print("rows added: " + str(progNum))
 
 	def add_single_row(self, rowNum, rowData):
 		store = self.get_model()

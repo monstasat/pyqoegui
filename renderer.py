@@ -2,6 +2,7 @@
 from gi.repository import Gtk,Gdk, GdkX11
 
 import constants
+from constants import write_log_message
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class RendererOne(Gtk.Grid):
@@ -92,8 +93,6 @@ class Renderer(Gtk.FlowBox):
 
 		# show all renderers
 		self.show_all()
-
-		print("renderers added: " + str(progNum))
 
   	# delete all renderers
 	def remove_renderers(self):

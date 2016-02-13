@@ -13,6 +13,7 @@ import allrespage
 
 from constants import create_icon_from_name
 from aboutdlg import AtsAboudDlg
+from constants import write_log_message
 
 class MyWindow(Gtk.ApplicationWindow):
 
@@ -135,20 +136,22 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	# prog select button was clicked
 	def on_prog_select_clicked(self, widget):
-		#progDlg = progselectdlg.ProgSelectDlg(self)
+
+		#run the dialog
 		responce = self.progDlg.run()
 
-		# here we receive program string
-		# should modify its content slightly
+		# if new program list was chosen
 		if responce == Gtk.ResponseType.APPLY:
 			progParams = self.progDlg.get_selected_prog_params()
 			self.cur_results_page.on_prog_list_changed(progParams[0], progParams[1])
+
+			# determine wether table revealer button should be visible
 			self.manage_table_revealer_button_visibility()
+
 			# get renderers xids from cur result page
 			xids = self.cur_results_page.get_renderers_xid()
 			print(xids)
 
-		#progDlg.destroy()
 		self.progDlg.hide()
 
 	def concatenate_string(self, arr, separator):
@@ -188,6 +191,7 @@ class MyApplication(Gtk.Application):
 
 	def __init__(self):
 		Gtk.Application.__init__(self)
+		write_log_message("application launched", True)
 
 	def incoming_callback(self, obj, conn, source, data):
 		istream = conn.get_input_stream()
@@ -201,6 +205,7 @@ class MyApplication(Gtk.Application):
 		if len(wstr) > 0:
 			# if received program list
 			if wstr[0] == 'p':
+				write_log_message("message with program list received from gstreamer pipeline")
 				self.win.progDlg.show_prog_list(wstr[1:])
 
 		#answer to client
