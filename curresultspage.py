@@ -5,7 +5,7 @@ from gi.repository import Gtk, Gio
 import constants
 import renderer
 import progtable
-from constants import Placeholder, write_log_message, write_log_message_without_time
+from constants import Placeholder
 
 class CurResultsPage(Gtk.Grid):
 	def __init__(self):

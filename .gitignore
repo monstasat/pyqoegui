@@ -3,5 +3,5 @@
 
 #but not these files
 !*.py
-!*.gitignore
+!.gitignore
 

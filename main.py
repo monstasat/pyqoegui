@@ -205,7 +205,7 @@ class MyApplication(Gtk.Application):
 		if len(wstr) > 0:
 			# if received program list
 			if wstr[0] == 'p':
-				write_log_message("message with program list received from gstreamer pipeline")
+				write_log_message("message with program list received from gstreamer pipeline (stream_id = " + wstr[1] + ")")
 				self.win.progDlg.show_prog_list(wstr[1:])
 
 		#answer to client
@@ -213,6 +213,7 @@ class MyApplication(Gtk.Application):
 
 	def do_activate(self):
 		self.win = MyWindow(self)
+		self.win.connect('delete-event', self.on_exit)
 		self.win.show_all()
 
 		# code to set some elements initially visible/invisible
@@ -227,6 +228,9 @@ class MyApplication(Gtk.Application):
 		# x - data to be passed to callback
 		server.connect("incoming", self.incoming_callback, x)
 		server.start()
+
+	def on_exit(self, event, data):
+		write_log_message("application closed")
 
 	def do_startup(self):
 		Gtk.Application.do_startup(self)

@@ -10,7 +10,6 @@ ROWS_NUM = 1 + MAX_ANALYZED_PROG_NUM
 COLS_NUM = 3 + PARAMETERS_NUM
 
 import constants
-from constants import write_log_message
 from constants import create_icon_from_name
 
 #class for viewing current program status (such as artifacts/loudndess) in a table
