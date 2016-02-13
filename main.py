@@ -28,7 +28,8 @@ class MyWindow(Gtk.ApplicationWindow):
 		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
-		self.progDlg = None
+		self.progDlg = progselectdlg.ProgSelectDlg(self)
+		self.progDlg.hide()
 
 		# add header bar to the window
 		hb = Gtk.HeaderBar(title="Анализатор АТС-3")
@@ -59,7 +60,8 @@ class MyWindow(Gtk.ApplicationWindow):
 
 		# create stack
 		self.myStack = Gtk.Stack()
-		self.myStack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+		self.myStack.set_transition_duration(200)
+		self.myStack.set_transition_type(Gtk.StackTransitionType.NONE)
 		# add callback when page is switched
 		self.myStack.connect("notify::visible-child", self.page_switched)
 		#add pages to stack
@@ -133,19 +135,21 @@ class MyWindow(Gtk.ApplicationWindow):
 
 	# prog select button was clicked
 	def on_prog_select_clicked(self, widget):
-		progDlg = progselectdlg.ProgSelectDlg(self)
-		responce = progDlg.run()
+		#progDlg = progselectdlg.ProgSelectDlg(self)
+		responce = self.progDlg.run()
 
 		# here we receive program string
 		# should modify its content slightly
 		if responce == Gtk.ResponseType.APPLY:
-			progParams = progDlg.get_selected_prog_params()
+			progParams = self.progDlg.get_selected_prog_params()
 			self.cur_results_page.on_prog_list_changed(progParams[0], progParams[1])
 			self.manage_table_revealer_button_visibility()
 			# get renderers xids from cur result page
 			xids = self.cur_results_page.get_renderers_xid()
+			print(xids)
 
-		progDlg.destroy()
+		#progDlg.destroy()
+		self.progDlg.hide()
 
 	def concatenate_string(self, arr, separator):
 		cat_str = ""
@@ -185,15 +189,39 @@ class MyApplication(Gtk.Application):
 	def __init__(self):
 		Gtk.Application.__init__(self)
 
+	def incoming_callback(self, obj, conn, source, data):
+		istream = conn.get_input_stream()
+		ostream = conn.get_output_stream()
+		buffer = istream.read_bytes(1000)
+		data[0] = buffer.get_data()
+
+		#decode string back to unicode
+		wstr = data[0].decode('utf-8', 'ignore')
+
+		if len(wstr) > 0:
+			# if received program list
+			if wstr[0] == 'p':
+				self.win.progDlg.show_prog_list(wstr[1:])
+
+		#answer to client
+		ostream.write(b"p0:*:success!")
+
 	def do_activate(self):
-		win = MyWindow(self)
-		win.show_all()
+		self.win = MyWindow(self)
+		self.win.show_all()
 
 		# code to set some elements initially visible/invisible
-		win.cur_results_page.hide_renderer_and_table()
+		self.win.cur_results_page.hide_renderer_and_table()
 		# if table is invisible, hide the button
-		win.manage_table_revealer_button_visibility()
+		self.win.manage_table_revealer_button_visibility()
 
+		# server for recieving messages from gstreamer pipeline
+		x = ["foo"]
+		server = Gio.SocketService.new()
+		server.add_inet_port(1500, None)
+		# x - data to be passed to callback
+		server.connect("incoming", self.incoming_callback, x)
+		server.start()
 
 	def do_startup(self):
 		Gtk.Application.do_startup(self)

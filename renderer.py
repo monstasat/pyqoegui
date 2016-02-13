@@ -46,6 +46,7 @@ class Renderer(Gtk.FlowBox):
 
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand(True)
+		self.set_vexpand(True)
 		self.set_halign(Gtk.Align.FILL)
 		self.set_valign(Gtk.Align.FILL)
 
@@ -76,13 +77,14 @@ class Renderer(Gtk.FlowBox):
 				max_ch = progNum/2
 		else:
 			max_ch = progNum
+		#max_ch = 30
 		self.set_max_children_per_line(max_ch)
 		#self.set_min_children_per_line(5)
 
 		# add number of renderers
 		for i in range(progNum):
 			# each renderer is placed into aspect frame widget (4:3)
-			af = Gtk.AspectFrame()
+			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
 			af.set(0.5, 0.5, 4/3, False)
 			af.add(RendererOne(progNames[i]))
 			# insert renderer to flow box

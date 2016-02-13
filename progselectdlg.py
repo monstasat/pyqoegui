@@ -2,6 +2,7 @@
 
 from gi.repository import Gtk, Gio
 
+from constants import Placeholder
 import constants
 import basedialog
 
@@ -53,7 +54,14 @@ class ProgSelectDlg(basedialog.BaseDialog):
 									hscrollbar_policy=2)	#never
 		scrollWnd.set_size_request(400,400)
 		self.progTree = ProgTree()
-		scrollWnd.add(self.progTree)
+
+		# creating renderers overlay
+		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
+		overlay.add(self.progTree)
+		self.holder = Placeholder("dialog-warning-symbolic", 'Программ не найдено', 72)
+		overlay.add_overlay(self.holder)
+
+		scrollWnd.add(overlay)
 
 		# add box container to mainBox
 		mainBox.add(scrollWnd)
@@ -69,6 +77,13 @@ class ProgSelectDlg(basedialog.BaseDialog):
 
 	def get_prog_num(self):
 		return self.progTree.get_prog_num()
+
+	def show_prog_list(self, progList):
+		progNum = self.progTree.show_prog_list(progList)
+		if progNum > 0:
+			self.holder.hide()
+		else:
+			self.holder.show_all()
 
 class ProgTree(Gtk.TreeView):
 
@@ -94,7 +109,7 @@ class ProgTree(Gtk.TreeView):
 		self.set_model(self.store)
 
 		# temp
-		self.show_prog_list(prglist)
+		#self.show_prog_list(prglist)
 
 		# the cellrenderer for the first column - icon
 		renderer_icon = Gtk.CellRendererPixbuf()
@@ -206,6 +221,9 @@ class ProgTree(Gtk.TreeView):
 		for row in range(len(self.store)):
 			path = Gtk.TreePath(row)
 			self.expand_row(path, False)
+
+		# return the number of added programs
+		return self.progNum
 
 	def get_cur_prog_list(self):
 		return self.curProgList
