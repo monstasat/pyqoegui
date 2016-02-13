@@ -2,10 +2,10 @@
 
 from gi.repository import Gtk, Gio
 
-import constants
+import common
 import renderer
 import progtable
-from constants import Placeholder
+from common import Placeholder
 
 class CurResultsPage(Gtk.Grid):
 	def __init__(self):
@@ -33,8 +33,8 @@ class CurResultsPage(Gtk.Grid):
 
 		# set grid alignment and spacing
 		self.set_valign(Gtk.Align.FILL)
-		self.set_column_spacing(constants.DEF_COL_SPACING)
-		self.set_row_spacing(constants.DEF_ROW_SPACING)
+		self.set_column_spacing(common.DEF_COL_SPACING)
+		self.set_row_spacing(common.DEF_ROW_SPACING)
 
 	def get_renderers_xid(self):
 		return self.rend.get_renderers_xid()

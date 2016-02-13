@@ -2,9 +2,9 @@
 
 from gi.repository import Gtk, Gio
 
-from constants import Placeholder
-from constants import write_log_message_submessage, write_log_message
-import constants
+from common import Placeholder
+from common import write_log_message_submessage, write_log_message
+import common
 import basedialog
 
 TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
@@ -171,7 +171,7 @@ class ProgTree(Gtk.TreeView):
 			# prog counter in one stream
 			prog_cnt = 0
 			# get current prog string and split it into prog array, excluding first element (stream id)
-			parts = self.curProgList[stream_cnt].split(constants.PROG_DIVIDER)
+			parts = self.curProgList[stream_cnt].split(common.PROG_DIVIDER)
 			progs = parts[1:]
 			stream_id = parts[0]
 
@@ -180,7 +180,7 @@ class ProgTree(Gtk.TreeView):
 
 				#if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
-					progParams = progs[prog_cnt].split(constants.PARAM_DIVIDER)
+					progParams = progs[prog_cnt].split(common.PARAM_DIVIDER)
 					progNames.append(progParams[PROG_PARAMS['prog_name']])
 
 					pidNum = 0
@@ -188,7 +188,7 @@ class ProgTree(Gtk.TreeView):
 
 					# start forming log string
 					log_str = "stream_id = " + stream_id + ", "
-					log_str = log_str + progParams[PROG_PARAMS['prog_name']] + "(" + progParams[PROG_PARAMS['prov_name']] + ") "
+					log_str = log_str + progParams[PROG_PARAMS['prog_name']] + " (" + progParams[PROG_PARAMS['prov_name']] + ") "
 					log_str = log_str + "with "
 
 					# total pid counter
@@ -231,7 +231,7 @@ class ProgTree(Gtk.TreeView):
 
 		#for i, prog in enumerate(progs[1:]):
 		#	# split string with program parameters
-		#	progParams = prog.split(constants.PARAM_DIVIDER)
+		#	progParams = prog.split(common.PARAM_DIVIDER)
 
 	# show new program list received from backend
 	def show_prog_list(self, progList):
@@ -240,7 +240,7 @@ class ProgTree(Gtk.TreeView):
 		# self.store.clear()
 
 		# split received string buffer by programs
-		progs = progList.split(constants.PROG_DIVIDER)
+		progs = progList.split(common.PROG_DIVIDER)
 
 		# get stream id
 		stream_id = int(progs[0])
@@ -258,7 +258,7 @@ class ProgTree(Gtk.TreeView):
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
-			progParams = prog.split(constants.PARAM_DIVIDER)
+			progParams = prog.split(common.PARAM_DIVIDER)
 			progName = progParams[PROG_PARAMS['prog_name']]
 			provName = progParams[PROG_PARAMS['prov_name']]
 			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])

@@ -2,13 +2,13 @@
 
 from gi.repository import Gtk, Gio
 
-import constants
+import common
 
 class BaseDialog(Gtk.Dialog):
 	def __init__(self, myTitle, parent):
 		Gtk.Dialog.__init__(self, myTitle, parent, Gtk.DialogFlags.USE_HEADER_BAR)
 		self.set_modal(True)
-		self.set_border_width(constants.DEF_BORDER)
+		self.set_border_width(common.DEF_BORDER)
 		# self.set_resizable(False)
 		self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
 		self.set_default_size(500, 500)
@@ -27,7 +27,7 @@ class BaseDialog(Gtk.Dialog):
 		self.set_titlebar(header)
 
 		mainBox = self.get_content_area()
-		mainBox.set_spacing(constants.DEF_COL_SPACING)
+		mainBox.set_spacing(common.DEF_COL_SPACING)
 		mainBox.set_orientation(Gtk.Orientation.VERTICAL)
 		mainBox.set_halign(Gtk.Align.FILL)
 		mainBox.set_valign(Gtk.Align.FILL)

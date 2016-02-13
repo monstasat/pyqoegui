@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from gi.repository import Gtk, Gio
 
-import constants
+import common
 
 # about ats analyzer dialog based on Gtk.AboutDialog
 class AtsAboudDlg(Gtk.AboutDialog):
@@ -12,7 +12,7 @@ class AtsAboudDlg(Gtk.AboutDialog):
 
 		#adding information to about dialog
 		self.set_property("program-name", 'Анализатор АТС-3-QoE')
-		self.set_property("version", "Версия " + constants.VERSION)
+		self.set_property("version", "Версия " + common.VERSION)
 		self.add_credit_section("Разработчики", ["Инженеры отдела НТК-18:", "Булавин Евгений", "Максименков Фёдор", "Янин Александр"])
 		self.set_property("comments", "Анализ качества изображения и звука в цифровых ТВ программах")
 		self.set_property("copyright", '© 2016 АО "НИИ телевидения"')

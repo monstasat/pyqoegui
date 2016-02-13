@@ -2,7 +2,7 @@
 from gi.repository import Gtk, Gio, GObject
 
 import sys
-import constants
+import common
 import menutoolbar
 import progtable
 import renderer
@@ -11,9 +11,9 @@ import curresultspage
 import plotpage
 import allrespage
 
-from constants import create_icon_from_name
+from common import create_icon_from_name
 from aboutdlg import AtsAboudDlg
-from constants import write_log_message
+from common import write_log_message
 
 class MyWindow(Gtk.ApplicationWindow):
 
@@ -22,7 +22,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		Gtk.Window.__init__(self, application=app)
 
 		# main window border width
-		self.set_border_width(constants.DEF_BORDER)
+		self.set_border_width(common.DEF_BORDER)
 		self.maximize()
 		#self.set_resizable(False)
 		# can't resize window by double click on header bar
@@ -39,8 +39,8 @@ class MyWindow(Gtk.ApplicationWindow):
 		# add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
 					image=create_icon_from_name("open-menu-symbolic"))
-		popover = Gtk.PopoverMenu(border_width=constants.DEF_BORDER)
-		popBox = Gtk.HBox(spacing=constants.DEF_COL_SPACING)
+		popover = Gtk.PopoverMenu(border_width=common.DEF_BORDER)
+		popBox = Gtk.HBox(spacing=common.DEF_COL_SPACING)
 		darkThemeCheck = Gtk.Switch()
 		darkThemeCheck.connect('state-set', self.on_dark_theme_check)
 		popBox.add(darkThemeCheck)
@@ -78,7 +78,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		toolbar = menutoolbar.BtnToolbar()
 
 		# main window grid
-		mainGrid = Gtk.Grid(row_spacing=constants.DEF_ROW_SPACING, column_spacing=constants.DEF_COL_SPACING,
+		mainGrid = Gtk.Grid(row_spacing=common.DEF_ROW_SPACING, column_spacing=common.DEF_COL_SPACING,
 							halign=Gtk.Align.FILL, valign=Gtk.Align.FILL)
 		mainGrid.attach(toolbar, 0, 0, 1, 1)
 		mainGrid.attach(self.myStack, 1, 0, 1, 1)

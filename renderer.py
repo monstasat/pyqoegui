@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from gi.repository import Gtk,Gdk, GdkX11
 
-import constants
+import common
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class RendererOne(Gtk.Grid):
@@ -60,8 +60,8 @@ class Renderer(Gtk.FlowBox):
 		self.set_orientation(Gtk.Orientation.HORIZONTAL)
 
 		# set some space between renderers
-		self.set_column_spacing(constants.DEF_COL_SPACING)
-		self.set_row_spacing(constants.DEF_ROW_SPACING)
+		self.set_column_spacing(common.DEF_COL_SPACING)
+		self.set_row_spacing(common.DEF_ROW_SPACING)
 
 	# draw necessary number of renderers
 	def draw_renderers(self, progNum, progNames):

@@ -2,8 +2,8 @@
 
 from gi.repository import Gtk, Gio
 
-from constants import create_icon_from_name
-from constants import toolbar_buttons_text
+from common import create_icon_from_name
+from common import toolbar_buttons_text
 
 #themed icon names
 ico_arr = ["media-playback-start-symbolic", "tv-symbolic", "network-wireless-symbolic", "gnome-tweak-tool-symbolic",

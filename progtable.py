@@ -9,8 +9,8 @@ PARAMETERS_NUM = 7
 ROWS_NUM = 1 + MAX_ANALYZED_PROG_NUM
 COLS_NUM = 3 + PARAMETERS_NUM
 
-import constants
-from constants import create_icon_from_name
+import common
+from common import create_icon_from_name
 
 #class for viewing current program status (such as artifacts/loudndess) in a table
 class ProgramTable(Gtk.TreeView):
@@ -58,7 +58,7 @@ class ProgramTable(Gtk.TreeView):
 			if i == 4:
 				renderer = Gtk.CellRendererProgress()
 				# renderer.props.inverted = True
-				column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i)
+				column = Gtk.TreeViewColumn(common.heading_labels[int(i/2)], renderer, text=i)
 			# other colums are text labels
 			else:
 				renderer = Gtk.CellRendererText()
@@ -67,14 +67,14 @@ class ProgramTable(Gtk.TreeView):
 				if i > 4:
 					# setting column text color - black
 					renderer.set_property("foreground", "black")
-					column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i, background=color)
+					column = Gtk.TreeViewColumn(common.heading_labels[int(i/2)], renderer, text=i, background=color)
 
 					# all artifact columns should have the same width
 					column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
 					column.set_fixed_width(100)
 				# setting parameters for the rest columns
 				else:
-					column = Gtk.TreeViewColumn(constants.heading_labels[int(i/2)], renderer, text=i)
+					column = Gtk.TreeViewColumn(common.heading_labels[int(i/2)], renderer, text=i)
 
 			# all columns besides first are expandable
 			if i > 0:
