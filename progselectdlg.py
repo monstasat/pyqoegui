@@ -9,11 +9,11 @@ import basedialog
 
 TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 							"program" : "applications-multimedia-symbolic",
-							"0" : "video-x- generic-symbolic",
-							"1" : "audio-x-generic-symbolic",}
+							"27" : "video-x- generic-symbolic",
+							"3" : "audio-x-generic-symbolic",}
 
-PID_TYPE = {"0": "video",
-			"1": "audio"}
+PID_TYPE = {"27": "video",
+			"3": "audio"}
 
 # stream id
 	# num
@@ -38,8 +38,8 @@ prglist = "0:*:\
 
 TREE_ICONS = {	"ts" : "view-grid-symbolic",
 				"program" : "applications-multimedia",
-				"0" : "video-x-generic",
-				"1" : "audio-x-generic",}
+				"27" : "video-x-generic",
+				"3" : "audio-x-generic",}
 
 PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
 
@@ -458,9 +458,9 @@ class ProgTree(Gtk.TreeView):
 
 		# if no selected video pid was found and video pid present, set default pid
 		if (pid_status[2] is False) and (pid_status[0] is True):
-			self.set_default_pid(pidIter, '0')
+			self.set_default_pid(pidIter, '27')
 		if (pid_status[3] is False) and (pid_status[1] is True):
-			self.set_default_pid(pidIter, '1')
+			self.set_default_pid(pidIter, '3')
 
 	# sets the default pid
 	def set_default_pid(self, pidIter, pidType):
@@ -484,14 +484,14 @@ class ProgTree(Gtk.TreeView):
 		# scan all program pids
 		while pidIter is not None:
 			# if pid has video type
-			if self.store[pidIter][0] == TREE_ICONS['0']:
+			if self.store[pidIter][0] == TREE_ICONS['3']:
 				video_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:
 					video_selected = True
 					selected_video_pid = pidIter
 			# if pid has audio type
-			elif self.store[pidIter][0] == TREE_ICONS['1']:
+			elif self.store[pidIter][0] == TREE_ICONS['27']:
 				audio_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:

@@ -110,6 +110,9 @@ def prog_string_to_byte(progList, xids):
 	msg_parts.append(pack('I', HEADER_PROG_LIST))
 	print(msg_parts)
 	msg = b"".join(msg_parts)
+	print(msg)
+
+	return msg
 
 # base placeholder class
 class Placeholder(Gtk.VBox):

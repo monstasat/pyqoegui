@@ -220,10 +220,12 @@ class MyApplication(Gtk.Application):
 
 		#decode string back to unicode
 		wstr = data[0].decode('utf-8', 'ignore')
+		print("msg received!")
+		print(wstr)
 
 		if len(wstr) > 0:
 			# if received program list
-			if wstr[0] == 'p':
+			if wstr[0] == 'd':
 				write_log_message("message with program list received from gstreamer pipeline (stream_id = " + wstr[1] + ")")
 				self.win.progDlg.show_prog_list(wstr[1:])
 
