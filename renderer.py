@@ -37,12 +37,16 @@ class RendererOne(Gtk.Grid):
 
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
-		return self.drawarea.get_property('window').get_xid()
+		self.drawarea.show()
+		self.drawarea.realize()
+		return self.drawarea.get_window().get_xid()
 
 # a grid of video renderers
 class Renderer(Gtk.FlowBox):
 	def __init__(self):
 		Gtk.FlowBox.__init__(self)
+
+		self.rend_arr = []
 
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand(True)
@@ -81,12 +85,14 @@ class Renderer(Gtk.FlowBox):
 		self.set_max_children_per_line(max_ch)
 		#self.set_min_children_per_line(5)
 
+		self.rend_arr.clear()
 		# add number of renderers
 		for i in range(progNum):
 			# each renderer is placed into aspect frame widget (4:3)
 			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
 			af.set(0.5, 0.5, 4/3, False)
-			af.add(RendererOne(progNames[i]))
+			self.rend_arr.append(RendererOne(progNames[i]))
+			af.add(self.rend_arr[i])
 			# insert renderer to flow box
 			self.insert(af, -1)
 
@@ -95,6 +101,7 @@ class Renderer(Gtk.FlowBox):
 
   	# delete all renderers
 	def remove_renderers(self):
+		self.rend_arr.clear()
 		children = self.get_children()
 		for child in children:
 			child.destroy()
@@ -102,6 +109,13 @@ class Renderer(Gtk.FlowBox):
 	# returns array of drawing area xids
 	def get_renderers_xid(self):
 		xids = []
-		for child in self.get_children():
-			xids.append(child.get_children()[0].get_children()[0].get_drawing_area_xid())
+		for i, child in enumerate(self.get_children()):
+			self.rend_arr[i].show_all()
+			children = self.rend_arr[i].get_children()
+			for c in children:
+				c.realize()
+				c.show()
+			print(self.rend_arr[i])
+			xids.append(self.rend_arr[i].get_drawing_area_xid())
+			print(xids[i])
 		return xids
