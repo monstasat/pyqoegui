@@ -103,12 +103,10 @@ class ProgTree(Gtk.TreeView):
 		sel = self.get_selection()
 		sel.set_mode(Gtk.SelectionMode.NONE)
 
-		# initialize prog list
-		self.curProgList = []
-
 		# data stored in treeview
 		# icon, name, is_analyzed
-		self.store = Gtk.TreeStore(str, str, bool, bool, int)
+		# icon name, prog name, is analyzed, is partly choosen, stream id, string describing stream
+		self.store = Gtk.TreeStore(str, str, bool, bool, int, str)
 		# set the model
 		self.set_model(self.store)
 
@@ -173,7 +171,7 @@ class ProgTree(Gtk.TreeView):
 			# prog counter in one stream
 			prog_cnt = 0
 			# get current prog string and split it into prog array, excluding first element (stream id)
-			parts = self.curProgList[stream_cnt].split(common.PROG_DIVIDER)
+			parts = self.store[piter][5].split(common.PROG_DIVIDER)
 			progs = parts[1:]
 			stream_id = parts[0]
 
@@ -269,7 +267,7 @@ class ProgTree(Gtk.TreeView):
 				rootIter = self.store.iter_next(rootIter)
 
 		# fill the model
-		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id])
+		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, progList])
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
@@ -281,7 +279,7 @@ class ProgTree(Gtk.TreeView):
 			# start prepairing log string
 			log_str = "stream_id = " + str(stream_id) + ", " + progName + " (" + provName + ") with "
 
-			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id])
+			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id, ""])
 			for j in range(pidsNum):
 
 				# get pid params
@@ -292,14 +290,13 @@ class ProgTree(Gtk.TreeView):
 				# add pid types to log string
 				log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
 
-				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False, stream_id])
+				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False, stream_id, ""])
 
 			# write prog info string to log
 			write_log_message_submessage(log_str)
 
-		#remember current prog list and prog num
-		self.curProgList.append(progList)
-		self.progNum = len(progs[1:])
+		#determine number of progs received
+		progNum = len(progs[1:])
 
 		# open all program rows
 		for row in range(len(self.store)):
@@ -307,16 +304,10 @@ class ProgTree(Gtk.TreeView):
 			self.expand_row(path, False)
 
 		# write total prog num to log
-		write_log_message("total programs received: " + str(self.progNum))
+		write_log_message("total programs received: " + str(progNum))
 
 		# return the number of added programs
-		return self.progNum
-
-	def get_cur_prog_list(self):
-		return self.curProgList
-
-	def get_prog_num(self):
-		return self.progNum
+		return progNum
 
 	def on_toggled(self, widget, path):
 		# the boolean value of the selected row
