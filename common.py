@@ -87,8 +87,6 @@ def write_log_message_submessage(msg, from_new_string=False):
 # function that transforms prog list string to byte array
 def prog_string_to_byte(progList, xids):
 	streams = progList.split(STREAM_DIVIDER)
-	print("these are streams:")
-	print(streams)
 	msg_parts = []
 
 	# add message header
@@ -104,13 +102,13 @@ def prog_string_to_byte(progList, xids):
 			params = prog.split(PARAM_DIVIDER)
 			params = list(map(int, params))
 			params.insert(1, xids[i])
-			msg_parts.append(pack('I'*len(params), *params))
+			#msg_parts.append(pack('I'*len(params), *params))
+			for param in params:
+				msg_parts.append(pack('I', param))
 
 	#add message ending
 	msg_parts.append(pack('I', HEADER_PROG_LIST))
-	print(msg_parts)
 	msg = b"".join(msg_parts)
-	print(msg)
 
 	return msg
 

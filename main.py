@@ -220,8 +220,7 @@ class MyApplication(Gtk.Application):
 
 		#decode string back to unicode
 		wstr = data[0].decode('utf-8', 'ignore')
-		print("msg received!")
-		print(wstr)
+		print("msg of type '" + wstr[0] + "' received!")
 
 		if len(wstr) > 0:
 			# if received program list
