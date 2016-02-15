@@ -9,11 +9,8 @@ import basedialog
 
 TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 							"program" : "applications-multimedia-symbolic",
-							"27" : "video-x- generic-symbolic",
-							"3" : "audio-x-generic-symbolic",}
-
-PID_TYPE = {"27": "video",
-			"3": "audio"}
+							"video" : "video-x- generic-symbolic",
+							"video" : "audio-x-generic-symbolic",}
 
 # stream id
 	# num
@@ -38,8 +35,8 @@ prglist = "0:*:\
 
 TREE_ICONS = {	"ts" : "view-grid-symbolic",
 				"program" : "applications-multimedia",
-				"27" : "video-x-generic",
-				"3" : "audio-x-generic",}
+				"video" : "video-x-generic",
+				"audio" : "audio-x-generic",}
 
 PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
 
@@ -207,12 +204,13 @@ class ProgTree(Gtk.TreeView):
 							# read selected pid params
 							pid = progParams[4 + total_pids_cnt*3]
 							pidType = progParams[5 + total_pids_cnt*3]
+							pidCodec = progParams[6 + total_pids_cnt*3]
 							# increment selected pids counter
 							pidNum = pidNum + 1
 							# pack pids to the result string
 							selected = selected + pid + common.PARAM_DIVIDER
 							# write pid types to log
-							log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
+							log_str = log_str + "PID " + pid + ": " + pidCodec + ", "
 						# increment total pid counter
 						total_pids_cnt = total_pids_cnt + 1
 						piditer = self.store.iter_next(piditer)
@@ -286,11 +284,12 @@ class ProgTree(Gtk.TreeView):
 				pid = progParams[4 + j*3]
 				pidType = progParams[5 + j*3]
 				codecName = progParams[6 + j*3]
+				strPidType = codecName.split('-')[0]
 
 				# add pid types to log string
-				log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
+				log_str = log_str + "PID " + pid + ": " + codecName + ", "
 
-				self.store.append(ppiter, [TREE_ICONS[pidType], "PID " + pid + ", " + codecName , False, False, stream_id, ""])
+				self.store.append(ppiter, [TREE_ICONS[strPidType], "PID " + pid + ", " + codecName , False, False, stream_id, ""])
 
 			# write prog info string to log
 			write_log_message_submessage(log_str)
@@ -381,10 +380,11 @@ class ProgTree(Gtk.TreeView):
 		current_value = self.store[pidIter][2]
 		self.store[pidIter][2] = False
 		pid_status = self.scan_pids(firstPidIter)
+		print(pid_status)
 		self.store[pidIter][2] = current_value
 
 		# determine pid type
-		pidType = '0'if (self.store[pidIter][0] == TREE_ICONS['0']) else '1'
+		pidType = '0'if (self.store[pidIter][0] == TREE_ICONS['video']) else '1'
 
 		# if we select the pid, then we need to check if other pid of the same type is selected
 		if current_value is True:
@@ -449,9 +449,9 @@ class ProgTree(Gtk.TreeView):
 
 		# if no selected video pid was found and video pid present, set default pid
 		if (pid_status[2] is False) and (pid_status[0] is True):
-			self.set_default_pid(pidIter, '27')
+			self.set_default_pid(pidIter, 'video')
 		if (pid_status[3] is False) and (pid_status[1] is True):
-			self.set_default_pid(pidIter, '3')
+			self.set_default_pid(pidIter, 'audio')
 
 	# sets the default pid
 	def set_default_pid(self, pidIter, pidType):
@@ -475,14 +475,14 @@ class ProgTree(Gtk.TreeView):
 		# scan all program pids
 		while pidIter is not None:
 			# if pid has video type
-			if self.store[pidIter][0] == TREE_ICONS['3']:
+			if self.store[pidIter][0] == TREE_ICONS['video']:
 				video_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:
 					video_selected = True
 					selected_video_pid = pidIter
 			# if pid has audio type
-			elif self.store[pidIter][0] == TREE_ICONS['27']:
+			elif self.store[pidIter][0] == TREE_ICONS['audio']:
 				audio_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:
