@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, Gio, GObject
+from gi.repository import Gtk, Gio, GObject, GLib
 
 import sys
 import common
@@ -150,7 +150,14 @@ class MyWindow(Gtk.ApplicationWindow):
 
 			# get renderers xids from cur result page
 			xids = self.cur_results_page.get_renderers_xid()
-			print(xids)
+
+			prog_msg = common.prog_string_to_byte(progParams[2], xids)
+			try:
+				self.get_application().send_message(prog_msg, common.GS_PIPELINE_PORT)
+			except GLib.Error:
+				write_log_message("failed to send prog list message to gstreamer pipeline", event_type=common.TYPE_ERROR)
+			else:
+				write_log_message("prog list message successfully sent to gstreamer pipeline")
 
 		self.progDlg.hide()
 
@@ -193,6 +200,18 @@ class MyApplication(Gtk.Application):
 		Gtk.Application.__init__(self)
 		write_log_message("application launched", True)
 
+	def send_message(self, msg, destination):
+		client = Gio.SocketClient.new()
+		connection = client.connect_to_host("localhost", destination, None)
+		istream = connection.get_input_stream()
+		ostream = connection.get_output_stream()
+
+		# send message
+		ostream.write(msg)
+
+		# close connection
+		connection.close(None)
+
 	def incoming_callback(self, obj, conn, source, data):
 		istream = conn.get_input_stream()
 		ostream = conn.get_output_stream()
@@ -208,9 +227,6 @@ class MyApplication(Gtk.Application):
 				write_log_message("message with program list received from gstreamer pipeline (stream_id = " + wstr[1] + ")")
 				self.win.progDlg.show_prog_list(wstr[1:])
 
-		#answer to client
-		ostream.write(b"p0:*:success!")
-
 	def do_activate(self):
 		self.win = MyWindow(self)
 		self.win.connect('delete-event', self.on_exit)
@@ -224,7 +240,7 @@ class MyApplication(Gtk.Application):
 		# server for recieving messages from gstreamer pipeline
 		x = ["foo"]
 		server = Gio.SocketService.new()
-		server.add_inet_port(1500, None)
+		server.add_inet_port(common.GUI_PORT, None)
 		# x - data to be passed to callback
 		server.connect("incoming", self.incoming_callback, x)
 		server.start()

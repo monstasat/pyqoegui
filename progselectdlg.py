@@ -155,17 +155,19 @@ class ProgTree(Gtk.TreeView):
 		progNames = []
 		progNum = 0
 
-		#get root iter
+		# get root iter
 		piter = self.store.get_iter_first()
 		citer = self.store.iter_children(piter)
 
 		total_prog_cnt = 0
 		stream_cnt = 0
 
+		selected = ""
+
 		# write log
 		write_log_message("new programs added to analysis")
 
-		#iteration
+		# iteration
 		while piter is not None:
 
 			# prog counter in one stream
@@ -175,21 +177,27 @@ class ProgTree(Gtk.TreeView):
 			progs = parts[1:]
 			stream_id = parts[0]
 
-			#iterating over stream programs
+			# pack stream id to the result string
+			selected = selected + common.STREAM_DIVIDER + stream_id + common.PROG_DIVIDER
+
+			# iterating over stream programs
 			while citer is not None:
 
-				#if program is selected
+				# if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
 					progParams = progs[prog_cnt].split(common.PARAM_DIVIDER)
 					progNames.append(progParams[PROG_PARAMS['prog_name']])
 
-					pidNum = 0
-					piditer = self.store.iter_children(citer)
+					# pack program number to the result string
+					selected = selected + progParams[PROG_PARAMS['number']] + common.PARAM_DIVIDER
 
 					# start forming log string
 					log_str = "stream_id = " + stream_id + ", "
 					log_str = log_str + progParams[PROG_PARAMS['prog_name']] + " (" + progParams[PROG_PARAMS['prov_name']] + ") "
 					log_str = log_str + "with "
+
+					pidNum = 0
+					piditer = self.store.iter_children(citer)
 
 					# total pid counter
 					total_pids_cnt = 0
@@ -203,12 +211,16 @@ class ProgTree(Gtk.TreeView):
 							pidType = progParams[5 + total_pids_cnt*3]
 							# increment selected pids counter
 							pidNum = pidNum + 1
+							# pack pids to the result string
+							selected = selected + pid + common.PARAM_DIVIDER
 							# write pid types to log
 							log_str = log_str + "PID " + pid + ": " + PID_TYPE[pidType] + ", "
 						# increment total pid counter
 						total_pids_cnt = total_pids_cnt + 1
 						piditer = self.store.iter_next(piditer)
 
+					# change last symbol in the result string to program divider
+					selected = selected[:-len(common.PARAM_DIVIDER)] + common.PROG_DIVIDER
 					# increment selected prog counter
 					progNum = progNum + 1
 					# write added program info to log
@@ -217,6 +229,9 @@ class ProgTree(Gtk.TreeView):
 				citer = self.store.iter_next(citer)
 				prog_cnt = prog_cnt + 1
 				total_prog_cnt = total_prog_cnt + 1
+
+			#delete last divider in the result string
+			selected = selected[:-len(common.PROG_DIVIDER)]
 			# increment stream counter
 			stream_cnt = stream_cnt + 1
 			# get next stream iter
@@ -226,7 +241,7 @@ class ProgTree(Gtk.TreeView):
 		# write total progs added number to log
 		write_log_message("total programs added: " + str(progNum))
 
-		return [progNum, progNames]
+		return [progNum, progNames, selected]
 		# split top-level string
 
 		#for i, prog in enumerate(progs[1:]):

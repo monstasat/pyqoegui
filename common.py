@@ -3,6 +3,7 @@
 from gi.repository import Gtk, Gio
 from datetime import datetime
 import os
+from struct import pack
 
 # spacing between elements
 DEF_COL_SPACING = 12
@@ -19,9 +20,19 @@ TYPE_WARNING = 1
 TYPE_ERROR = 2
 
 # dividers for string with program parameters
-
+STREAM_DIVIDER = ':$:'
 PROG_DIVIDER = ':*:'
 PARAM_DIVIDER = '^:'
+# dividers for byte array with program parameters
+BYTE_STREAM_DIVIDER = 0xABBA0000
+BYTE_PROG_DIVIDER = 0xACDC0000
+
+# localhost address of gstreamer pipeline
+GS_PIPELINE_PORT = 1500
+GUI_PORT = 1600
+
+# message headers
+HEADER_PROG_LIST = 0xDEADBEEF
 
 # prog table column names
 heading_labels = ["№",         "Программа", 	"Громкость",
@@ -42,6 +53,7 @@ def create_icon_from_name(iconName):
 	image.show()
 	return image
 
+# write message to log
 def write_log_message(msg, from_new_string=False, event_type=TYPE_INFO):
 	f = open('log.txt', 'a')
 
@@ -62,6 +74,7 @@ def write_log_message(msg, from_new_string=False, event_type=TYPE_INFO):
 
 	f.close()
 
+# write submessage to log
 def write_log_message_submessage(msg, from_new_string=False):
 	f = open('log.txt', 'a')
 	if from_new_string and (os.stat('log.txt').st_size != 0):
@@ -71,6 +84,32 @@ def write_log_message_submessage(msg, from_new_string=False):
 
 	f.close()
 
+# function that transforms prog list string to byte array
+def prog_string_to_byte(progList, xids):
+	streams = progList.split(STREAM_DIVIDER)
+	print("these are streams:")
+	print(streams)
+	msg_parts = []
+
+	# add message header
+	msg_parts.append(pack('I', HEADER_PROG_LIST))
+	# iterate over stream strings
+	for stream in streams[1:]:
+		msg_parts.append(pack('I', BYTE_STREAM_DIVIDER))
+
+		progs = stream.split(PROG_DIVIDER)
+		msg_parts.append( pack('I', int(progs[0])) )
+		for i, prog in enumerate(progs[1:]):
+			msg_parts.append(pack('I', BYTE_PROG_DIVIDER))
+			params = prog.split(PARAM_DIVIDER)
+			params = list(map(int, params))
+			params.insert(1, xids[i])
+			msg_parts.append(pack('I'*len(params), *params))
+
+	#add message ending
+	msg_parts.append(pack('I', HEADER_PROG_LIST))
+	print(msg_parts)
+	msg = b"".join(msg_parts)
 
 # base placeholder class
 class Placeholder(Gtk.VBox):
