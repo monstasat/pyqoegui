@@ -4,4 +4,5 @@
 #but not these files
 !*.py
 !.gitignore
+!/Gui
 

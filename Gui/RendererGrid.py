@@ -1,7 +1,5 @@
-#!/usr/bin/python3
 from gi.repository import Gtk,Gdk, GdkX11
-
-import common
+from Gui import Spacing
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
@@ -21,7 +19,7 @@ class Renderer(Gtk.Grid):
 		# setting initial renderer color
 		color = Gdk.color_parse("black")
 		rgba = Gdk.RGBA.from_color(color)
-		#self.drawarea.override_background_color(0, rgba)
+		self.drawarea.override_background_color(0, rgba)
 
 		af = Gtk.AspectFrame(hexpand=True, vexpand=True)
 		af.set(0.5, 0.5, 4/3, False)
@@ -70,8 +68,8 @@ class RendererGrid(Gtk.FlowBox):
 		self.set_orientation(Gtk.Orientation.HORIZONTAL)
 
 		# set some space between renderers
-		self.set_column_spacing(common.DEF_COL_SPACING)
-		self.set_row_spacing(common.DEF_ROW_SPACING)
+		self.set_column_spacing(Spacing.COL_SPACING)
+		self.set_row_spacing(Spacing.ROW_SPACING)
 
 	# draw necessary number of renderers
 	def draw_renderers(self, progNum, progNames):

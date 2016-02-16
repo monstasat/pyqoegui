@@ -1,18 +1,4 @@
-#!/usr/bin/python3
-
-from gi.repository import Gtk, Gio
-
-from struct import pack
-from common import Placeholder
-from common import write_log_message_submessage, write_log_message
-import common
-import basedialog
-
-TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
-							"program" : "applications-multimedia-symbolic",
-							"video" : "video-x- generic-symbolic",
-							"video" : "audio-x-generic-symbolic",}
-
+# data format from gs pipeline
 # stream id
 	# num
 	# name
@@ -25,27 +11,35 @@ TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 	# xid
 	# to be analyzed
 
-TREE_ICONS = {	"ts" : "view-grid-symbolic",
+from gi.repository import Gtk
+from Gui.Placeholder import Placeholder
+from Gui.BaseDialog import BaseDialog
+from Gui import Spacing
+
+class ProgramSelectDialog(BaseDialog):
+
+	def __init__(self, parent):
+		BaseDialog.__init__(self, "Выбор программ для анализа", parent)
+
+		self.TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
+					"program" : "applications-multimedia-symbolic",
+					"video" : "video-x- generic-symbolic",
+					"video" : "audio-x-generic-symbolic",}
+
+
+
+		self.TREE_ICONS = {	"ts" : "view-grid-symbolic",
 				"program" : "applications-multimedia",
 				"video" : "video-x-generic",
 				"audio" : "audio-x-generic",}
 
-PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
+		self.PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
 
-# dividers for string with program parameters
-STREAM_DIVIDER = ':$:'
-PROG_DIVIDER = ':*:'
-PARAM_DIVIDER = '^:'
-# dividers for byte array with program parameters
-BYTE_STREAM_DIVIDER = 0xABBA0000
-BYTE_PROG_DIVIDER = 0xACDC0000
-# message headers
-HEADER_PROG_LIST = 0xDEADBEEF
+		# dividers for string with program parameters
+		self.STREAM_DIVIDER = ':$:'
+		self.PROG_DIVIDER = ':*:'
+		self.PARAM_DIVIDER = '^:'
 
-class ProgSelectDlg(basedialog.BaseDialog):
-
-	def __init__(self, parent):
-		basedialog.BaseDialog.__init__(self, "Выбор программ для анализа", parent)
 		self.set_default_size(500, 0)
 
 		# get dialog box
@@ -86,34 +80,6 @@ class ProgSelectDlg(basedialog.BaseDialog):
 			self.holder.hide()
 		else:
 			self.holder.show_all()
-
-   	# function that transforms prog list string to byte array
-	def prog_string_to_byte(self, progList, xids):
-		streams = progList.split(STREAM_DIVIDER)
-		msg_parts = []
-
-		# add message header
-		msg_parts.append(pack('I', HEADER_PROG_LIST))
-		# iterate over stream strings
-		for stream in streams[1:]:
-			msg_parts.append(pack('I', BYTE_STREAM_DIVIDER))
-
-			progs = stream.split(PROG_DIVIDER)
-			msg_parts.append( pack('I', int(progs[0])) )
-			for i, prog in enumerate(progs[1:]):
-				msg_parts.append(pack('I', BYTE_PROG_DIVIDER))
-				params = prog.split(PARAM_DIVIDER)
-				params = list(map(int, params))
-				params.insert(1, xids[i])
-				#msg_parts.append(pack('I'*len(params), *params))
-				for param in params:
-					msg_parts.append(pack('I', param))
-
-		# add message ending
-		msg_parts.append(pack('I', HEADER_PROG_LIST))
-		msg = b"".join(msg_parts)
-		#return resulting bytearray
-		return msg
 
 class ProgTree(Gtk.TreeView):
 
@@ -188,37 +154,29 @@ class ProgTree(Gtk.TreeView):
 
 		selected = ""
 
-		# write log
-		write_log_message("new programs added to analysis")
-
 		# iteration
 		while piter is not None:
 
 			# prog counter in one stream
 			prog_cnt = 0
 			# get current prog string and split it into prog array, excluding first element (stream id)
-			parts = self.store[piter][5].split(PROG_DIVIDER)
+			parts = self.store[piter][5].split(self.PROG_DIVIDER)
 			progs = parts[1:]
 			stream_id = parts[0]
 
 			# pack stream id to the result string
-			selected = selected + STREAM_DIVIDER + stream_id + PROG_DIVIDER
+			selected = selected + self.STREAM_DIVIDER + stream_id + self.PROG_DIVIDER
 
 			# iterating over stream programs
 			while citer is not None:
 
 				# if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
-					progParams = progs[prog_cnt].split(PARAM_DIVIDER)
-					progNames.append(progParams[PROG_PARAMS['prog_name']])
+					progParams = progs[prog_cnt].split(self.PARAM_DIVIDER)
+					progNames.append(progParams[self.PROG_PARAMS['prog_name']])
 
 					# pack program number to the result string
-					selected = selected + progParams[PROG_PARAMS['number']] + PARAM_DIVIDER
-
-					# start forming log string
-					log_str = "stream_id = " + stream_id + ", "
-					log_str = log_str + progParams[PROG_PARAMS['prog_name']] + " (" + progParams[PROG_PARAMS['prov_name']] + ") "
-					log_str = log_str + "with "
+					selected = selected + progParams[self.PROG_PARAMS['number']] + self.PARAM_DIVIDER
 
 					pidNum = 0
 					piditer = self.store.iter_children(citer)
@@ -237,34 +195,27 @@ class ProgTree(Gtk.TreeView):
 							# increment selected pids counter
 							pidNum = pidNum + 1
 							# pack pids to the result string
-							selected = selected + pid + PARAM_DIVIDER
-							# write pid types to log
-							log_str = log_str + "PID " + pid + ": " + pidCodec + ", "
+							selected = selected + pid + self.PARAM_DIVIDER
 						# increment total pid counter
 						total_pids_cnt = total_pids_cnt + 1
 						piditer = self.store.iter_next(piditer)
 
 					# change last symbol in the result string to program divider
-					selected = selected[:-len(PARAM_DIVIDER)] + PROG_DIVIDER
+					selected = selected[:-len(self.PARAM_DIVIDER)] + self.PROG_DIVIDER
 					# increment selected prog counter
 					progNum = progNum + 1
-					# write added program info to log
-					write_log_message_submessage(log_str)
 
 				citer = self.store.iter_next(citer)
 				prog_cnt = prog_cnt + 1
 				total_prog_cnt = total_prog_cnt + 1
 
 			#delete last divider in the result string
-			selected = selected[:-len(PROG_DIVIDER)]
+			selected = selected[:-len(self.PROG_DIVIDER)]
 			# increment stream counter
 			stream_cnt = stream_cnt + 1
 			# get next stream iter
 			piter = self.store.iter_next(piter)
 			citer = self.store.iter_children(piter)
-
-		# write total progs added number to log
-		write_log_message("total programs added: " + str(progNum))
 
 		return [progNum, progNames, selected]
 		# split top-level string
@@ -276,7 +227,7 @@ class ProgTree(Gtk.TreeView):
 		# self.store.clear()
 
 		# split received string buffer by programs
-		progs = progList.split(PROG_DIVIDER)
+		progs = progList.split(self.PROG_DIVIDER)
 
 		# get stream id
 		stream_id = int(progs[0])
@@ -290,19 +241,16 @@ class ProgTree(Gtk.TreeView):
 				rootIter = self.store.iter_next(rootIter)
 
 		# fill the model
-		piter = self.store.append(None, [TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, progList])
+		piter = self.store.append(None, [self.TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, progList])
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
-			progParams = prog.split(PARAM_DIVIDER)
-			progName = progParams[PROG_PARAMS['prog_name']]
-			provName = progParams[PROG_PARAMS['prov_name']]
-			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
+			progParams = prog.split(self.PARAM_DIVIDER)
+			progName = progParams[self.PROG_PARAMS['prog_name']]
+			provName = progParams[self.PROG_PARAMS['prov_name']]
+			pidsNum = int(progParams[self.PROG_PARAMS["pids_num"]])
 
-			# start prepairing log string
-			log_str = "stream_id = " + str(stream_id) + ", " + progName + " (" + provName + ") with "
-
-			ppiter = self.store.append(piter, [TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id, ""])
+			ppiter = self.store.append(piter, [self.TREE_ICONS["program"], (progName + " (" + provName + ")"), False, False, stream_id, ""])
 			for j in range(pidsNum):
 
 				# get pid params
@@ -311,13 +259,7 @@ class ProgTree(Gtk.TreeView):
 				codecName = progParams[6 + j*3]
 				strPidType = codecName.split('-')[0]
 
-				# add pid types to log string
-				log_str = log_str + "PID " + pid + ": " + codecName + ", "
-
-				self.store.append(ppiter, [TREE_ICONS[strPidType], "PID " + pid + ", " + codecName , False, False, stream_id, ""])
-
-			# write prog info string to log
-			write_log_message_submessage(log_str)
+				self.store.append(ppiter, [self.TREE_ICONS[strPidType], "PID " + pid + ", " + codecName , False, False, stream_id, ""])
 
 		#determine number of progs received
 		progNum = len(progs[1:])
@@ -326,9 +268,6 @@ class ProgTree(Gtk.TreeView):
 		for row in range(len(self.store)):
 			path = Gtk.TreePath(row)
 			self.expand_row(path, False)
-
-		# write total prog num to log
-		write_log_message("total programs received: " + str(progNum))
 
 		# return the number of added programs
 		return progNum
@@ -482,7 +421,7 @@ class ProgTree(Gtk.TreeView):
 	def set_default_pid(self, pidIter, pidType):
 		pid_selected = False
 		while (pid_selected is False) and (pidIter is not None):
-			if self.store[pidIter][0] == TREE_ICONS[pidType]:
+			if self.store[pidIter][0] == self.TREE_ICONS[pidType]:
 				self.store[pidIter][2] = True
 				pid_selected = True
 			pidIter = self.store.iter_next(pidIter)
@@ -500,14 +439,14 @@ class ProgTree(Gtk.TreeView):
 		# scan all program pids
 		while pidIter is not None:
 			# if pid has video type
-			if self.store[pidIter][0] == TREE_ICONS['video']:
+			if self.store[pidIter][0] == self.TREE_ICONS['video']:
 				video_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:
 					video_selected = True
 					selected_video_pid = pidIter
 			# if pid has audio type
-			elif self.store[pidIter][0] == TREE_ICONS['audio']:
+			elif self.store[pidIter][0] == self.TREE_ICONS['audio']:
 				audio_found = True
 				# if pid is selected
 				if self.store[pidIter][2] == True:

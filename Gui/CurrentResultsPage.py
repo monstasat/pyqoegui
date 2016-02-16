@@ -1,18 +1,16 @@
-#!/usr/bin/python3
+from gi.repository import Gtk
 
-from gi.repository import Gtk, Gio
+from Gui.RendererGrid import RendererGrid
+from Gui.ProgramTable import ProgramTable
+from Gui.Placeholder import Placeholder
+from Gui import Spacing
 
-import common
-import renderer
-import progtable
-from common import Placeholder
-
-class CurResultsPage(Gtk.Grid):
+class CurrentResultsPage(Gtk.Grid):
 	def __init__(self):
 		Gtk.Grid.__init__(self)
 
 		# creating renderers
-		self.rend = renderer.RendererGrid()
+		self.rend = RendererGrid()
 
 		# creating renderers overlay
 		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
@@ -21,7 +19,7 @@ class CurResultsPage(Gtk.Grid):
 		overlay.add_overlay(self.holder)
 
 		# creating prog table
-		self.prgtbl = progtable.ProgramTable()
+		self.prgtbl = ProgramTable()
 
 		# creating prog table revealer
 		self.tableRevealer = Gtk.Revealer(reveal_child=True, valign=Gtk.Align.END, transition_type=Gtk.RevealerTransitionType.SLIDE_UP)
@@ -34,8 +32,8 @@ class CurResultsPage(Gtk.Grid):
 
 		# set grid alignment and spacing
 		self.set_valign(Gtk.Align.FILL)
-		self.set_column_spacing(common.DEF_COL_SPACING)
-		self.set_row_spacing(common.DEF_ROW_SPACING)
+		self.set_column_spacing(Spacing.COL_SPACING)
+		self.set_row_spacing(Spacing.ROW_SPACING)
 
 	def get_renderers_xid(self):
 		return self.rend.get_renderers_xid()

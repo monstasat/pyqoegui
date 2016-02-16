@@ -1,16 +1,13 @@
 #!/usr/bin/python3
 from gi.repository import Gtk, Gio
 
-import common
 import sys
-from mainwnd import MyWindow
-from common import write_log_message
+from Gui.MainWindow import MainWindow
 
 class MyApplication(Gtk.Application):
 
 	def __init__(self):
 		Gtk.Application.__init__(self)
-		write_log_message("application launched", True)
 
 	def send_message(self, msg, destination):
 		client = Gio.SocketClient.new()
@@ -38,7 +35,6 @@ class MyApplication(Gtk.Application):
 		if len(wstr) > 0:
 			# if received program list
 			if wstr[0] == 'd':
-				write_log_message("message with program list received from gstreamer pipeline (stream_id = " + wstr[1] + ")")
 				self.win.progDlg.show_prog_list(wstr[1:])
 			# if received video parameters
 			elif wstr[0] == 'v':
@@ -46,7 +42,7 @@ class MyApplication(Gtk.Application):
 				pass
 
 	def do_activate(self):
-		self.win = MyWindow(self)
+		self.win = MainWindow(self)
 		self.win.connect('delete-event', self.on_exit)
 		self.win.show_all()
 
@@ -64,7 +60,7 @@ class MyApplication(Gtk.Application):
 		server.start()
 
 	def on_exit(self, event, data):
-		write_log_message("application closed")
+		pass
 
 	def do_startup(self):
 		Gtk.Application.do_startup(self)
