@@ -16,12 +16,12 @@ class RendererOne(Gtk.Grid):
 		self.set_valign(Gtk.Align.FILL)
 
 		# creating renderer window - drawing area
-		self.drawarea = Gtk.Image(hexpand=True, vexpand=True) #Gtk.DrawingArea(hexpand=True, vexpand=True)
+		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True) #Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
-		self.drawarea.set_size_request(100,75)
+		#self.drawarea.set_size_request(100,75)
 		# setting initial renderer color
-		#color = Gdk.color_parse("black")
-		#rgba = Gdk.RGBA.from_color(color)
+		color = Gdk.color_parse("black")
+		rgba = Gdk.RGBA.from_color(color)
 		#self.drawarea.override_background_color(0, rgba)
 
 		# creating volume button at the right edge of a renderer instance
@@ -37,8 +37,6 @@ class RendererOne(Gtk.Grid):
 
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
-		self.drawarea.show()
-		self.drawarea.realize()
 		return self.drawarea.get_window().get_xid()
 
 # a grid of video renderers
@@ -93,12 +91,17 @@ class Renderer(Gtk.FlowBox):
 			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
 			af.set(0.5, 0.5, 4/3, False)
 			self.rend_arr.append(RendererOne(progNames[i]))
+			print("renderer №" + str(i) + ": " +  str(self.rend_arr[i]))
 			af.add(self.rend_arr[i])
 			# insert renderer to flow box
 			self.insert(af, -1)
 
 		# show all renderers
+		print(self.rend_arr)
 		self.show_all()
+		for i in range(progNum):
+			xid = self.rend_arr[i].drawarea.get_window().get_xid()
+			print("renderer: " + str(self.rend_arr[i]) + ", window: " + str(self.rend_arr[i].get_window()) + ", xid: " + str(xid))
 
   	# delete all renderers
 	def remove_renderers(self):
@@ -111,7 +114,7 @@ class Renderer(Gtk.FlowBox):
 	def get_renderers_xid(self):
 		xids = []
 		for i in range(len(self.get_children())):
-			print(self.rend_arr[i])
 			xids.append(self.rend_arr[i].drawarea.get_window().get_xid())
+			print(self.rend_arr[i])
 			print(xids[i])
 		return xids
