@@ -3,42 +3,20 @@
 from gi.repository import Gtk, Gio
 from datetime import datetime
 import os
-from struct import pack
 
 # spacing between elements
 DEF_COL_SPACING = 12
 DEF_ROW_SPACING = 6
 DEF_BORDER = 18
-# default prog num
-DEF_PROG_NUM = 10
-# version number
-VERSION = "0.1"
 
 # log event types
 TYPE_INFO = 0
 TYPE_WARNING = 1
 TYPE_ERROR = 2
 
-# dividers for string with program parameters
-STREAM_DIVIDER = ':$:'
-PROG_DIVIDER = ':*:'
-PARAM_DIVIDER = '^:'
-# dividers for byte array with program parameters
-BYTE_STREAM_DIVIDER = 0xABBA0000
-BYTE_PROG_DIVIDER = 0xACDC0000
-
 # localhost address of gstreamer pipeline
 GS_PIPELINE_PORT = 1500
 GUI_PORT = 1600
-
-# message headers
-HEADER_PROG_LIST = 0xDEADBEEF
-
-# prog table column names
-heading_labels = ["№",         "Программа", 	"Громкость",
-					  "Нет видео", "Чёрный кадр",	"Заморозка",
-					  "Блочность", "Нет аудио", 	"Тихо",
-					  "Громко"]
 
 unavailable = "Окно временно недоступно. Ведётся разработка интерфейса."
 
@@ -83,34 +61,6 @@ def write_log_message_submessage(msg, from_new_string=False):
 		f.write("\t" + msg + "\n")
 
 	f.close()
-
-# function that transforms prog list string to byte array
-def prog_string_to_byte(progList, xids):
-	streams = progList.split(STREAM_DIVIDER)
-	msg_parts = []
-
-	# add message header
-	msg_parts.append(pack('I', HEADER_PROG_LIST))
-	# iterate over stream strings
-	for stream in streams[1:]:
-		msg_parts.append(pack('I', BYTE_STREAM_DIVIDER))
-
-		progs = stream.split(PROG_DIVIDER)
-		msg_parts.append( pack('I', int(progs[0])) )
-		for i, prog in enumerate(progs[1:]):
-			msg_parts.append(pack('I', BYTE_PROG_DIVIDER))
-			params = prog.split(PARAM_DIVIDER)
-			params = list(map(int, params))
-			params.insert(1, xids[i])
-			#msg_parts.append(pack('I'*len(params), *params))
-			for param in params:
-				msg_parts.append(pack('I', param))
-
-	#add message ending
-	msg_parts.append(pack('I', HEADER_PROG_LIST))
-	msg = b"".join(msg_parts)
-
-	return msg
 
 # base placeholder class
 class Placeholder(Gtk.VBox):

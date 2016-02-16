@@ -12,7 +12,7 @@ class CurResultsPage(Gtk.Grid):
 		Gtk.Grid.__init__(self)
 
 		# creating renderers
-		self.rend = renderer.Renderer()
+		self.rend = renderer.RendererGrid()
 
 		# creating renderers overlay
 		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)

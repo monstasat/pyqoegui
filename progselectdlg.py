@@ -2,6 +2,7 @@
 
 from gi.repository import Gtk, Gio
 
+from struct import pack
 from common import Placeholder
 from common import write_log_message_submessage, write_log_message
 import common
@@ -24,21 +25,22 @@ TREE_ICONS_SYM = {"ts" : "view-grid-symbolic",
 	# xid
 	# to be analyzed
 
-prglist = "0:*:\
-2010^:11 РЕН-ТВ^:РТРС^:2^:2011^:0^:h264^:2012^:1^:aac:*:\
-2020^:12 Спас^:РТРС^:2^:2021^:0^:h264^:2022^:1^:aac:*:\
-2030^:13 Porno-TV^:РТРС^:3^:2031^:0^:h264^:2032^:1^:aac^:2033^:1^:aac:*:\
-2040^:14 Домашний^:РТРС^:2^:2041^:0^:h264^:2042^:1^:aac:*:\
-2050^:15 ТВ3^:РТРС^:2^:2051^:0^:h264^:2052^:1^:aac:*:\
-2060^:16 Пятница!^:РТРС^:2^:2061^:0^:h264^:2062^:1^:aac:*:\
-2070^:17 Радио Жесть^:РТРС^:1^:2072^:1^:aac"
-
 TREE_ICONS = {	"ts" : "view-grid-symbolic",
 				"program" : "applications-multimedia",
 				"video" : "video-x-generic",
 				"audio" : "audio-x-generic",}
 
 PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
+
+# dividers for string with program parameters
+STREAM_DIVIDER = ':$:'
+PROG_DIVIDER = ':*:'
+PARAM_DIVIDER = '^:'
+# dividers for byte array with program parameters
+BYTE_STREAM_DIVIDER = 0xABBA0000
+BYTE_PROG_DIVIDER = 0xACDC0000
+# message headers
+HEADER_PROG_LIST = 0xDEADBEEF
 
 class ProgSelectDlg(basedialog.BaseDialog):
 
@@ -70,7 +72,6 @@ class ProgSelectDlg(basedialog.BaseDialog):
 		self.show_all()
 
 	def on_btn_clicked_apply(self, widget):
-
 		basedialog.BaseDialog.on_btn_clicked_apply(self, widget)
 
 	def get_selected_prog_params(self):
@@ -85,6 +86,34 @@ class ProgSelectDlg(basedialog.BaseDialog):
 			self.holder.hide()
 		else:
 			self.holder.show_all()
+
+   	# function that transforms prog list string to byte array
+	def prog_string_to_byte(self, progList, xids):
+		streams = progList.split(STREAM_DIVIDER)
+		msg_parts = []
+
+		# add message header
+		msg_parts.append(pack('I', HEADER_PROG_LIST))
+		# iterate over stream strings
+		for stream in streams[1:]:
+			msg_parts.append(pack('I', BYTE_STREAM_DIVIDER))
+
+			progs = stream.split(PROG_DIVIDER)
+			msg_parts.append( pack('I', int(progs[0])) )
+			for i, prog in enumerate(progs[1:]):
+				msg_parts.append(pack('I', BYTE_PROG_DIVIDER))
+				params = prog.split(PARAM_DIVIDER)
+				params = list(map(int, params))
+				params.insert(1, xids[i])
+				#msg_parts.append(pack('I'*len(params), *params))
+				for param in params:
+					msg_parts.append(pack('I', param))
+
+		# add message ending
+		msg_parts.append(pack('I', HEADER_PROG_LIST))
+		msg = b"".join(msg_parts)
+		#return resulting bytearray
+		return msg
 
 class ProgTree(Gtk.TreeView):
 
@@ -168,23 +197,23 @@ class ProgTree(Gtk.TreeView):
 			# prog counter in one stream
 			prog_cnt = 0
 			# get current prog string and split it into prog array, excluding first element (stream id)
-			parts = self.store[piter][5].split(common.PROG_DIVIDER)
+			parts = self.store[piter][5].split(PROG_DIVIDER)
 			progs = parts[1:]
 			stream_id = parts[0]
 
 			# pack stream id to the result string
-			selected = selected + common.STREAM_DIVIDER + stream_id + common.PROG_DIVIDER
+			selected = selected + STREAM_DIVIDER + stream_id + PROG_DIVIDER
 
 			# iterating over stream programs
 			while citer is not None:
 
 				# if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
-					progParams = progs[prog_cnt].split(common.PARAM_DIVIDER)
+					progParams = progs[prog_cnt].split(PARAM_DIVIDER)
 					progNames.append(progParams[PROG_PARAMS['prog_name']])
 
 					# pack program number to the result string
-					selected = selected + progParams[PROG_PARAMS['number']] + common.PARAM_DIVIDER
+					selected = selected + progParams[PROG_PARAMS['number']] + PARAM_DIVIDER
 
 					# start forming log string
 					log_str = "stream_id = " + stream_id + ", "
@@ -208,7 +237,7 @@ class ProgTree(Gtk.TreeView):
 							# increment selected pids counter
 							pidNum = pidNum + 1
 							# pack pids to the result string
-							selected = selected + pid + common.PARAM_DIVIDER
+							selected = selected + pid + PARAM_DIVIDER
 							# write pid types to log
 							log_str = log_str + "PID " + pid + ": " + pidCodec + ", "
 						# increment total pid counter
@@ -216,7 +245,7 @@ class ProgTree(Gtk.TreeView):
 						piditer = self.store.iter_next(piditer)
 
 					# change last symbol in the result string to program divider
-					selected = selected[:-len(common.PARAM_DIVIDER)] + common.PROG_DIVIDER
+					selected = selected[:-len(PARAM_DIVIDER)] + PROG_DIVIDER
 					# increment selected prog counter
 					progNum = progNum + 1
 					# write added program info to log
@@ -227,7 +256,7 @@ class ProgTree(Gtk.TreeView):
 				total_prog_cnt = total_prog_cnt + 1
 
 			#delete last divider in the result string
-			selected = selected[:-len(common.PROG_DIVIDER)]
+			selected = selected[:-len(PROG_DIVIDER)]
 			# increment stream counter
 			stream_cnt = stream_cnt + 1
 			# get next stream iter
@@ -240,10 +269,6 @@ class ProgTree(Gtk.TreeView):
 		return [progNum, progNames, selected]
 		# split top-level string
 
-		#for i, prog in enumerate(progs[1:]):
-		#	# split string with program parameters
-		#	progParams = prog.split(common.PARAM_DIVIDER)
-
 	# show new program list received from backend
 	def show_prog_list(self, progList):
 
@@ -251,7 +276,7 @@ class ProgTree(Gtk.TreeView):
 		# self.store.clear()
 
 		# split received string buffer by programs
-		progs = progList.split(common.PROG_DIVIDER)
+		progs = progList.split(PROG_DIVIDER)
 
 		# get stream id
 		stream_id = int(progs[0])
@@ -269,7 +294,7 @@ class ProgTree(Gtk.TreeView):
 		for i, prog in enumerate(progs[1:]):
 
 			# get prog params
-			progParams = prog.split(common.PARAM_DIVIDER)
+			progParams = prog.split(PARAM_DIVIDER)
 			progName = progParams[PROG_PARAMS['prog_name']]
 			provName = progParams[PROG_PARAMS['prov_name']]
 			pidsNum = int(progParams[PROG_PARAMS["pids_num"]])
