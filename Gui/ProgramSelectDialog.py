@@ -7,9 +7,6 @@
 		# pid
 		# pid type
 		# codec name
-		# to be analyzed
-	# xid
-	# to be analyzed
 
 from gi.repository import Gtk
 from Gui.Placeholder import Placeholder
@@ -222,9 +219,6 @@ class ProgTree(Gtk.TreeView):
 
 	# show new program list received from backend
 	def show_prog_list(self, progList):
-
-		# clear tree model
-		# self.store.clear()
 
 		# split received string buffer by programs
 		progs = progList.split(self.PROG_DIVIDER)
