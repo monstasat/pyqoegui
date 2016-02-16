@@ -3,7 +3,6 @@ from gi.repository import Gtk, Gio
 from struct import pack
 # localhost address of gstreamer pipeline
 GS_PIPELINE_PORT = 1500
-GUI_PORT = 1600
 
 		# dividers for byte array with program parameters
 		self.BYTE_STREAM_DIVIDER = 0xABBA0000

@@ -90,6 +90,13 @@ class MainWindow(Gtk.Window):
 
 		self.set_titlebar(hb)
 
+		self.show_all()
+
+		# code to set some elements initially visible/invisible
+		self.cur_results_page.hide_renderer_and_table()
+		# if table is invisible, hide the button
+		self.manage_table_revealer_button_visibility()
+
 		# connect buttons to events
 		# get start button
 		btnCallbacks = [self.on_start_clicked, self.on_prog_select_clicked,
@@ -172,7 +179,7 @@ class MainWindow(Gtk.Window):
 
 	# about button was clicked
 	def on_about_clicked(self, widget):
-		aboutDlg = AtsAboudDlg(self)
+		aboutDlg = AboutDialog(self)
 		responce = aboutDlg.run()
 		if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
 			aboutDlg.destroy()
