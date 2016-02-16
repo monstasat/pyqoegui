@@ -16,13 +16,13 @@ class RendererOne(Gtk.Grid):
 		self.set_valign(Gtk.Align.FILL)
 
 		# creating renderer window - drawing area
-		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
+		self.drawarea = Gtk.Image(hexpand=True, vexpand=True) #Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
 		self.drawarea.set_size_request(100,75)
 		# setting initial renderer color
-		color = Gdk.color_parse("black")
-		rgba = Gdk.RGBA.from_color(color)
-		self.drawarea.override_background_color(0, rgba)
+		#color = Gdk.color_parse("black")
+		#rgba = Gdk.RGBA.from_color(color)
+		#self.drawarea.override_background_color(0, rgba)
 
 		# creating volume button at the right edge of a renderer instance
 		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END)
@@ -87,6 +87,7 @@ class Renderer(Gtk.FlowBox):
 
 		self.rend_arr.clear()
 		# add number of renderers
+		print(progNum)
 		for i in range(progNum):
 			# each renderer is placed into aspect frame widget (4:3)
 			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
@@ -109,13 +110,8 @@ class Renderer(Gtk.FlowBox):
 	# returns array of drawing area xids
 	def get_renderers_xid(self):
 		xids = []
-		for i, child in enumerate(self.get_children()):
-			self.rend_arr[i].show_all()
-			children = self.rend_arr[i].get_children()
-			for c in children:
-				c.realize()
-				c.show()
+		for i in range(len(self.get_children())):
 			print(self.rend_arr[i])
-			xids.append(self.rend_arr[i].get_drawing_area_xid())
+			xids.append(self.rend_arr[i].drawarea.get_window().get_xid())
 			print(xids[i])
 		return xids

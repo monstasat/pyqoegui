@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, Gio, GObject, GLib
+from gi.repository import Gtk, Gio, GdkX11, GLib
 
 import sys
 import common
