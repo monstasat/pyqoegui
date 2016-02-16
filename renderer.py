@@ -8,7 +8,7 @@ class RendererOne(Gtk.Grid):
 
 	def __init__(self, progName):
 		Gtk.Grid.__init__(self)
-
+		print("created renderer one!")
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand_set(True)
 		self.set_hexpand(True)
@@ -16,13 +16,18 @@ class RendererOne(Gtk.Grid):
 		self.set_valign(Gtk.Align.FILL)
 
 		# creating renderer window - drawing area
-		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True) #Gtk.DrawingArea(hexpand=True, vexpand=True)
+		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
-		#self.drawarea.set_size_request(100,75)
+		self.drawarea.set_size_request(100,75)
 		# setting initial renderer color
 		color = Gdk.color_parse("black")
 		rgba = Gdk.RGBA.from_color(color)
 		#self.drawarea.override_background_color(0, rgba)
+
+		screen = self.drawarea.get_screen()
+		visual = screen.get_system_visual()
+		if visual != None:
+			self.drawarea.set_visual(visual)
 
 		# creating volume button at the right edge of a renderer instance
 		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END)
@@ -105,10 +110,10 @@ class Renderer(Gtk.FlowBox):
 
   	# delete all renderers
 	def remove_renderers(self):
-		self.rend_arr.clear()
 		children = self.get_children()
 		for child in children:
 			child.destroy()
+		self.rend_arr.clear()
 
 	# returns array of drawing area xids
 	def get_renderers_xid(self):

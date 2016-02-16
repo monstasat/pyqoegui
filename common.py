@@ -101,7 +101,7 @@ def prog_string_to_byte(progList, xids):
 			msg_parts.append(pack('I', BYTE_PROG_DIVIDER))
 			params = prog.split(PARAM_DIVIDER)
 			params = list(map(int, params))
-			params.insert(1, 0)#xids[i])
+			params.insert(1, xids[i])
 			#msg_parts.append(pack('I'*len(params), *params))
 			for param in params:
 				msg_parts.append(pack('I', param))

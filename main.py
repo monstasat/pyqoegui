@@ -4,8 +4,6 @@ from gi.repository import Gtk, Gio, GdkX11, GLib
 import sys
 import common
 import menutoolbar
-import progtable
-import renderer
 import progselectdlg
 import curresultspage
 import plotpage
@@ -15,7 +13,7 @@ from common import create_icon_from_name
 from aboutdlg import AtsAboudDlg
 from common import write_log_message
 
-class MyWindow(Gtk.ApplicationWindow):
+class MyWindow(Gtk.Window):
 
 	edit = Gtk.Entry()
 	def __init__(self, app):
@@ -33,8 +31,7 @@ class MyWindow(Gtk.ApplicationWindow):
 		self.progDlg.hide()
 
 		# add header bar to the window
-		hb = Gtk.HeaderBar(title="Анализатор АТС-3")
-		self.set_titlebar(hb)
+		hb = Gtk.HeaderBar()
 
 		# add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
@@ -93,6 +90,8 @@ class MyWindow(Gtk.ApplicationWindow):
 		self.showTableBtn.connect("query-tooltip", self.tooltip_callback)
 		self.showTableBtn.connect("clicked", self.reveal_child, self.cur_results_page.get_table_revealer())
 		hb.pack_end(self.showTableBtn)
+
+		self.set_titlebar(hb)
 
 		# connect buttons to events
 		# get start button
@@ -220,7 +219,7 @@ class MyApplication(Gtk.Application):
 
 		#decode string back to unicode
 		wstr = data[0].decode('utf-8', 'ignore')
-		print("msg of type '" + wstr[0] + "' received!")
+		#print("msg of type '" + wstr[0] + "' received!")
 
 		if len(wstr) > 0:
 			# if received program list

@@ -29,6 +29,7 @@ class CurResultsPage(Gtk.Grid):
 
 		# attach - left, top, width, height
 		self.attach(overlay, 0, 0, 1, 1)
+		#self.attach(self.rend, 0, 0, 1, 1)
 		self.attach(self.tableRevealer, 0, 1, 1, 1)
 
 		# set grid alignment and spacing
