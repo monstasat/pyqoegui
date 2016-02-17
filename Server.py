@@ -2,7 +2,8 @@ from gi.repository import Gio
 
 class Server():
 
-	def __init__(self, port):
+	def __init__(self, port, win):
+		self.win = win
 		# server for recieving messages from gstreamer pipeline
 		x = ["foo"]
 		server = Gio.SocketService.new()
@@ -19,15 +20,12 @@ class Server():
 
 		#decode string back to unicode
 		wstr = data[0].decode('utf-8', 'ignore')
-		#print("msg of type '" + wstr[0] + "' received!")
-		print(wstr)
 
 		if len(wstr) > 0:
 			# if received program list
 			if wstr[0] == 'd':
 				#self.win.progDlg.show_prog_list(wstr[1:])
 				self.parse_prog_list(wstr[1:])
-				print("prog message received")
 			# if received video parameters
 			elif wstr[0] == 'v':
 				#self.win.
@@ -68,8 +66,7 @@ class Server():
 
 		stream_params.append(progs_param_list)
 
-		print(stream_params)
-
+		self.win.progDlg.show_prog_list(stream_params)
 		# get prog params
 
 

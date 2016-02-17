@@ -11,11 +11,11 @@ class MyApplication(Gtk.Application):
 
 	def __init__(self):
 		Gtk.Application.__init__(self)
-		server = Server(self.GUI_SERVER_PORT)
 
 	def do_activate(self):
 		self.win = MainWindow(self)
 		self.win.connect('delete-event', self.on_exit)
+		server = Server(self.GUI_SERVER_PORT, self.win)
 		#self.win.show_all()
 
 	def on_exit(self, event, data):

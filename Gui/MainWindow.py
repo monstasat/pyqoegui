@@ -9,6 +9,8 @@ from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
+from control import Control
+from Client import Client
 
 class MainWindow(Gtk.Window):
 
@@ -153,15 +155,24 @@ class MainWindow(Gtk.Window):
 
 			# get renderers xids from cur result page
 			xids = self.cur_results_page.get_renderers_xid()
+			print("here is what we got")
+			print(progParams[0])
+			print(progParams[1])
+			print(xids)
+
+			print(progParams[2])
 
 			# convert string to byte array and send to gs pipeline
 			#prog_msg = self.control.prog_string_to_byte(progParams[2], xids)
 			try:
-				self.get_application().send_message(prog_msg, common.GS_PIPELINE_PORT)
+				client = Client()
+				control = Control()
+				prog_msg = control.prog_string_to_byte(progParams[2], xids)
+				client.send_message(prog_msg, 1500)
 			except GLib.Error:
-				write_log_message("failed to send prog list message to gstreamer pipeline", event_type=common.TYPE_ERROR)
+				print("failed to send prog list message to gstreamer pipeline")
 			else:
-				write_log_message("prog list message successfully sent to gstreamer pipeline")
+				print("prog list message successfully sent to gstreamer pipeline")
 
 		self.progDlg.hide()
 
