@@ -136,9 +136,6 @@ class ProgTree(Gtk.TreeView):
 
 	def get_selected_prog_params(self):
 
-		progNames = []
-		progNum = 0
-
 		# get root iter
 		piter = self.store.get_iter_first()
 		citer = self.store.iter_children(piter)
@@ -157,7 +154,6 @@ class ProgTree(Gtk.TreeView):
 				# if program is selected
 				if (self.store[citer][2] is True) or (self.store[citer][3] is True):
 					prog_params = json.loads(self.store[citer][5])
-					progNames.append(prog_params[1])
 
 					piditer = self.store.iter_children(citer)
 
@@ -177,14 +173,12 @@ class ProgTree(Gtk.TreeView):
 
 			# replacing prog info
 			stream_params[1] = progs_param_list
-			progNum = progNum + len(progs_param_list)
 			streams_params_list.append(stream_params)
 			# get next stream iter
 			piter = self.store.iter_next(piter)
 			citer = self.store.iter_children(piter)
 
-		return [progNum, progNames, streams_params_list]
-		# split top-level string
+		return streams_params_list
 
 	# show new program list received from backend
 	def show_prog_list(self, progList):

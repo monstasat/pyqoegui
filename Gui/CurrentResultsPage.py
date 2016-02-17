@@ -38,18 +38,17 @@ class CurrentResultsPage(Gtk.Grid):
 	def get_renderers_xid(self):
 		return self.rend.get_renderers_xid()
 
-	def on_prog_list_changed(self, progNum, progNames):
-		if progNum == "" or int(progNum) == 0 :
+	def on_prog_list_changed(self, progNames):
+		progNum = len(progNames)
+		if progNum == 0 :
 			self.holder.show()
 			self.prgtbl.hide()
-			num = 0
 		else:
 			self.holder.hide()
 			self.prgtbl.show_all()
-			num = int(progNum)
 
-		self.rend.draw_renderers(num, progNames)
-		self.prgtbl.add_rows(num, progNames)
+		self.rend.draw_renderers(progNum, progNames)
+		self.prgtbl.add_rows(progNum, progNames)
 
 	def get_prog_table_visible(self):
 		return self.prgtbl.get_visible()

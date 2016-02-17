@@ -13,7 +13,8 @@ from control import Control
 from Client import Client
 
 class MainWindow(Gtk.Window):
-	__gsignals__ = {'new-settings:prog-list': (GObject.SIGNAL_RUN_FIRST, None, (list, list,))}
+
+	__gsignals__ = {'new_settings_prog_list': (GObject.SIGNAL_RUN_FIRST, None, ())}
 
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
@@ -147,28 +148,25 @@ class MainWindow(Gtk.Window):
 
 		# if new program list was chosen
 		if responce == Gtk.ResponseType.APPLY:
-			progParams = self.progDlg.get_selected_prog_params()
-			self.cur_results_page.on_prog_list_changed(progParams[0], progParams[1])
-
-			# determine wether table revealer button should be visible
-			self.manage_table_revealer_button_visibility()
-
-			# get renderers xids from cur result page
-			xids = self.cur_results_page.get_renderers_xid()
-
-			try:
-				# emit signal from gui to control
-				self.emit("new-setting:prog-list", progParams[2])
-				client = Client()
-				control = Control()
-				prog_msg = control.prog_string_to_byte(progParams[2], xids)
-				client.send_message(prog_msg, 1500)
-			except GLib.Error:
-				print("failed to send prog list message to gstreamer pipeline")
-			else:
-				print("prog list message successfully sent to gstreamer pipeline")
+			# emit signal from gui to control about new programs
+			self.emit("new_settings_prog_list")
 
 		self.progDlg.hide()
+
+	def get_applied_prog_list_and_xids(self):
+		# get program list from prog select dialog
+		progList = self.progDlg.get_selected_prog_params()
+
+		# get renderers xids from cur result page
+		xids = self.cur_results_page.get_renderers_xid()
+
+		return [progList, xids]
+
+	def set_programs_in_gui(self, progNames):
+		# add new programs to gui
+		self.cur_results_page.on_prog_list_changed(progNames)
+		# determine wether table revealer button should be visible
+		self.manage_table_revealer_button_visibility()
 
 	# rf settings button was clicked
 	def on_rf_set_clicked(self, widget):

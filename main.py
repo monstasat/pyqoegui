@@ -16,7 +16,7 @@ class MyApplication(Gtk.Application):
 		self.log = Log("log.txt")
 		self.gs_pipeline = Backend()
 
-	def callback(self):
+	def callback(self, param):
 		print('hello man!')
 
 	def do_activate(self):
@@ -24,7 +24,7 @@ class MyApplication(Gtk.Application):
 		self.win.connect('delete-event', self.on_exit)
 		server = Server(self.GUI_SERVER_PORT, self.win)
 
-		self.connect(self.win, "new-setting:prog-list", self.callback)
+		self.win.connect('new_settings_prog_list', self.callback)
 
 		self.gs_pipeline.execute()
 
