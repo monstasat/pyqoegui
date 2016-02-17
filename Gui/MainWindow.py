@@ -9,8 +9,6 @@ from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
-from control import Control
-from Client import Client
 
 class MainWindow(Gtk.Window):
 
@@ -135,6 +133,26 @@ class MainWindow(Gtk.Window):
 			else:
 				self.showTableBtn.set_visible(False)
 
+	# dark theme switch button was activated
+	def on_dark_theme_check(self, widget, gparam):
+		settings = Gtk.Settings.get_default()
+		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())
+
+	# get program list from prog select dialog
+	def get_applied_prog_list(self):
+		return self.progDlg.get_selected_prog_params()
+
+	# get renderers xids from cur result page
+	def get_renderers_xids(self):
+		return self.cur_results_page.get_renderers_xid()
+
+	# set gui for new program list
+	def set_new_programs(self, progNames):
+		# add new programs to gui
+		self.cur_results_page.on_prog_list_changed(progNames)
+		# determine wether table revealer button should be visible
+		self.manage_table_revealer_button_visibility()
+
 	# start button was clicked
 	def on_start_clicked(self, widget):
 		hb = widget.get_parent()
@@ -152,21 +170,6 @@ class MainWindow(Gtk.Window):
 			self.emit("new_settings_prog_list")
 
 		self.progDlg.hide()
-
-	def get_applied_prog_list_and_xids(self):
-		# get program list from prog select dialog
-		progList = self.progDlg.get_selected_prog_params()
-
-		# get renderers xids from cur result page
-		xids = self.cur_results_page.get_renderers_xid()
-
-		return [progList, xids]
-
-	def set_programs_in_gui(self, progNames):
-		# add new programs to gui
-		self.cur_results_page.on_prog_list_changed(progNames)
-		# determine wether table revealer button should be visible
-		self.manage_table_revealer_button_visibility()
 
 	# rf settings button was clicked
 	def on_rf_set_clicked(self, widget):
@@ -186,8 +189,3 @@ class MainWindow(Gtk.Window):
 		responce = aboutDlg.run()
 		if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
 			aboutDlg.destroy()
-
-	# dark theme switch button was activated
-	def on_dark_theme_check(self, widget, gparam):
-		settings = Gtk.Settings.get_default()
-		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())

@@ -1,3 +1,5 @@
+from gi import require_version
+require_version('GdkX11', '3.0')
 from gi.repository import Gtk,Gdk, GdkX11
 from Gui import Spacing
 
