@@ -2,7 +2,7 @@ class TranslateMessages():
 	def __init__(self):
 		pass
 
-	def translate_prog_message_from_pipeline(self, progList):
+	def translate_prog_string_to_prog_list(self, progList):
 		PROG_DIVIDER = ':*:'
 		PARAM_DIVIDER = '^:'
 		PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}

@@ -42,11 +42,14 @@ class Backend(GObject.GObject):
 
 	# apply new program list
 	def apply_new_program_list(self, progList, xids):
-
+		xid_iter = 0
 		# iterating over streams in progList
 		for stream in progList:
 			# if stream with sent number exist
 			if self.is_pipeline(stream[0]) is True:
-				self.gs_pipelines[stream[0]].apply_new_program_list(stream, xids)
-
+				# determine number of programs in this stream to get necessary number of xids
+				progNum = len(stream[1])
+				self.gs_pipelines[stream[0]].apply_new_program_list(stream, xids[xid_iter:xid_iter + progNum])
+				print(xids[xid_iter:xid_iter + progNum])
+				xid_iter = xid_iter + progNum
 			

@@ -60,7 +60,7 @@ class Control(Gtk.Application):
 		if len(wstr) > 0:
 			if wstr[0] == 'd':
 			# received program list
-				progList = self.msg_translator.translate_prog_message_from_pipeline(wstr[1:])
+				progList = self.msg_translator.translate_prog_string_to_prog_list(wstr[1:])
 				self.gui.progDlg.show_prog_list(progList)
 			elif wstr[0] == 'v':
 			# received video parameters
@@ -69,17 +69,17 @@ class Control(Gtk.Application):
 
 	def on_new_prog_settings_from_gui(self, param):
 		# get program list from gui
-		progList = self.gui.get_applied_prog_list()
+		self.analyzedProgList = self.gui.get_applied_prog_list()
 
 		# set gui for new programs
-		progNames = self.msg_translator.translate_prog_list_to_prog_names(progList)
+		progNames = self.msg_translator.translate_prog_list_to_prog_names(self.analyzedProgList)
 		self.gui.set_new_programs(progNames)
 
 		# get xids from gui renderers
 		xids = self.gui.get_renderers_xids()
 
 		# apply new settings to backend
-		self.backend.apply_new_program_list(progList, xids)
+		self.backend.apply_new_program_list(self.analyzedProgList, xids)
 
 	def do_activate(self):
 		self.backend = Backend(1)

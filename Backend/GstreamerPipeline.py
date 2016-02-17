@@ -51,7 +51,6 @@ class GstreamerPipeline():
 
 		# add message ending
 		msg_parts.append(pack('I', self.HEADER_PROG_LIST))
-		print(msg_parts)
 		msg = b"".join(msg_parts)
 
 		self.send_message_to_pipeline(msg, 1500 + int(stream_id))

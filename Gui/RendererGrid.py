@@ -23,23 +23,19 @@ class Renderer(Gtk.Grid):
 		rgba = Gdk.RGBA.from_color(color)
 		self.drawarea.override_background_color(0, rgba)
 
-		af = Gtk.AspectFrame(hexpand=True, vexpand=True)
-		af.set(0.5, 0.5, 4/3, False)
-		af.add(self.drawarea)
-
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
 		if visual != None:
 			self.drawarea.set_visual(visual)
 
 		# creating volume button at the right edge of a renderer instance
-		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, valign=Gtk.Align.START, hexpand=False, vexpand=False)
+		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# creating a program label
-		progname = Gtk.Label(label=progName, halign=Gtk.Align.END, valign=Gtk.Align.START, hexpand=False, vexpand=False)
+		progname = Gtk.Label(label=progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# attach elements to grid
-		self.attach(af, 0, 0, 2, 1)
+		self.attach(self.drawarea, 0, 0, 2, 1)
 		self.attach(progname, 0, 1, 1, 1)
 		self.attach(volbtn, 1, 1, 1, 1)
 
@@ -93,13 +89,14 @@ class RendererGrid(Gtk.FlowBox):
 		# add number of renderers
 		for i in range(progNum):
 			self.rend_arr.append(Renderer(progNames[i]))
+			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
+			af.set(0.5, 0.5, 4.0/3.0, False)
+			af.add(self.rend_arr[i])
 			# insert renderer to flow box
-			self.insert(self.rend_arr[i], -1)
+			self.insert(af, -1)
 
 		# show all renderers
 		self.show_all()
-		for i in range(progNum):
-			xid = self.rend_arr[i].drawarea.get_window().get_xid()
 
   	# delete all renderers
 	def remove_renderers(self):
