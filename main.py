@@ -4,6 +4,8 @@ from gi.repository import Gtk
 import sys
 from Gui.MainWindow import MainWindow
 from Server import Server
+from Log import Log
+from Backend import Backend
 
 class MyApplication(Gtk.Application):
 
@@ -11,16 +13,29 @@ class MyApplication(Gtk.Application):
 
 	def __init__(self):
 		Gtk.Application.__init__(self)
+		self.log = Log("log.txt")
+		self.gs_pipeline = Backend()
+
+	def callback(self):
+		print('hello man!')
 
 	def do_activate(self):
 		self.win = MainWindow(self)
 		self.win.connect('delete-event', self.on_exit)
 		server = Server(self.GUI_SERVER_PORT, self.win)
-		#self.win.show_all()
+
+		self.connect(self.win, "new-setting:prog-list", self.callback)
+
+		self.gs_pipeline.execute()
+
+		# write start message to log
+		self.log.write_log_message("application launched", True)
 
 	def on_exit(self, event, data):
-		# log message to be here
-		pass
+		self.gs_pipeline.terminate()
+
+		# write close message to log
+		self.log.write_log_message("application closed")
 
 	def do_startup(self):
 		Gtk.Application.do_startup(self)

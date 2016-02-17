@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, GObject
 
 from Gui.ButtonToolbar import ButtonToolbar
 from Gui.CurrentResultsPage import CurrentResultsPage
@@ -13,8 +13,8 @@ from control import Control
 from Client import Client
 
 class MainWindow(Gtk.Window):
+	__gsignals__ = {'new-settings:prog-list': (GObject.SIGNAL_RUN_FIRST, None, (list, list,))}
 
-	edit = Gtk.Entry()
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
 
@@ -155,16 +155,10 @@ class MainWindow(Gtk.Window):
 
 			# get renderers xids from cur result page
 			xids = self.cur_results_page.get_renderers_xid()
-			print("here is what we got")
-			print(progParams[0])
-			print(progParams[1])
-			print(xids)
 
-			print(progParams[2])
-
-			# convert string to byte array and send to gs pipeline
-			#prog_msg = self.control.prog_string_to_byte(progParams[2], xids)
 			try:
+				# emit signal from gui to control
+				self.emit("new-setting:prog-list", progParams[2])
 				client = Client()
 				control = Control()
 				prog_msg = control.prog_string_to_byte(progParams[2], xids)
