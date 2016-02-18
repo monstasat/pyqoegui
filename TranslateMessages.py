@@ -83,6 +83,7 @@ class TranslateMessages():
 
 							# if equivalent program was found, exit from while
 							compared_progs.append(gsProg[0])
+							print(gsProg[1])
 							compared_progs.append(gsProg[1])
 							compared_progs.append(gsProg[2])
 							compared_progs.append(gsProg[3])
@@ -94,6 +95,7 @@ class TranslateMessages():
 
 				# exit from for loop because we've found the stream
 				break
+		return compared_list
 
 	def translate_prog_list_to_prog_names(self, progList):
 

@@ -195,8 +195,8 @@ class ProgTree(Gtk.TreeView):
 
 		# fill the model
 		stream_info = progList[1]
-
-		piter = self.store.append(None, [self.TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, json.dumps(progList)])
+		if len(stream_info) != 0:
+			piter = self.store.append(None, [self.TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, json.dumps(progList)])
 		for prog in stream_info:
 
 			# get prog params

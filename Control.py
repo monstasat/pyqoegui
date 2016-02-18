@@ -49,6 +49,9 @@ class Control():
 		# execute all gstreamer pipelines
 		self.backend.start_all_pipelines()
 
+		# set gui for analyzed programs
+		self.apply_prog_list_to_gui(self.analyzedProgList)
+
 	# start server
 	def start_server(self, port):
 		# server for recieving messages from gstreamer pipeline
@@ -74,7 +77,8 @@ class Control():
 				self.gui.progDlg.show_prog_list(progList)
 				compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
 				#if self.received == False:
-				self.apply_prog_list(compared_prog_list)
+				print("comp prog list: " + str(compared_prog_list))
+				self.apply_prog_list_to_backend(compared_prog_list)
 				#self.received = True
 			elif wstr[0] == 'v':
 			# received video parameters
@@ -83,23 +87,27 @@ class Control():
 			elif wstr[0] == 'e':
 				self.on_end_of_stream(int(wstr[1:]))
 
-	# applying prog list to backend
-	def apply_prog_list(self, progList):
+	# make changes in gui according to prog list
+	def apply_prog_list_to_gui(self, progList):
 		# set gui for new programs
-		progNames = self.msg_translator.translate_prog_list_to_prog_names(self.analyzedProgList)
+		progNames = self.msg_translator.translate_prog_list_to_prog_names(progList)
 		self.gui.set_new_programs(progNames)
 
+	# applying prog list to backend
+	def apply_prog_list_to_backend(self, progList):
 		# get xids from gui renderers
 		xids = self.gui.get_renderers_xids()
 
 		# apply new settings to backend
-		self.backend.apply_new_program_list(self.analyzedProgList, xids)
+		self.backend.apply_new_program_list(progList, xids)
 
 	# if stream has ended, restart corresponding gstreamer pipeline
 	def on_end_of_stream(self, stream_id):
 		state = self.backend.get_pipeline_state(stream_id)
 		if state is State.RUNNING:
 			self.backend.restart_pipeline(stream_id)
+			# send blank prog list of corresponding stream id to gui
+			self.gui.progDlg.show_prog_list([stream_id, []])
 
 	def on_new_prog_settings_from_gui(self, param):
 		# get program list from gui
@@ -114,7 +122,6 @@ class Control():
 
 		# save program list
 		self.config.save_prog_list(self.analyzedProgList)
-
 
 	def destroy(self):
 		# terminate all gstreamer pipelines
