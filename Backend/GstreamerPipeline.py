@@ -25,12 +25,14 @@ class GstreamerPipeline():
 		self.proc = subprocess.Popen(["ats3-backend"])
 		if self.proc != None:
 			self.state = State.IDLE
+			print("executed")
 
 	def terminate(self):
 		if self.proc != None:
 			self.proc.terminate()
 			self.proc = None
 			self.state = State.TERMINATED
+			print("terminated")
 
 	def apply_new_program_list(self, progList, xids):
 
@@ -60,7 +62,6 @@ class GstreamerPipeline():
 
 			# add message ending
 			msg_parts.append(pack('I', self.HEADER_PROG_LIST))
-			print(msg_parts)
 			msg = b"".join(msg_parts)
 			# send message to gstreamer pipeline
 			self.send_message_to_pipeline(msg, 1500 + int(stream_id))
@@ -74,6 +75,5 @@ class GstreamerPipeline():
 		ostream = connection.get_output_stream()
 		# send message
 		ostream.write(msg)
-		print(msg)
 		# close connection
 		connection.close(None)

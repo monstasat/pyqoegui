@@ -22,6 +22,7 @@ class Backend():
 	# execute selected pipeline
 	def start_pipeline(self, stream_id):
 		if self.is_pipeline(stream_id) is True:
+			print("restart pipeline")
 			self.gs_pipelines[stream_id].terminate()
 			self.gs_pipelines[stream_id].execute()
 
@@ -57,6 +58,5 @@ class Backend():
 				# determine number of programs in this stream to get necessary number of xids
 				progNum = len(stream[1])
 				self.gs_pipelines[stream[0]].apply_new_program_list(stream, xids[xid_iter:xid_iter + progNum])
-				print(xids[xid_iter:xid_iter + progNum])
 				xid_iter = xid_iter + progNum
 			

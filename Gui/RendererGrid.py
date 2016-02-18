@@ -26,6 +26,7 @@ class Renderer(Gtk.Grid):
 		self.drawarea.connect("draw", self.on_drawingarea_draw)
 		# we need to draw only once - black background
 		self.drawn = False
+		#self.drawarea.modify_bg(0, Gdk.color_parse("black"))
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()

@@ -76,10 +76,8 @@ class Control():
 				progList = self.msg_translator.translate_prog_string_to_prog_list(wstr[1:])
 				self.gui.progDlg.show_prog_list(progList)
 				compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
-				#if self.received == False:
-				print("comp prog list: " + str(compared_prog_list))
+				self.apply_prog_list_to_gui(compared_prog_list)
 				self.apply_prog_list_to_backend(compared_prog_list)
-				#self.received = True
 			elif wstr[0] == 'v':
 			# received video parameters
 				pass
@@ -105,13 +103,15 @@ class Control():
 	def on_end_of_stream(self, stream_id):
 		state = self.backend.get_pipeline_state(stream_id)
 		if state is State.RUNNING:
-			self.backend.restart_pipeline(stream_id)
 			# send blank prog list of corresponding stream id to gui
 			self.gui.progDlg.show_prog_list([stream_id, []])
+			self.backend.restart_pipeline(stream_id)
+			print("end of stream!")
 
 	def on_new_prog_settings_from_gui(self, param):
 		# get program list from gui
 		self.analyzedProgList = self.gui.get_applied_prog_list()
+		print("prog message from gui")
 
 		# extract streams that are selected
 		stream_ids = self.msg_translator.translate_prog_list_to_stream_ids(self.analyzedProgList)
@@ -122,6 +122,13 @@ class Control():
 
 		# save program list
 		self.config.save_prog_list(self.analyzedProgList)
+		print("prog message from gui")
+
+	def on_start_from_gui(self):
+		pass
+
+	def on_stop_from_gui(self):
+		pass
 
 	def destroy(self):
 		# terminate all gstreamer pipelines

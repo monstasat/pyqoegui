@@ -49,13 +49,15 @@ class TranslateMessages():
 
 		# iterating over streams in saved prog list
 		for stream in progList:
+			compared_stream = []
 			# in case if received stream exists in saved prog list
 			if stream[0] == gsProgList[0]:
 
-				compared_list.append(stream[0])
+				compared_stream.append(stream[0])
 				progs = stream[1]
 				compared_progs = []
 				for gsProg in gsProgList[1]:
+					compared_prog = []
 
 					progNum = len(progs)
 					# search for the same program
@@ -82,19 +84,22 @@ class TranslateMessages():
 									j = j + 1
 
 							# if equivalent program was found, exit from while
-							compared_progs.append(gsProg[0])
-							print(gsProg[1])
-							compared_progs.append(gsProg[1])
-							compared_progs.append(gsProg[2])
-							compared_progs.append(gsProg[3])
-							compared_progs.append(compared_pids)
-							compared_list.append(compared_progs)
+							compared_prog.append(progs[i][0])
+							compared_prog.append(progs[i][1])
+							compared_prog.append(progs[i][2])
+							compared_prog.append(progs[i][3])
+							compared_prog.append(compared_pids)
+							compared_progs.append(compared_prog)
 							break
 						progNum = progNum - 1
 						i = i + 1
+				compared_stream.append(compared_progs)
 
 				# exit from for loop because we've found the stream
 				break
+
+		compared_list.append(compared_stream)
+
 		return compared_list
 
 	def translate_prog_list_to_prog_names(self, progList):
