@@ -51,8 +51,6 @@ class Renderer(Gtk.Grid):
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
 		if self.drawn is False:
-			print("hello from drawing!" + str(self.cnt))
-			self.cnt = self.cnt + 1
 			cr.set_source_rgb(0, 0, 0)
 			cr.rectangle(0, 0, self.drawarea.get_allocated_width(), self.drawarea.get_allocated_height())
 			cr.fill()
