@@ -84,6 +84,8 @@ class Control():
 			# received end of stream
 			elif wstr[0] == 'e':
 				self.on_end_of_stream(int(wstr[1:]))
+				print(wstr)
+
 
 	# make changes in gui according to prog list
 	def apply_prog_list_to_gui(self, progList):
