@@ -15,10 +15,9 @@ class AtsApp(Gtk.Application):
 		self.log = Log("log.txt")
 
 	def do_activate(self):
-
+		# create control instance
 		self.control = Control(self)
 		self.control.gui.connect('delete-event', self.on_exit)
-
 		# write start message to log
 		self.log.write_log_message("application launched", True)
 

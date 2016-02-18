@@ -5,3 +5,5 @@ IDLE = 0
 RUNNING = 1
 # process is not executed
 TERMINATED = 2
+# process does not exist
+NONEXISTENT = 3

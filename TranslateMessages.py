@@ -20,6 +20,11 @@ class TranslateMessages():
 			prog_params_list = []
 			progParams = prog.split(PARAM_DIVIDER)
 			for i in range(4):
+				# if prog name and provider name are not determined
+				if (i == 1) and (progParams[i] == "(null)"):
+					progParams[i] = "Неизвестное имя"
+				if (i == 2) and (progParams[i] == "(null)"):
+					progParams[i] = "Неизвестный провайдер"
 				prog_params_list.append(progParams[i])
 
 			pids_params_list = []
@@ -38,6 +43,58 @@ class TranslateMessages():
 		stream_params.append(progs_param_list)
 		return stream_params
 
+	def translate_prog_list_to_compared_prog_list(self, progList, gsProgList):
+		# new prog list after comparison
+		compared_list = []
+
+		# iterating over streams in saved prog list
+		for stream in progList:
+			# in case if received stream exists in saved prog list
+			if stream[0] == gsProgList[0]:
+
+				compared_list.append(stream[0])
+				progs = stream[1]
+				compared_progs = []
+				for gsProg in gsProgList[1]:
+
+					progNum = len(progs)
+					# search for the same program
+					i = 0
+
+					while progNum != 0:
+						# if found selected program in received list
+						if gsProg[0] == progs[i][0]:
+
+							pids = progs[i][4]
+							compared_pids = []
+							for gsPid in gsProg[4]:
+
+								pidsNum = len(pids)
+								# search for the same pid
+								j = 0
+								while pidsNum != 0:
+									# if found selected pid in received list
+									if (gsPid[0] == pids[j][0]) and (gsPid[2] == pids[j][2]):
+									# same pid found!
+										compared_pids.append(pids[j])
+										break
+									pidsNum = pidsNum - 1
+									j = j + 1
+
+							# if equivalent program was found, exit from while
+							compared_progs.append(gsProg[0])
+							compared_progs.append(gsProg[1])
+							compared_progs.append(gsProg[2])
+							compared_progs.append(gsProg[3])
+							compared_progs.append(compared_pids)
+							compared_list.append(compared_progs)
+							break
+						progNum = progNum - 1
+						i = i + 1
+
+				# exit from for loop because we've found the stream
+				break
+
 	def translate_prog_list_to_prog_names(self, progList):
 
 		progNames = []
@@ -47,4 +104,12 @@ class TranslateMessages():
 				progNames.append(prog[1])
 
 		return progNames
+
+	def translate_prog_list_to_stream_ids(self, progList):
+
+		stream_ids = []
+		for stream in progList:
+			stream_ids.append(stream[0])
+
+		return stream_ids
 

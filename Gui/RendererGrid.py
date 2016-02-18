@@ -10,7 +10,6 @@ class Renderer(Gtk.Grid):
 	def __init__(self, progName):
 		Gtk.Grid.__init__(self)
 
-		self.cnt = 0
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand_set(True)
 		self.set_hexpand(True)

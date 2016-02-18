@@ -1,5 +1,5 @@
 from gi.repository import Gio
-import subprocess, os
+import subprocess
 from struct import pack
 from Backend import State
 
@@ -60,6 +60,7 @@ class GstreamerPipeline():
 
 			# add message ending
 			msg_parts.append(pack('I', self.HEADER_PROG_LIST))
+			print(msg_parts)
 			msg = b"".join(msg_parts)
 			# send message to gstreamer pipeline
 			self.send_message_to_pipeline(msg, 1500 + int(stream_id))
@@ -73,5 +74,6 @@ class GstreamerPipeline():
 		ostream = connection.get_output_stream()
 		# send message
 		ostream.write(msg)
+		print(msg)
 		# close connection
 		connection.close(None)

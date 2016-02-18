@@ -1,7 +1,7 @@
-from gi.repository import Gio, GObject
 from Backend.GstreamerPipeline import GstreamerPipeline
+from Backend import State
 
-class Backend(GObject.GObject):
+class Backend():
 	def __init__(self, streams=1, port=1600):
 
 		self.gs_pipelines = []
@@ -17,13 +17,13 @@ class Backend(GObject.GObject):
 
 	# restart selected pipeline
 	def restart_pipeline(self, stream_id):
-		if self.is_pipeline(stream_id) is True:
-			self.terminate_pipeline()
-			self.start_pipeline()
+		self.start_pipeline(stream_id)
 
 	# execute selected pipeline
 	def start_pipeline(self, stream_id):
-		self.restart_pipeline(stream_id)
+		if self.is_pipeline(stream_id) is True:
+			self.gs_pipelines[stream_id].terminate()
+			self.gs_pipelines[stream_id].execute()
 
 	# terminate selected pipeline
 	def terminate_pipeline(self, stream_id):
@@ -39,6 +39,13 @@ class Backend(GObject.GObject):
 	def terminate_all_pipelines(self):
 		for pipeline in self.gs_pipelines:
 			pipeline.terminate()
+
+	def get_pipeline_state(self, stream_id):
+		if self.is_pipeline(stream_id) is True:
+			return self.gs_pipelines[stream_id].state
+		else:
+			return State.NONEXISTENT
+
 
 	# apply new program list
 	def apply_new_program_list(self, progList, xids):
