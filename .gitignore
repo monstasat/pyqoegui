@@ -1,7 +1,11 @@
-#ignore everything
-*
+#ignore python cache
+*.pyc
 
-#but not these files
-!*.py
-!.gitignore
+#ignore txt
+*.txt
+
+#ignore folders
+/__pycache__
+Gui/__pycache__
+Backend/__pycache__
 

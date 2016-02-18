@@ -1,25 +1,24 @@
-#!/usr/bin/python3
+from gi.repository import Gtk
+from Gui.Icon import Icon
 
-from gi.repository import Gtk, Gio
+class ButtonToolbar(Gtk.Toolbar):
 
-from common import create_icon_from_name
-from common import toolbar_buttons_text
+	# array with gtk toolbuttons
 
-#themed icon names
-ico_arr = ["media-playback-start-symbolic", "tv-symbolic", "network-wireless-symbolic", "gnome-tweak-tool-symbolic",
-			"drive-harddisk-symbolic", "help-about-symbolic"]
+	# button labels
+	toolbar_buttons_text = ["Старт","Выбор программ", "Настройки тюнера", "Настройки анализа",
+	"Запись потока", "О программе"]
 
-#button tooltip text
-tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
+	# button tooltip text
+	tooltip_arr = ["Запустить анализ","Выбор программ для анализа",
 		"Настройки ТВ тюнера",
 		"Настройки алгоритмов определения искажений изображения и звука",
 		"Запись потока на внутренний диск или съемный носитель",
 		"О программе"]
 
-class BtnToolbar(Gtk.Toolbar):
-
-	# array with gtk toolbuttons
-	btn_arr = []
+	# themed icon names
+	ico_arr = ["media-playback-start-symbolic", "tv-symbolic", "network-wireless-symbolic", "gnome-tweak-tool-symbolic",
+			"drive-harddisk-symbolic", "help-about-symbolic"]
 
 	# create a toolbar
 	def __init__(self):
@@ -27,12 +26,14 @@ class BtnToolbar(Gtk.Toolbar):
 		# setting this toolbar as primary for the window
 		self.get_style_context().add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
 
+		self.btn_arr = []
+
 		# create tool buttons
-		for i in range(len(ico_arr)):
-			self.btn_arr.append(Gtk.ToolButton.new(create_icon_from_name(ico_arr[i]), toolbar_buttons_text[i]))
+		for i in range(len(self.ico_arr)):
+			self.btn_arr.append(Gtk.ToolButton.new(Icon(self.ico_arr[i]), self.toolbar_buttons_text[i]))
 			self.btn_arr[i].set_is_important(True)
 			self.btn_arr[i].set_has_tooltip(True)
-			self.btn_arr[i].set_tooltip_text(tooltip_arr[i])
+			self.btn_arr[i].set_tooltip_text(self.tooltip_arr[i])
 			self.insert(self.btn_arr[i], i)
 			self.btn_arr[i].show()
 
@@ -55,15 +56,16 @@ class BtnToolbar(Gtk.Toolbar):
 		# if current state is "start"
 		if widget.get_label() == "Старт":
 			# change label and icon of toolbutton
-			tooltip_arr[0] = "Остановить анализ"
+			self.tooltip_arr[0] = "Остановить анализ"
 			widget.set_label("Стоп")
-			widget.set_icon_widget(create_icon_from_name("media-playback-stop-symbolic"))
+			widget.set_icon_widget(Icon("media-playback-stop-symbolic"))
 		# if current state is "stop"
 		else:
 			# change label and icon of toolbutton
-			tooltip_arr[0] = "Запустить анализ"
+			self.tooltip_arr[0] = "Запустить анализ"
 			widget.set_label("Старт")
-			widget.set_icon_widget(create_icon_from_name("media-playback-start-symbolic"))
-		widget.set_tooltip_text(tooltip_arr[0])
+			widget.set_icon_widget(Icon("media-playback-start-symbolic"))
+		widget.set_tooltip_text(self.tooltip_arr[0])
+		widget.show_all()
 
 		

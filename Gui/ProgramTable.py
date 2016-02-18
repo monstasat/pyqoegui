@@ -1,40 +1,22 @@
-#!/usr/bin/python
 from gi.repository import Gtk
-
-#maximum number of analyzed programs
-MAX_ANALYZED_PROG_NUM = 10
-#number of video/audio parameters measured
-PARAMETERS_NUM = 7
-#table rows number
-ROWS_NUM = 1 + MAX_ANALYZED_PROG_NUM
-COLS_NUM = 3 + PARAMETERS_NUM
-
-import common
-from common import create_icon_from_name
-
-# prog table column names
-
-heading_labels = ["№", "Программа", "Громкость",
-"Нет видео", "Чёрный кадр", "Заморозка",
-"Блочность", "Нет аудио", "Тихо",
-"Громко"]
 
 #class for viewing current program status (such as artifacts/loudndess) in a table
 class ProgramTable(Gtk.TreeView):
 
-
-
-	# table heading array
-	table_heading = []
-
-	# associates status code with a cell color
-	clrs = {'1' : '#80FF80', '2': '#FFFF80', '3': '#FF7878', '0' : '#CCCCCC'}
-
-	# associates status code with a cell text (temporary)
-	stattxt = {'1' : "", '2' : "Опасно", '3' : "Брак"}
-
 	def __init__(self):
 		Gtk.TreeView.__init__(self)
+
+		# prog table column names
+		self.heading_labels = ["№", "Программа", "Громкость",
+		"Нет видео", "Чёрный кадр", "Заморозка",
+		"Блочность", "Нет аудио", "Тихо",
+		"Громко"]
+
+		# associates status code with a cell color
+		self.clrs = {'1' : '#80FF80', '2': '#FFFF80', '3': '#FF7878', '0' : '#CCCCCC'}
+
+		# associates status code with a cell text (temporary)
+		self.stattxt = {'1' : "", '2' : "Опасно", '3' : "Брак"}
 
 		# our table should be horizontally expandable
 		self.set_hexpand(True)
@@ -67,7 +49,7 @@ class ProgramTable(Gtk.TreeView):
 			if i == 4:
 				renderer = Gtk.CellRendererProgress()
 				# renderer.props.inverted = True
-				column = Gtk.TreeViewColumn(heading_labels[int(i/2)], renderer, text=i)
+				column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)], renderer, text=i)
 			# other colums are text labels
 			else:
 				renderer = Gtk.CellRendererText()
@@ -76,14 +58,14 @@ class ProgramTable(Gtk.TreeView):
 				if i > 4:
 					# setting column text color - black
 					renderer.set_property("foreground", "black")
-					column = Gtk.TreeViewColumn(heading_labels[int(i/2)], renderer, text=i, background=color)
+					column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)], renderer, text=i, background=color)
 
 					# all artifact columns should have the same width
 					column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
 					column.set_fixed_width(100)
 				# setting parameters for the rest columns
 				else:
-					column = Gtk.TreeViewColumn(heading_labels[int(i/2)], renderer, text=i)
+					column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)], renderer, text=i)
 
 			# all columns besides first are expandable
 			if i > 0:

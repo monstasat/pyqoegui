@@ -1,33 +1,31 @@
 #!/usr/bin/python3
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, GObject
 
-import sys, os
-import common
-import menutoolbar
-import progselectdlg
-import curresultspage
-import plotpage
-import allrespage
+from Gui.ButtonToolbar import ButtonToolbar
+from Gui.CurrentResultsPage import CurrentResultsPage
+from Gui.PlotPage import PlotPage
+from Gui.AllResultsPage import AllResultsPage
+from Gui.ProgramSelectDialog import ProgramSelectDialog
+from Gui.Icon import Icon
+from Gui.AboutDialog import AboutDialog
+from Gui import Spacing
 
-from common import create_icon_from_name
-from aboutdlg import AtsAboudDlg
-from common import write_log_message
+class MainWindow(Gtk.Window):
 
-class MyWindow(Gtk.Window):
+	__gsignals__ = {'new_settings_prog_list': (GObject.SIGNAL_RUN_FIRST, None, ())}
 
-	edit = Gtk.Entry()
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
 
 		# main window border width
-		self.set_border_width(common.DEF_BORDER)
+		self.set_border_width(Spacing.BORDER)
 		self.maximize()
 		#self.set_resizable(False)
 		# can't resize window by double click on header bar
 		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
-		self.progDlg = progselectdlg.ProgSelectDlg(self)
+		self.progDlg = ProgramSelectDialog(self)
 		self.progDlg.hide()
 
 		# add header bar to the window
@@ -35,9 +33,9 @@ class MyWindow(Gtk.Window):
 
 		# add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
-					image=create_icon_from_name("open-menu-symbolic"))
-		popover = Gtk.PopoverMenu(border_width=common.DEF_BORDER)
-		popBox = Gtk.HBox(spacing=common.DEF_COL_SPACING)
+					image=Icon("open-menu-symbolic"))
+		popover = Gtk.PopoverMenu(border_width=Spacing.BORDER)
+		popBox = Gtk.HBox(spacing=Spacing.COL_SPACING)
 		darkThemeCheck = Gtk.Switch()
 		darkThemeCheck.connect('state-set', self.on_dark_theme_check)
 		popBox.add(darkThemeCheck)
@@ -48,9 +46,9 @@ class MyWindow(Gtk.Window):
 		hb.pack_end(menuBtn)
 
 		# create stack pages
-		self.cur_results_page = curresultspage.CurResultsPage()
-		self.plot_page = plotpage.PlotPage()
-		self.all_results_page = allrespage.AllResPage()
+		self.cur_results_page = CurrentResultsPage()
+		self.plot_page = PlotPage()
+		self.all_results_page = AllResultsPage()
 		pages = []
 		pages.append((self.cur_results_page, "cur_results", "Текущие результаты"))
 		pages.append((self.plot_page, "plots", "Графики"))
@@ -72,10 +70,10 @@ class MyWindow(Gtk.Window):
 		hb.set_custom_title(switch)
 
 		# creating left side bar with buttons
-		toolbar = menutoolbar.BtnToolbar()
+		toolbar = ButtonToolbar()
 
 		# main window grid
-		mainGrid = Gtk.Grid(row_spacing=common.DEF_ROW_SPACING, column_spacing=common.DEF_COL_SPACING,
+		mainGrid = Gtk.Grid(row_spacing=Spacing.ROW_SPACING, column_spacing=Spacing.COL_SPACING,
 							halign=Gtk.Align.FILL, valign=Gtk.Align.FILL)
 		mainGrid.attach(toolbar, 0, 0, 1, 1)
 		mainGrid.attach(self.myStack, 1, 0, 1, 1)
@@ -85,13 +83,20 @@ class MyWindow(Gtk.Window):
 
 		# add prgtbl button to header bar
 		self.showTableBtn = Gtk.ToggleButton(always_show_image=True, name="table_btn", active=False,
-						has_tooltip=True, image=create_icon_from_name("pan-down-symbolic"))
+						has_tooltip=True, image=Icon("pan-down-symbolic"))
 		# connect to the callback function of the tooltip
 		self.showTableBtn.connect("query-tooltip", self.tooltip_callback)
 		self.showTableBtn.connect("clicked", self.reveal_child, self.cur_results_page.get_table_revealer())
 		hb.pack_end(self.showTableBtn)
 
 		self.set_titlebar(hb)
+
+		self.show_all()
+
+		# code to set some elements initially visible/invisible
+		self.cur_results_page.hide_renderer_and_table()
+		# if table is invisible, hide the button
+		self.manage_table_revealer_button_visibility()
 
 		# connect buttons to events
 		# get start button
@@ -117,6 +122,9 @@ class MyWindow(Gtk.Window):
 	# called when a stackswitcher switches a page. Hides a table revealer button
 	def page_switched(self, stack, gparam):
 		self.manage_table_revealer_button_visibility()
+		for rend in self.cur_results_page.rend.rend_arr:
+			rend.drawn = False
+			rend.drawarea.queue_draw()
 
 	# called to hide header bar button if table is invisible
 	def manage_table_revealer_button_visibility(self):
@@ -127,6 +135,26 @@ class MyWindow(Gtk.Window):
 				self.showTableBtn.set_visible(True)
 			else:
 				self.showTableBtn.set_visible(False)
+
+	# dark theme switch button was activated
+	def on_dark_theme_check(self, widget, gparam):
+		settings = Gtk.Settings.get_default()
+		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())
+
+	# get program list from prog select dialog
+	def get_applied_prog_list(self):
+		return self.progDlg.get_selected_prog_params()
+
+	# get renderers xids from cur result page
+	def get_renderers_xids(self):
+		return self.cur_results_page.get_renderers_xid()
+
+	# set gui for new program list
+	def set_new_programs(self, progNames):
+		# add new programs to gui
+		self.cur_results_page.on_prog_list_changed(progNames)
+		# determine wether table revealer button should be visible
+		self.manage_table_revealer_button_visibility()
 
 	# start button was clicked
 	def on_start_clicked(self, widget):
@@ -141,24 +169,8 @@ class MyWindow(Gtk.Window):
 
 		# if new program list was chosen
 		if responce == Gtk.ResponseType.APPLY:
-			#pid = os.system("ats3-backend")
-			progParams = self.progDlg.get_selected_prog_params()
-			self.cur_results_page.on_prog_list_changed(progParams[0], progParams[1])
-
-			# determine wether table revealer button should be visible
-			self.manage_table_revealer_button_visibility()
-
-			# get renderers xids from cur result page
-			xids = self.cur_results_page.get_renderers_xid()
-
-			# convert string to byte array and send to gs pipeline
-			prog_msg = self.progDlg.prog_string_to_byte(progParams[2], xids)
-			try:
-				self.get_application().send_message(prog_msg, common.GS_PIPELINE_PORT)
-			except GLib.Error:
-				write_log_message("failed to send prog list message to gstreamer pipeline", event_type=common.TYPE_ERROR)
-			else:
-				write_log_message("prog list message successfully sent to gstreamer pipeline")
+			# emit signal from gui to control about new programs
+			self.emit("new_settings_prog_list")
 
 		self.progDlg.hide()
 
@@ -176,12 +188,7 @@ class MyWindow(Gtk.Window):
 
 	# about button was clicked
 	def on_about_clicked(self, widget):
-		aboutDlg = AtsAboudDlg(self)
+		aboutDlg = AboutDialog(self)
 		responce = aboutDlg.run()
 		if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
 			aboutDlg.destroy()
-
-	# dark theme switch button was activated
-	def on_dark_theme_check(self, widget, gparam):
-		settings = Gtk.Settings.get_default()
-		settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())

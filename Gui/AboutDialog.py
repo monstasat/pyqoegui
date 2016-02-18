@@ -1,11 +1,10 @@
-#!/usr/bin/python3
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk
 
 # version number
-VERSION = "0.1"
+VERSION = "0.1.0a"
 
 # about ats analyzer dialog based on Gtk.AboutDialog
-class AtsAboudDlg(Gtk.AboutDialog):
+class AboutDialog(Gtk.AboutDialog):
 	def __init__(self, aboutParent):
 		Gtk.AboutDialog.__init__(self, parent=aboutParent)
 		#about dialog should be modal - no other windows are active

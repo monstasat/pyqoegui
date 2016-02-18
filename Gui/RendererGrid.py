@@ -1,13 +1,15 @@
-#!/usr/bin/python3
+from gi import require_version
+require_version('GdkX11', '3.0')
 from gi.repository import Gtk,Gdk, GdkX11
-
-import common
+from Gui import Spacing
+import cairo
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
 
 	def __init__(self, progName):
 		Gtk.Grid.__init__(self)
+
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand_set(True)
 		self.set_hexpand(True)
@@ -18,14 +20,13 @@ class Renderer(Gtk.Grid):
 		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
 		self.drawarea.set_size_request(100,75)
-		# setting initial renderer color
-		color = Gdk.color_parse("black")
-		rgba = Gdk.RGBA.from_color(color)
-		#self.drawarea.override_background_color(0, rgba)
-
-		af = Gtk.AspectFrame(hexpand=True, vexpand=True)
-		af.set(0.5, 0.5, 4/3, False)
-		af.add(self.drawarea)
+		# this is to remove flickering
+		self.drawarea.set_double_buffered(False)
+		# connect 'draw' event with callback
+		self.drawarea.connect("draw", self.on_drawingarea_draw)
+		# we need to draw only once - black background
+		self.drawn = False
+		#self.drawarea.modify_bg(0, Gdk.color_parse("black"))
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
@@ -33,19 +34,27 @@ class Renderer(Gtk.Grid):
 			self.drawarea.set_visual(visual)
 
 		# creating volume button at the right edge of a renderer instance
-		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, valign=Gtk.Align.START, hexpand=False, vexpand=False)
+		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# creating a program label
-		progname = Gtk.Label(label=progName, halign=Gtk.Align.END, valign=Gtk.Align.START, hexpand=False, vexpand=False)
+		progname = Gtk.Label(label=progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# attach elements to grid
-		self.attach(af, 0, 0, 2, 1)
+		self.attach(self.drawarea, 0, 0, 2, 1)
 		self.attach(progname, 0, 1, 1, 1)
 		self.attach(volbtn, 1, 1, 1, 1)
 
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
 		return self.drawarea.get_window().get_xid()
+
+	def on_drawingarea_draw(self, widget, cr):
+		# if it is the first time we are drawing
+		if self.drawn is False:
+			cr.set_source_rgb(0, 0, 0)
+			cr.rectangle(0, 0, self.drawarea.get_allocated_width(), self.drawarea.get_allocated_height())
+			cr.fill()
+			self.drawn = True
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
@@ -70,8 +79,8 @@ class RendererGrid(Gtk.FlowBox):
 		self.set_orientation(Gtk.Orientation.HORIZONTAL)
 
 		# set some space between renderers
-		self.set_column_spacing(common.DEF_COL_SPACING)
-		self.set_row_spacing(common.DEF_ROW_SPACING)
+		self.set_column_spacing(Spacing.COL_SPACING)
+		self.set_row_spacing(Spacing.ROW_SPACING)
 
 	# draw necessary number of renderers
 	def draw_renderers(self, progNum, progNames):
@@ -93,13 +102,14 @@ class RendererGrid(Gtk.FlowBox):
 		# add number of renderers
 		for i in range(progNum):
 			self.rend_arr.append(Renderer(progNames[i]))
+			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
+			af.set(0.5, 0.5, 4.0/3.0, False)
+			af.add(self.rend_arr[i])
 			# insert renderer to flow box
-			self.insert(self.rend_arr[i], -1)
+			self.insert(af, -1)
 
 		# show all renderers
 		self.show_all()
-		for i in range(progNum):
-			xid = self.rend_arr[i].drawarea.get_window().get_xid()
 
   	# delete all renderers
 	def remove_renderers(self):
