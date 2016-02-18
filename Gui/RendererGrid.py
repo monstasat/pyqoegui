@@ -2,12 +2,15 @@ from gi import require_version
 require_version('GdkX11', '3.0')
 from gi.repository import Gtk,Gdk, GdkX11
 from Gui import Spacing
+import cairo
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
 
 	def __init__(self, progName):
 		Gtk.Grid.__init__(self)
+
+		self.cnt = 0
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand_set(True)
 		self.set_hexpand(True)
@@ -18,10 +21,12 @@ class Renderer(Gtk.Grid):
 		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
 		self.drawarea.set_size_request(100,75)
-		# setting initial renderer color
-		color = Gdk.color_parse("black")
-		rgba = Gdk.RGBA.from_color(color)
-		self.drawarea.override_background_color(0, rgba)
+		# this is to remove flickering
+		self.drawarea.set_double_buffered(False)
+		# connect 'draw' event with callback
+		self.drawarea.connect("draw", self.on_drawingarea_draw)
+		# we need to draw only once - black background
+		self.drawn = False
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
@@ -42,6 +47,16 @@ class Renderer(Gtk.Grid):
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
 		return self.drawarea.get_window().get_xid()
+
+	def on_drawingarea_draw(self, widget, cr):
+		# if it is the first time we are drawing
+		if self.drawn is False:
+			print("hello from drawing!" + str(self.cnt))
+			self.cnt = self.cnt + 1
+			cr.set_source_rgb(0, 0, 0)
+			cr.rectangle(0, 0, self.drawarea.get_allocated_width(), self.drawarea.get_allocated_height())
+			cr.fill()
+			self.drawn = True
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
