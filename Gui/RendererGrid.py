@@ -7,8 +7,14 @@ import cairo
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
 
-	def __init__(self, progName):
+	def __init__(self, guiProgInfo):
 		Gtk.Grid.__init__(self)
+
+		self.stream_id = guiProgInfo[0]
+		# program id from PMT
+		self.progID = guiProgInfo[1]
+		# program name from SDT
+		self.progName = guiProgInfo[2]
 
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand_set(True)
@@ -19,7 +25,8 @@ class Renderer(Gtk.Grid):
 
 		# creating renderer window - drawing area
 		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
-		# minimum renderer size (4:3)
+		self.drawarea.add_events(0)
+		# set default renderer size (4:3)
 		self.drawarea.set_size_request(100,75)
 		# this is to remove flickering
 		self.drawarea.set_double_buffered(False)
@@ -28,8 +35,6 @@ class Renderer(Gtk.Grid):
 		# we need to draw only once - black background
 		self.drawn = False
 		self.no_video = False
-		self.drawarea.modify_bg(0, Gdk.color_parse("black"))
-		self.drawarea.set_app_paintable(False)
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
@@ -40,7 +45,7 @@ class Renderer(Gtk.Grid):
 		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# creating a program label
-		progname = Gtk.Label(label=progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
+		progname = Gtk.Label(label=self.progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
 
 		# attach elements to grid
 		self.attach(self.drawarea, 0, 0, 2, 1)
@@ -53,13 +58,13 @@ class Renderer(Gtk.Grid):
 
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
-		print("drawing")
 		if (self.drawn is False) or (self.no_video is True):
 			cr.set_source_rgb(0, 0, 0)
-			cr.rectangle(0, 0, self.drawarea.get_allocated_width(), self.drawarea.get_allocated_height())
+			w = self.drawarea.get_allocated_width()
+			h = self.drawarea.get_allocated_height()
+			cr.rectangle(0, 0, w, h)
 			cr.fill()
 			self.drawn = True
-			print("drawing black")
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
@@ -88,7 +93,7 @@ class RendererGrid(Gtk.FlowBox):
 		self.set_row_spacing(Spacing.ROW_SPACING)
 
 	# draw necessary number of renderers
-	def draw_renderers(self, progNum, progNames):
+	def draw_renderers(self, progNum, guiProgInfo):
 
 		# first of all delete all previous renderers
 		self.remove_renderers()
@@ -106,7 +111,7 @@ class RendererGrid(Gtk.FlowBox):
 		self.rend_arr.clear()
 		# add number of renderers
 		for i in range(progNum):
-			self.rend_arr.append(Renderer(progNames[i]))
+			self.rend_arr.append(Renderer(guiProgInfo[i]))
 			af = Gtk.AspectFrame(hexpand=True, vexpand=True)
 			af.set(0.5, 0.5, 4.0/3.0, False)
 			af.add(self.rend_arr[i])
@@ -127,5 +132,6 @@ class RendererGrid(Gtk.FlowBox):
 	def get_renderers_xid(self):
 		xids = []
 		for i in range(len(self.get_children())):
-			xids.append(self.rend_arr[i].drawarea.get_window().get_xid())
+			rend = self.rend_arr[i]
+			xids.append([rend.stream_id, rend.progID, rend.drawarea.get_window().get_xid()])
 		return xids

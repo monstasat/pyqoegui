@@ -42,14 +42,26 @@ class Control():
 
 		# connect to gui signals
 		self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST, self.on_new_prog_settings_from_gui)
+		self.gui.connect(CustomMessages.ACTION_START_ANALYSIS, self.on_start_from_gui)
+		self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS, self.on_stop_from_gui)
 		# connect to usb signals
 		# --
 
-		# execute all gstreamer pipelines
-		self.backend.start_all_pipelines()
+		# start analysis on app startup
+		self.start_analysis()
 
 		# set gui for analyzed programs
 		self.apply_prog_list_to_gui(self.analyzedProgList)
+
+	def start_analysis(self):
+		# execute all gstreamer pipelines
+		self.backend.start_all_pipelines()
+		self.gui.toolbar.change_start_icon()
+
+	def stop_analysis(self):
+		# execute all gstreamer pipelines
+		self.backend.terminate_all_pipelines()
+		self.gui.toolbar.change_start_icon()
 
 	# start server
 	def start_server(self, port):
@@ -94,19 +106,21 @@ class Control():
 
 	# make changes in gui according to program list
 	def apply_prog_list_to_gui(self, progList):
-		# gui only needs program names to redraw - so we need to extract them from program list
-		progNames = self.msg_translator.translate_prog_list_to_prog_names(progList)
+		# gui only needs program names and ids to redraw - so we need to extract them from program list
+		guiProgInfo = self.msg_translator.translate_prog_list_to_gui_prog_info(progList)
 
 		# set gui for new programs from program list
-		self.gui.set_new_programs(progNames)
+		self.gui.set_new_programs(guiProgInfo)
 
 	# applying prog list to backend
 	def apply_prog_list_to_backend(self, progList):
 		# to draw video backend needs xid of drawing areas - so we get them from gui
 		xids = self.gui.get_renderers_xids()
+		# combine prog list with xids
+		combinedProgList = self.msg_translator.combine_prog_list_with_xids(progList, xids)
 
 		# apply new settings to backend (settings consist of program list and xids)
-		self.backend.apply_new_program_list(progList, xids)
+		self.backend.apply_new_program_list(combinedProgList)
 
 	# actions when backend send "end of stream" message
 	def on_end_of_stream(self, stream_id):
@@ -140,11 +154,11 @@ class Control():
 		# save program list in config
 		self.config.save_prog_list(self.analyzedProgList)
 
-	def on_start_from_gui(self):
-		pass
+	def on_start_from_gui(self, param):
+		self.start_analysis()
 
-	def on_stop_from_gui(self):
-		pass
+	def on_stop_from_gui(self, param):
+		self.stop_analysis()
 
 	# when app closes, we need to delete all gstreamer pipelines
 	def destroy(self):

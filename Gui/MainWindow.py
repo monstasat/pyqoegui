@@ -13,7 +13,9 @@ import CustomMessages
 
 class MainWindow(Gtk.Window):
 
-	__gsignals__ = {'new_settings_prog_list': (GObject.SIGNAL_RUN_FIRST, None, ())}
+	__gsignals__ = {CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST, None, ()),
+					CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ()),
+					CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ())}
 
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
@@ -71,12 +73,12 @@ class MainWindow(Gtk.Window):
 		hb.set_custom_title(switch)
 
 		# creating left side bar with buttons
-		toolbar = ButtonToolbar()
+		self.toolbar = ButtonToolbar()
 
 		# main window grid
 		mainGrid = Gtk.Grid(row_spacing=Spacing.ROW_SPACING, column_spacing=Spacing.COL_SPACING,
 							halign=Gtk.Align.FILL, valign=Gtk.Align.FILL)
-		mainGrid.attach(toolbar, 0, 0, 1, 1)
+		mainGrid.attach(self.toolbar, 0, 0, 1, 1)
 		mainGrid.attach(self.myStack, 1, 0, 1, 1)
 
 		# top window can have only one widget - this is Gtk.Stack in our case
@@ -104,7 +106,7 @@ class MainWindow(Gtk.Window):
 		btnCallbacks = [self.on_start_clicked, self.on_prog_select_clicked,
 						self.on_rf_set_clicked, self.on_analysis_set_clicked,
 						self.on_dump_clicked, self.on_about_clicked]
-		btns = toolbar.get_children()
+		btns = self.toolbar.get_children()
 		for i, func in enumerate(btnCallbacks):
 			btns[i].connect('clicked', func)
 
@@ -151,16 +153,21 @@ class MainWindow(Gtk.Window):
 		return self.cur_results_page.get_renderers_xid()
 
 	# set gui for new program list
-	def set_new_programs(self, progNames):
+	def set_new_programs(self, guiProgInfo):
 		# add new programs to gui
-		self.cur_results_page.on_prog_list_changed(progNames)
+		self.cur_results_page.on_prog_list_changed(guiProgInfo)
 		# determine wether table revealer button should be visible
 		self.manage_table_revealer_button_visibility()
 
 	# start button was clicked
 	def on_start_clicked(self, widget):
-		hb = widget.get_parent()
-		hb.change_start_icon(widget)
+		# send stop message if button label is stop and vice versa
+		if widget.get_label() == "Стоп":
+			print("send stop")
+			self.emit(CustomMessages.ACTION_STOP_ANALYSIS)
+		else:
+			print("send start")
+			self.emit(CustomMessages.ACTION_START_ANALYSIS)
 
 	# prog select button was clicked
 	def on_prog_select_clicked(self, widget):

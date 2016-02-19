@@ -32,7 +32,7 @@ class GstreamerPipeline():
 			self.proc = None
 			self.state = State.TERMINATED
 
-	def apply_new_program_list(self, progList, xids):
+	def apply_new_program_list(self, progList):
 
 		msg_parts = []
 
@@ -52,8 +52,8 @@ class GstreamerPipeline():
 			for i, prog in enumerate(progs):
 				msg_parts.append(pack('I', self.BYTE_PROG_DIVIDER))
 				msg_parts.append(pack('I', int(prog[0])))
-				msg_parts.append(pack('I', xids[i]))
-				pids = prog[4]
+				msg_parts.append(pack('I', prog[4]))
+				pids = prog[5]
 
 				for pid in pids:
 					msg_parts.append(pack('I', int(pid[0])))

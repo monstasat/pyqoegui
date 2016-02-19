@@ -46,16 +46,16 @@ class Backend():
 		else:
 			return State.NONEXISTENT
 
-
 	# apply new program list
-	def apply_new_program_list(self, progList, xids):
+	def apply_new_program_list(self, progList):
 		xid_iter = 0
 		# iterating over streams in progList
+		print("\nprog list is: " + str(progList))
 		for stream in progList:
 			# if stream with sent number exist
 			if self.is_pipeline(stream[0]) is True:
 				# determine number of programs in this stream to get necessary number of xids
 				progNum = len(stream[1])
-				self.gs_pipelines[stream[0]].apply_new_program_list(stream, xids[xid_iter:xid_iter + progNum])
+				self.gs_pipelines[stream[0]].apply_new_program_list(stream)
 				xid_iter = xid_iter + progNum
 			

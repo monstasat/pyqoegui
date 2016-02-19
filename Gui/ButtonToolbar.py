@@ -52,20 +52,20 @@ class ButtonToolbar(Gtk.Toolbar):
 		# show the toolbar
 		self.show()
 
-	def change_start_icon(self, widget):
+	def change_start_icon(self):
 		# if current state is "start"
-		if widget.get_label() == "Старт":
+		if self.btn_arr[0].get_label() == "Старт":
 			# change label and icon of toolbutton
 			self.tooltip_arr[0] = "Остановить анализ"
-			widget.set_label("Стоп")
-			widget.set_icon_widget(Icon("media-playback-stop-symbolic"))
+			self.btn_arr[0].set_label("Стоп")
+			self.btn_arr[0].set_icon_widget(Icon("media-playback-stop-symbolic"))
 		# if current state is "stop"
 		else:
 			# change label and icon of toolbutton
 			self.tooltip_arr[0] = "Запустить анализ"
-			widget.set_label("Старт")
-			widget.set_icon_widget(Icon("media-playback-start-symbolic"))
-		widget.set_tooltip_text(self.tooltip_arr[0])
-		widget.show_all()
+			self.btn_arr[0].set_label("Старт")
+			self.btn_arr[0].set_icon_widget(Icon("media-playback-start-symbolic"))
+		self.btn_arr[0].set_tooltip_text(self.tooltip_arr[0])
+		self.btn_arr[0].show_all()
 
 		

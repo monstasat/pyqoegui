@@ -38,8 +38,8 @@ class CurrentResultsPage(Gtk.Grid):
 	def get_renderers_xid(self):
 		return self.rend.get_renderers_xid()
 
-	def on_prog_list_changed(self, progNames):
-		progNum = len(progNames)
+	def on_prog_list_changed(self, guiProgInfo):
+		progNum = len(guiProgInfo)
 		if progNum == 0 :
 			self.holder.show()
 			self.prgtbl.hide()
@@ -47,8 +47,8 @@ class CurrentResultsPage(Gtk.Grid):
 			self.holder.hide()
 			self.prgtbl.show_all()
 
-		self.rend.draw_renderers(progNum, progNames)
-		self.prgtbl.add_rows(progNum, progNames)
+		self.rend.draw_renderers(progNum, guiProgInfo)
+		self.prgtbl.add_rows(progNum, guiProgInfo)
 
 	def get_prog_table_visible(self):
 		return self.prgtbl.get_visible()

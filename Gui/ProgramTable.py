@@ -76,13 +76,15 @@ class ProgramTable(Gtk.TreeView):
 			# adding column to treeview
 			self.append_column(column)
 
-	def add_rows(self, progNum, progNames):
+	def add_rows(self, progNum, guiProgInfo):
 		store = self.get_model()
 		store.clear()
+
 		for i in range(progNum):
-			treeiter = store.append([i+1, '#FFFFFF',													#prog num
-															progNames[i], '#FFFFFF',							#prog name
-															'%g'%(0.0), '#FFFFFF',								#lufs level
+			progName = guiProgInfo[i][2]
+			treeiter = store.append([i+1, '#FFFFFF',												#prog num
+															progName, '#FFFFFF',					#prog name
+															'%g'%(0.0), '#FFFFFF',					#lufs level
 															self.stattxt["1"], self.clrs['0'],		#video loss
 															self.stattxt["1"], self.clrs['0'],		#black frame
 															self.stattxt["1"], self.clrs['0'],		#freeze

@@ -2,6 +2,7 @@ class TranslateMessages():
 	def __init__(self):
 		pass
 
+	# convert program string to program list
 	def translate_prog_string_to_prog_list(self, progList):
 		PROG_DIVIDER = ':*:'
 		PARAM_DIVIDER = '^:'
@@ -43,6 +44,7 @@ class TranslateMessages():
 		stream_params.append(progs_param_list)
 		return stream_params
 
+	# compare two prog lists and make new list with only equal programs
 	def translate_prog_list_to_compared_prog_list(self, progList, gsProgList):
 		# new prog list after comparison
 		compared_list = []
@@ -102,17 +104,20 @@ class TranslateMessages():
 
 		return compared_list
 
-	def translate_prog_list_to_prog_names(self, progList):
+	# extract program ids and names from prog list
+	def translate_prog_list_to_gui_prog_info(self, progList):
 
-		progNames = []
+		guiProgInfo = []
 		for stream in progList:
+			stream_id = stream[0]
 			progs = stream[1]
 			for prog in progs:
-				progNames.append(prog[1])
+				guiProgInfo.append([stream_id, prog[0], prog[1]])
 
-		return progNames
+		return guiProgInfo
 
-	def translate_prog_list_to_stream_ids(self, progList):
+	# extract stream ids from prog list
+	def translate_prog_list_to_stream_ids(self, ss):
 
 		stream_ids = []
 		for stream in progList:
@@ -120,3 +125,28 @@ class TranslateMessages():
 
 		return stream_ids
 
+	def combine_prog_list_with_xids(self, progList, xids):
+
+		combinedProgList = []
+
+		for stream in progList:
+			stream_id = stream[0]
+			progs = stream[1]
+			combined_stream = []
+			combined_stream.append(stream_id)
+			combined_progs = []
+			for prog in progs:
+				i = 0
+
+				while i != len(xids):
+									# stream id					# prog id
+					if (stream_id == xids[i][0]) and (prog[0] == xids[i][1]):
+						prog.insert(4, xids[i][2])
+						combined_progs.append(prog)
+					i += 1
+
+			combined_stream.append(combined_progs)
+
+		combinedProgList.append(combined_stream)
+
+		return combinedProgList
