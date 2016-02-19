@@ -2,6 +2,8 @@ class TranslateMessages():
 	def __init__(self):
 		pass
 
+################################ PROG LIST #####################################
+
 	# convert program string to program list
 	def translate_prog_string_to_prog_list(self, progList):
 		PROG_DIVIDER = ':*:'
@@ -151,3 +153,41 @@ class TranslateMessages():
 			combinedProgList.append(combined_stream)
 
 		return combinedProgList
+
+
+############################# VIDEO PARAMETERS #################################
+
+	def translate_vparams_string_to_list(self, vparams_string):
+		PART_DIVIDER = ':*:'
+		PARAM_DIVIDER = ':'
+
+		param_list = []
+
+		# split string to stream params and video params
+		str_parts  = vparams_string.split(PART_DIVIDER)
+		# split stream parameters
+		stream_params = str_parts[0].split(PARAM_DIVIDER)
+		sparams_int = []
+		for param in stream_params:
+			sparams_int.append(int(param))
+
+		param_list.append(sparams_int)
+
+
+		video_params_pack = []
+		for params_single_frame in str_parts[1:]:
+			# split params string to separate parameters
+			video_params = params_single_frame.split(PARAM_DIVIDER)
+			vparams_float = []
+			for param in video_params:
+				vparams_float.append(float(param))
+			video_params_pack.append(vparams_float)
+
+		# append parameter list to vparam list
+		param_list.append(video_params_pack)
+
+		return param_list
+
+
+
+

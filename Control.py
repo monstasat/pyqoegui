@@ -9,6 +9,7 @@ from Backend import State
 from Config import Config
 from Log import Log
 from TranslateMessages import TranslateMessages
+from ErrorDetector import ErrorDetector
 import CustomMessages
 
 class Control():
@@ -21,6 +22,8 @@ class Control():
 		self.config = Config()
 		# create message translator
 		self.msg_translator = TranslateMessages()
+		# create error detector
+		self.error_detector = ErrorDetector()
 		# execute server for receiving messages from gstreamer pipeline
 		self.start_server(1600)
 
@@ -98,7 +101,9 @@ class Control():
 
 			elif wstr[0] == 'v':
 				# received video parameters
-				pass
+				#freeze black blockiness av_luma av_diff
+				vparams = self.msg_translator.translate_vparams_string_to_list(wstr[1:])
+				self.error_detector.set_video_data(vparams)
 
 			elif wstr[0] == 'e':
 				# received end of stream

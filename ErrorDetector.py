@@ -1,9 +1,3 @@
-#!/usr/bin/python3
-
-from gi.repository import Gtk
-
-import common
-
 class ErrorDetector():
 	def __init__(self):
 		pass
@@ -16,3 +10,6 @@ class ErrorDetector():
 
 	def is_freeze(self, freeze_pix_num, av_diff):
 		pass
+
+	def set_video_data(self, vparams):
+		print(vparams)
