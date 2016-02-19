@@ -291,7 +291,7 @@ class ProgTree(Gtk.TreeView):
 		self.store[pidIter][2] = current_value
 
 		# determine pid type
-		pidType = '0'if (self.store[pidIter][0] == TREE_ICONS['video']) else '1'
+		pidType = '0'if (self.store[pidIter][0] == self.TREE_ICONS['video']) else '1'
 
 		# if we select the pid, then we need to check if other pid of the same type is selected
 		if current_value is True:

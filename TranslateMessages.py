@@ -174,14 +174,12 @@ class TranslateMessages():
 		param_list.append(sparams_int)
 
 
-		video_params_pack = []
+		video_params_pack = [[], [], [], [], []]
 		for params_single_frame in str_parts[1:]:
 			# split params string to separate parameters
 			video_params = params_single_frame.split(PARAM_DIVIDER)
-			vparams_float = []
-			for param in video_params:
-				vparams_float.append(float(param))
-			video_params_pack.append(vparams_float)
+			for i, param in enumerate(video_params):
+				video_params_pack[i].append(float(param))
 
 		# append parameter list to vparam list
 		param_list.append(video_params_pack)
