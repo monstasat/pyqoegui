@@ -117,7 +117,7 @@ class TranslateMessages():
 		return guiProgInfo
 
 	# extract stream ids from prog list
-	def translate_prog_list_to_stream_ids(self, ss):
+	def translate_prog_list_to_stream_ids(self, progList):
 
 		stream_ids = []
 		for stream in progList:
@@ -147,6 +147,7 @@ class TranslateMessages():
 
 			combined_stream.append(combined_progs)
 
-		combinedProgList.append(combined_stream)
+		if len(progList) > 0:
+			combinedProgList.append(combined_stream)
 
 		return combinedProgList

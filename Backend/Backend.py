@@ -50,7 +50,6 @@ class Backend():
 	def apply_new_program_list(self, progList):
 		xid_iter = 0
 		# iterating over streams in progList
-		print("\nprog list is: " + str(progList))
 		for stream in progList:
 			# if stream with sent number exist
 			if self.is_pipeline(stream[0]) is True:
