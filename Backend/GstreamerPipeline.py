@@ -25,14 +25,12 @@ class GstreamerPipeline():
 		self.proc = subprocess.Popen(["ats3-backend"])
 		if self.proc != None:
 			self.state = State.IDLE
-			print("executed")
 
 	def terminate(self):
 		if self.proc != None:
 			self.proc.terminate()
 			self.proc = None
 			self.state = State.TERMINATED
-			print("terminated")
 
 	def apply_new_program_list(self, progList, xids):
 

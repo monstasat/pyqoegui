@@ -97,8 +97,8 @@ class TranslateMessages():
 
 				# exit from for loop because we've found the stream
 				break
-
-		compared_list.append(compared_stream)
+		if len(progList) > 0:
+			compared_list.append(compared_stream)
 
 		return compared_list
 

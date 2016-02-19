@@ -16,6 +16,7 @@ class Renderer(Gtk.Grid):
 		self.set_halign(Gtk.Align.FILL)
 		self.set_valign(Gtk.Align.FILL)
 
+
 		# creating renderer window - drawing area
 		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
 		# minimum renderer size (4:3)
@@ -26,7 +27,9 @@ class Renderer(Gtk.Grid):
 		self.drawarea.connect("draw", self.on_drawingarea_draw)
 		# we need to draw only once - black background
 		self.drawn = False
-		#self.drawarea.modify_bg(0, Gdk.color_parse("black"))
+		self.no_video = False
+		self.drawarea.modify_bg(0, Gdk.color_parse("black"))
+		self.drawarea.set_app_paintable(False)
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
@@ -50,11 +53,13 @@ class Renderer(Gtk.Grid):
 
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
-		if self.drawn is False:
+		print("drawing")
+		if (self.drawn is False) or (self.no_video is True):
 			cr.set_source_rgb(0, 0, 0)
 			cr.rectangle(0, 0, self.drawarea.get_allocated_width(), self.drawarea.get_allocated_height())
 			cr.fill()
 			self.drawn = True
+			print("drawing black")
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):

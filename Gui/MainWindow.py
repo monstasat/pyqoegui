@@ -9,6 +9,7 @@ from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
+import CustomMessages
 
 class MainWindow(Gtk.Window):
 
@@ -19,7 +20,7 @@ class MainWindow(Gtk.Window):
 
 		# main window border width
 		self.set_border_width(Spacing.BORDER)
-		self.maximize()
+		#self.maximize()
 		#self.set_resizable(False)
 		# can't resize window by double click on header bar
 		settings = Gtk.Settings.get_default()
@@ -170,7 +171,7 @@ class MainWindow(Gtk.Window):
 		# if new program list was chosen
 		if responce == Gtk.ResponseType.APPLY:
 			# emit signal from gui to control about new programs
-			self.emit("new_settings_prog_list")
+			self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
 		self.progDlg.hide()
 

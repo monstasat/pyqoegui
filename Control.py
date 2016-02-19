@@ -9,12 +9,11 @@ from Backend import State
 from Config import Config
 from Log import Log
 from TranslateMessages import TranslateMessages
+import CustomMessages
 
 class Control():
 
 	def __init__(self, app):
-
-		#self.received = False
 
 		# create log writer
 		self.log = Log("log.txt")
@@ -42,7 +41,7 @@ class Control():
 		# self.usb = Usb()
 
 		# connect to gui signals
-		self.gui.connect('new_settings_prog_list', self.on_new_prog_settings_from_gui)
+		self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST, self.on_new_prog_settings_from_gui)
 		# connect to usb signals
 		# --
 
@@ -72,59 +71,74 @@ class Control():
 
 		if len(wstr) > 0:
 			if wstr[0] == 'd':
-			# received program list
+				# received program list
+				# convert program string from pipeline to program list (array)
 				progList = self.msg_translator.translate_prog_string_to_prog_list(wstr[1:])
+
+				# show received program list in gui (in program selection dialog)
 				self.gui.progDlg.show_prog_list(progList)
+
+				# compare received and current prog lists
 				compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
-				self.apply_prog_list_to_gui(compared_prog_list)
+
+				# apply compared program list to backend (compared list contains only program equal prorams from current and received lists)
 				self.apply_prog_list_to_backend(compared_prog_list)
+
 			elif wstr[0] == 'v':
-			# received video parameters
+				# received video parameters
 				pass
-			# received end of stream
+
 			elif wstr[0] == 'e':
+				# received end of stream
 				self.on_end_of_stream(int(wstr[1:]))
-				print(wstr)
 
-
-	# make changes in gui according to prog list
+	# make changes in gui according to program list
 	def apply_prog_list_to_gui(self, progList):
-		# set gui for new programs
+		# gui only needs program names to redraw - so we need to extract them from program list
 		progNames = self.msg_translator.translate_prog_list_to_prog_names(progList)
+
+		# set gui for new programs from program list
 		self.gui.set_new_programs(progNames)
 
 	# applying prog list to backend
 	def apply_prog_list_to_backend(self, progList):
-		# get xids from gui renderers
+		# to draw video backend needs xid of drawing areas - so we get them from gui
 		xids = self.gui.get_renderers_xids()
 
-		# apply new settings to backend
+		# apply new settings to backend (settings consist of program list and xids)
 		self.backend.apply_new_program_list(progList, xids)
 
-	# if stream has ended, restart corresponding gstreamer pipeline
+	# actions when backend send "end of stream" message
 	def on_end_of_stream(self, stream_id):
+		# refresh program list in gui (in this case, delete this stream from program list in prog select dialog)
+		# this is done by passing empty prog list to gui
+		self.gui.progDlg.show_prog_list([stream_id, []])
+
+		# getting state of gstreamer pipeline with corresponding stream id
 		state = self.backend.get_pipeline_state(stream_id)
+
+		# if current state is RUNNING (this means that pipeline currently decoding some programs)
+		# we need to restart this pipeline
 		if state is State.RUNNING:
-			# send blank prog list of corresponding stream id to gui
-			self.gui.progDlg.show_prog_list([stream_id, []])
 			self.backend.restart_pipeline(stream_id)
-			print("end of stream!")
 
+	# actions when gui send NEW_SETTINS_PROG_LIST message
 	def on_new_prog_settings_from_gui(self, param):
-		# get program list from gui
+		# get program list from gui and store it in control
 		self.analyzedProgList = self.gui.get_applied_prog_list()
-		print("prog message from gui")
 
-		# extract streams that are selected
+		# redraw gui according to new program list
+		self.apply_prog_list_to_gui(self.analyzedProgList)
+
+		# we need to restart gstreamer pipelines with ids that were selected - so we need to extract these ids from program list
 		stream_ids = self.msg_translator.translate_prog_list_to_stream_ids(self.analyzedProgList)
 
 		# restart pipelines with selected ids
 		for process_id in stream_ids:
 			self.backend.restart_pipeline(process_id)
 
-		# save program list
+		# save program list in config
 		self.config.save_prog_list(self.analyzedProgList)
-		print("prog message from gui")
 
 	def on_start_from_gui(self):
 		pass
@@ -132,6 +146,7 @@ class Control():
 	def on_stop_from_gui(self):
 		pass
 
+	# when app closes, we need to delete all gstreamer pipelines
 	def destroy(self):
 		# terminate all gstreamer pipelines
 		self.backend.terminate_all_pipelines()
