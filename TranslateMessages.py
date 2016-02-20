@@ -4,6 +4,17 @@ class TranslateMessages():
 
 ################################ PROG LIST #####################################
 
+	# add received prog list to common prog list
+	def append_prog_list_to_common(self, progList, commonProgList):
+		for i, stream in enumerate(commonProgList):
+			if stream[0] == progList[0]:
+				commonProgList[i] = progList
+				break
+		else:
+			commonProgList.append(progList)
+
+		return commonProgList
+
 	# convert program string to program list
 	def translate_prog_string_to_prog_list(self, progList):
 		PROG_DIVIDER = ':*:'
@@ -50,16 +61,16 @@ class TranslateMessages():
 	def translate_prog_list_to_compared_prog_list(self, progList, gsProgList):
 		# new prog list after comparison
 		compared_list = []
+		# append stream id
+		compared_list.append(gsProgList[0])
 
+		compared_progs = []
 		# iterating over streams in saved prog list
 		for stream in progList:
-			compared_stream = []
 			# in case if received stream exists in saved prog list
 			if stream[0] == gsProgList[0]:
-
-				compared_stream.append(stream[0])
 				progs = stream[1]
-				compared_progs = []
+
 				for gsProg in gsProgList[1]:
 					compared_prog = []
 
@@ -97,12 +108,10 @@ class TranslateMessages():
 							break
 						progNum = progNum - 1
 						i = i + 1
-				compared_stream.append(compared_progs)
 
 				# exit from for loop because we've found the stream
 				break
-		if len(progList) > 0:
-			compared_list.append(compared_stream)
+		compared_list.append(compared_progs)
 
 		return compared_list
 
@@ -128,31 +137,24 @@ class TranslateMessages():
 		return stream_ids
 
 	def combine_prog_list_with_xids(self, progList, xids):
+		stream_id = progList[0]
+		progs = progList[1]
+		combined_stream = []
+		combined_stream.append(stream_id)
+		combined_progs = []
+		for prog in progs:
+			i = 0
 
-		combinedProgList = []
+			while i != len(xids):
+								# stream id					# prog id
+				if (stream_id == xids[i][0]) and (prog[0] == xids[i][1]):
+					prog.insert(4, xids[i][2])
+					combined_progs.append(prog)
+				i += 1
 
-		for stream in progList:
-			stream_id = stream[0]
-			progs = stream[1]
-			combined_stream = []
-			combined_stream.append(stream_id)
-			combined_progs = []
-			for prog in progs:
-				i = 0
+		combined_stream.append(combined_progs)
 
-				while i != len(xids):
-									# stream id					# prog id
-					if (stream_id == xids[i][0]) and (prog[0] == xids[i][1]):
-						prog.insert(4, xids[i][2])
-						combined_progs.append(prog)
-					i += 1
-
-			combined_stream.append(combined_progs)
-
-		if len(progList) > 0:
-			combinedProgList.append(combined_stream)
-
-		return combinedProgList
+		return combined_stream
 
 
 ############################# VIDEO PARAMETERS #################################

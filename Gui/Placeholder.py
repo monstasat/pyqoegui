@@ -21,11 +21,14 @@ class Placeholder(Gtk.VBox):
 		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
 
 		# construct label
-		label = Gtk.Label(label=label_text)
-		styleContext = label.get_style_context()
+		self.label = Gtk.Label(label=label_text)
+		styleContext = self.label.get_style_context()
 		styleContext.add_class(Gtk.STYLE_CLASS_DIM_LABEL)
-		label.set_justify(Gtk.Justification.CENTER)
+		self.label.set_justify(Gtk.Justification.CENTER)
 
 		# add elements to vbox
 		self.add(image)
-		self.add(label)
+		self.add(self.label)
+
+	def set_text(self, text):
+		self.label.set_text(text)

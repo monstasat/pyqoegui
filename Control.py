@@ -28,7 +28,9 @@ class Control():
 		self.start_server(1600)
 
 		# create parameters which should be stored in control
+		# currently received prog list with all received streams
 		self.currentProgList = []
+		# analyzed prog list with all analyzed streams
 		self.analyzedProgList = self.config.load_prog_list()
 		self.analysisSettings = []
 		self.dumpSettings = []
@@ -39,7 +41,7 @@ class Control():
 		# parameters of plot page
 		# parameters of all results page
 
-		self.backend = Backend(1)
+		self.backend = Backend(streams=1)
 		self.gui = MainWindow(app)
 		# self.usb = Usb()
 
@@ -65,6 +67,7 @@ class Control():
 		# execute all gstreamer pipelines
 		self.backend.terminate_all_pipelines()
 		self.gui.toolbar.change_start_icon()
+		self.gui.clear_all_programs_in_prog_dlg()
 
 	# start server
 	def start_server(self, port):
@@ -90,14 +93,18 @@ class Control():
 				# convert program string from pipeline to program list (array)
 				progList = self.msg_translator.translate_prog_string_to_prog_list(wstr[1:])
 
+				# add received progList to common prog list
+				self.currentProgList = self.msg_translator.append_prog_list_to_common(progList, self.currentProgList)
+
 				# show received program list in gui (in program selection dialog)
 				self.gui.progDlg.show_prog_list(progList)
 
-				# compare received and current prog lists
+				# compare received and current analyzed prog lists
 				compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
 
 				# apply compared program list to backend (compared list contains only program equal prorams from current and received lists)
 				self.apply_prog_list_to_backend(compared_prog_list)
+				print("new prog list received from backend. stream id = " + str(progList[0]))
 
 			elif wstr[0] == 'v':
 				# received video parameters
@@ -108,6 +115,7 @@ class Control():
 			elif wstr[0] == 'e':
 				# received end of stream
 				self.on_end_of_stream(int(wstr[1:]))
+				print(wstr)
 
 	# make changes in gui according to program list
 	def apply_prog_list_to_gui(self, progList):

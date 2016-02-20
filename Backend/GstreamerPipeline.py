@@ -22,17 +22,28 @@ class GstreamerPipeline():
 		self.terminate()
 
 		# execute new process
-		self.proc = subprocess.Popen(["ats3-backend"])
+		#ip = "224.1.2." + str(2 + self.stream_id)
+		# this is for testing purposes
+		ip = "127.0.0.1"
+		stream = str(self.stream_id)
+		port  = str(1234 + self.stream_id)
+		print(ip)
+		print(stream)
+		print(port)
+		self.proc = subprocess.Popen(["ats3-backend", "--stream", stream, "--ip", ip, "--port", port])
 		if self.proc != None:
 			self.state = State.IDLE
+		print("executing pipeline")
 
 	def terminate(self):
 		if self.proc != None:
 			self.proc.terminate()
 			self.proc = None
 			self.state = State.TERMINATED
+		print("terminating pipeline")
 
 	def apply_new_program_list(self, progList):
+		print("applying new prog list for pipeline")
 
 		msg_parts = []
 

@@ -159,6 +159,9 @@ class MainWindow(Gtk.Window):
 		# determine wether table revealer button should be visible
 		self.manage_table_revealer_button_visibility()
 
+	def clear_all_programs_in_prog_dlg(self):
+		self.progDlg.clear_all_programs()
+
 	# start button was clicked
 	def on_start_clicked(self, widget):
 		# send stop message if button label is stop and vice versa

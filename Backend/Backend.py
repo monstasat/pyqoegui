@@ -7,6 +7,7 @@ class Backend():
 		self.gs_pipelines = []
 		# create gs pipeline instances
 		for stream_id in range(streams):
+			print("stream id is: " + str(stream_id))
 			self.gs_pipelines.append(GstreamerPipeline(stream_id))
 
 	# check if stream id parameter is valid
@@ -49,12 +50,9 @@ class Backend():
 	# apply new program list
 	def apply_new_program_list(self, progList):
 		xid_iter = 0
-		# iterating over streams in progList
-		for stream in progList:
-			# if stream with sent number exist
-			if self.is_pipeline(stream[0]) is True:
-				# determine number of programs in this stream to get necessary number of xids
-				progNum = len(stream[1])
-				self.gs_pipelines[stream[0]].apply_new_program_list(stream)
-				xid_iter = xid_iter + progNum
+		# if stream with sent number exist and program num is not null
+		if (self.is_pipeline(progList[0]) is True) and (len(progList[1]) > 0):
+			print("\napplying new prog list")
+			# determine number of programs in this stream to get necessary number of xids
+			self.gs_pipelines[progList[0]].apply_new_program_list(progList)
 			

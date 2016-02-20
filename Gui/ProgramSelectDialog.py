@@ -34,7 +34,7 @@ class ProgramSelectDialog(BaseDialog):
 		# creating renderers overlay
 		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
 		overlay.add(self.progTree)
-		self.holder = Placeholder("dialog-warning-symbolic", 'Программ не найдено', 72)
+		self.holder = Placeholder("dialog-warning-symbolic", '', 72)
 		overlay.add_overlay(self.holder)
 
 		scrollWnd.add(overlay)
@@ -55,7 +55,8 @@ class ProgramSelectDialog(BaseDialog):
 
 	def show_prog_list(self, progList):
 		progNum = self.progTree.show_prog_list(progList)
-		if progNum > 0:
+		# if some streams are appended to store, do not show placeholder
+		if len(self.progTree.store) > 0:
 			# open all program rows
 			for row in range(len(self.progTree.store)):
 				path = Gtk.TreePath(row)
@@ -63,7 +64,13 @@ class ProgramSelectDialog(BaseDialog):
 			# hide placeholder
 			self.holder.hide()
 		else:
+			self.holder.set_text('Программ не найдено')
 			self.holder.show_all()
+
+	def clear_all_programs(self):
+		self.progTree.store.clear()
+		self.holder.set_text('Анализ остановлен')
+		self.holder.show_all()
 
 class ProgTree(Gtk.TreeView):
 
