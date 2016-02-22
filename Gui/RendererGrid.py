@@ -32,8 +32,8 @@ class Renderer(Gtk.Grid):
 		self.drawarea.set_double_buffered(False)
 		# connect 'draw' event with callback
 		self.drawarea.connect("draw", self.on_drawingarea_draw)
-		# we need to draw only once - black background
-		self.drawn = False
+		# do we need to draw black background?
+		self.draw = False
 		self.no_video = False
 
 		screen = self.drawarea.get_screen()
@@ -58,13 +58,12 @@ class Renderer(Gtk.Grid):
 
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
-		if (self.drawn is False) or (self.no_video is True):
+		if self.draw is True:
 			cr.set_source_rgb(0, 0, 0)
 			w = self.drawarea.get_allocated_width()
 			h = self.drawarea.get_allocated_height()
 			cr.rectangle(0, 0, w, h)
 			cr.fill()
-			self.drawn = True
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
@@ -135,3 +134,8 @@ class RendererGrid(Gtk.FlowBox):
 			rend = self.rend_arr[i]
 			xids.append([rend.stream_id, rend.progID, rend.drawarea.get_window().get_xid()])
 		return xids
+
+	def set_draw_mode_for_renderers(self, draw, stream_id):
+		for i in range(len(self.get_children())):
+			if self.rend_arr[i].stream_id == stream_id:
+				self.rend_arr[i].draw = draw

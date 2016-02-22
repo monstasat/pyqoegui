@@ -58,6 +58,9 @@ class Control():
 		# set gui for analyzed programs
 		self.apply_prog_list_to_gui(self.analyzedProgList)
 
+		for stream in self.analyzedProgList:
+			self.gui.set_draw_mode_for_renderers(True, stream[0])
+
 	def start_analysis(self):
 		# execute all gstreamer pipelines
 		self.backend.start_all_pipelines()
@@ -68,6 +71,11 @@ class Control():
 		self.backend.terminate_all_pipelines()
 		self.gui.toolbar.change_start_icon()
 		self.gui.clear_all_programs_in_prog_dlg()
+
+		for stream in self.analyzedProgList:
+			self.gui.set_draw_mode_for_renderers(True, stream[0])
+
+		self.gui.queue_draw()
 
 	# start server
 	def start_server(self, port):
@@ -104,7 +112,8 @@ class Control():
 
 				# apply compared program list to backend (compared list contains only program equal prorams from current and received lists)
 				self.apply_prog_list_to_backend(compared_prog_list)
-				print("new prog list received from backend. stream id = " + str(progList[0]))
+
+				self.gui.set_draw_mode_for_renderers(False, compared_prog_list[0])
 
 			elif wstr[0] == 'v':
 				# received video parameters
@@ -148,6 +157,8 @@ class Control():
 		# we need to restart this pipeline
 		if state is State.RUNNING:
 			self.backend.restart_pipeline(stream_id)
+
+		self.gui.set_draw_mode_for_renderers(True, stream_id)
 
 	# actions when gui send NEW_SETTINS_PROG_LIST message
 	def on_new_prog_settings_from_gui(self, param):

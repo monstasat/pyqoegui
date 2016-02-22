@@ -125,9 +125,9 @@ class MainWindow(Gtk.Window):
 	# called when a stackswitcher switches a page. Hides a table revealer button
 	def page_switched(self, stack, gparam):
 		self.manage_table_revealer_button_visibility()
-		for rend in self.cur_results_page.rend.rend_arr:
-			rend.drawn = False
-			rend.drawarea.queue_draw()
+		#for rend in self.cur_results_page.rend.rend_arr:
+			#rend.drawn = False
+			#rend.drawarea.queue_draw()
 
 	# called to hide header bar button if table is invisible
 	def manage_table_revealer_button_visibility(self):
@@ -161,6 +161,10 @@ class MainWindow(Gtk.Window):
 
 	def clear_all_programs_in_prog_dlg(self):
 		self.progDlg.clear_all_programs()
+
+	def set_draw_mode_for_renderers(self, draw, stream_id):
+		self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
+
 
 	# start button was clicked
 	def on_start_clicked(self, widget):
