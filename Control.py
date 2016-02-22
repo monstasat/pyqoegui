@@ -41,7 +41,7 @@ class Control():
 		# parameters of plot page
 		# parameters of all results page
 
-		self.backend = Backend(streams=1)
+		self.backend = Backend(streams=2)
 		self.gui = MainWindow(app)
 		# self.usb = Usb()
 
