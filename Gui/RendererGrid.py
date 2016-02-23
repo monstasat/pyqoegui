@@ -10,6 +10,9 @@ class Renderer(Gtk.Grid):
 	def __init__(self, guiProgInfo):
 		Gtk.Grid.__init__(self)
 
+		self.cnt = 0
+		self.background = None
+
 		self.stream_id = guiProgInfo[0]
 		# program id from PMT
 		self.progID = guiProgInfo[1]
@@ -25,13 +28,16 @@ class Renderer(Gtk.Grid):
 
 		# creating renderer window - drawing area
 		self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
-		self.drawarea.add_events(0)
+		self.drawarea.set_events(Gdk.EventMask.EXPOSURE_MASK)
+		self.drawarea.set_app_paintable(False)
 		# set default renderer size (4:3)
 		self.drawarea.set_size_request(100,75)
 		# this is to remove flickering
 		self.drawarea.set_double_buffered(False)
 		# connect 'draw' event with callback
 		self.drawarea.connect("draw", self.on_drawingarea_draw)
+		self.drawarea.connect('configure_event', self.da_configure)
+		self.drawarea.connect('state-flags-changed', self.da_state_changed)
 		# do we need to draw black background?
 		self.draw = False
 		self.no_video = False
@@ -52,18 +58,34 @@ class Renderer(Gtk.Grid):
 		self.attach(progname, 0, 1, 1, 1)
 		self.attach(volbtn, 1, 1, 1, 1)
 
+	def clear_background(self):
+		if self.background is not None:
+			self.background = None
+
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
 		return self.drawarea.get_window().get_xid()
 
+	def da_configure(self, event, data):
+		self.clear_background()
+		self.drawarea.queue_draw()
+
+	def da_state_changed(self, flags, data):
+		self.clear_background()
+		self.drawarea.queue_draw()
+
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
 		if self.draw is True:
+			#if self.background is None:
 			cr.set_source_rgb(0, 0, 0)
 			w = self.drawarea.get_allocated_width()
 			h = self.drawarea.get_allocated_height()
 			cr.rectangle(0, 0, w, h)
 			cr.fill()
+			self.background = cr.get_target()
+			print("draw" + str(self.cnt))
+			self.cnt += 1
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):

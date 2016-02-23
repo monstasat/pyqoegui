@@ -58,8 +58,11 @@ class Control():
 		# set gui for analyzed programs
 		self.apply_prog_list_to_gui(self.analyzedProgList)
 
+		# initially set drawing black background for corresponding renderers to True
 		for stream in self.analyzedProgList:
 			self.gui.set_draw_mode_for_renderers(True, stream[0])
+
+		self.gui.queue_draw()
 
 	def start_analysis(self):
 		# execute all gstreamer pipelines
@@ -72,9 +75,10 @@ class Control():
 		self.gui.toolbar.change_start_icon()
 		self.gui.clear_all_programs_in_prog_dlg()
 
+		# set drawing black background for all renderers to True
 		for stream in self.analyzedProgList:
 			self.gui.set_draw_mode_for_renderers(True, stream[0])
-
+		# force redrawing of gui
 		self.gui.queue_draw()
 
 	# start server
@@ -113,6 +117,7 @@ class Control():
 				# apply compared program list to backend (compared list contains only program equal prorams from current and received lists)
 				self.apply_prog_list_to_backend(compared_prog_list)
 
+				# set drawing black background for corresponding renderers to False
 				self.gui.set_draw_mode_for_renderers(False, compared_prog_list[0])
 
 			elif wstr[0] == 'v':
@@ -158,7 +163,10 @@ class Control():
 		if state is State.RUNNING:
 			self.backend.restart_pipeline(stream_id)
 
+		# set drawing black background for corresponding renderers to True
 		self.gui.set_draw_mode_for_renderers(True, stream_id)
+		# force redrawing of gui
+		self.gui.queue_draw()
 
 	# actions when gui send NEW_SETTINS_PROG_LIST message
 	def on_new_prog_settings_from_gui(self, param):
