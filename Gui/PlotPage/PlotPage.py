@@ -1,8 +1,8 @@
 from gi.repository import Gtk
 from Gui.Placeholder import Placeholder, PlaceholderWithButton
 from Gui.Icon import Icon
-from Gui.Plot.Plot import Plot
-from Gui.Plot import GraphTypes
+from Gui.PlotPage.Plot.Plot import Plot
+from Gui.PlotPage.Plot import GraphTypes
 
 class PlotPage(Gtk.Box):
 	def __init__(self):

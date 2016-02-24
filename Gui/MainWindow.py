@@ -2,9 +2,9 @@
 from gi.repository import Gtk, GLib, GObject
 
 from Gui.ButtonToolbar import ButtonToolbar
-from Gui.CurrentResultsPage import CurrentResultsPage
-from Gui.PlotPage import PlotPage
-from Gui.AllResultsPage import AllResultsPage
+from Gui.CurrentResultsPage.CurrentResultsPage import CurrentResultsPage
+from Gui.PlotPage.PlotPage import PlotPage
+from Gui.AllResultsPage.AllResultsPage import AllResultsPage
 from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog

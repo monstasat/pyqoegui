@@ -5,7 +5,4 @@
 *.txt
 
 #ignore folders
-/__pycache__
-Gui/__pycache__
-Backend/__pycache__
-
+**/__pycache__

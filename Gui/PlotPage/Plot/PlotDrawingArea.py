@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gdk, cairo, Pango, PangoCairo, GObject
 import math
 import random
 import collections
-from Gui.Plot import GraphTypes
+from Gui.PlotPage.Plot import GraphTypes
 
 NUM_POINTS = 60 + 2
 FRAME_WIDTH = 4

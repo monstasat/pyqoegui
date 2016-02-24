@@ -1,7 +1,7 @@
 from gi.repository import Gtk
 
-from Gui.RendererGrid import RendererGrid
-from Gui.ProgramTable import ProgramTable
+from Gui.CurrentResultsPage.RendererGrid import RendererGrid
+from Gui.CurrentResultsPage.ProgramTable import ProgramTable
 from Gui.Placeholder import Placeholder
 from Gui import Spacing
 

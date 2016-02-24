@@ -10,7 +10,7 @@ class Renderer(Gtk.Grid):
 	def __init__(self, guiProgInfo):
 		Gtk.Grid.__init__(self)
 
-		self.cnt = 0
+		#self.cnt = 0
 		self.background = None
 
 		self.stream_id = guiProgInfo[0]
@@ -84,8 +84,8 @@ class Renderer(Gtk.Grid):
 			cr.rectangle(0, 0, w, h)
 			cr.fill()
 			self.background = cr.get_target()
-			print("draw" + str(self.cnt))
-			self.cnt += 1
+			#print("draw" + str(self.cnt))
+			#self.cnt += 1
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):

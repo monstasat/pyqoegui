@@ -1,5 +1,5 @@
 from gi.repository import Gtk, Gdk
-from Gui.Plot.PlotDrawingArea import PlotDrawingArea
+from Gui.PlotPage.Plot.PlotDrawingArea import PlotDrawingArea
 
 class Plot(Gtk.Box):
 	def __init__(self):
