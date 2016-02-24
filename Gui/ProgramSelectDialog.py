@@ -31,7 +31,7 @@ class ProgramSelectDialog(BaseDialog):
 		scrollWnd.set_size_request(400, 400)
 		self.progTree = ProgramTreeView(parent.store)
 
-		# creating renderers overlay
+		# creating prog list overlay
 		overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
 		overlay.add(self.progTree)
 		self.holder = Placeholder("dialog-warning-symbolic", 'Программ не найдено', 72)

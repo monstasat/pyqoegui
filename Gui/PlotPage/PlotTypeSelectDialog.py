@@ -4,13 +4,16 @@ from Gui.PlotPage.PlotProgramTreeView import PlotProgramTreeView
 
 class PlotTypeSelectDialog(BaseDialog):
 	def __init__(self, parent):
+		BaseDialog.__init__(self, "Выбор вида графика", parent)
 
+		# list of available video plots
 		self.video_plot_types = ("Количество чёрных пикселей, %", "Количество идентичных пикселей, %",
 							"Уровень блочности", "Средняя яркость кадра", "Среднее различие между кадрами")
 
+		# list of available audio plots
 		self.audio_plot_types = ("Моментальная громкость, LUFS", "Кратковременная громкость, LUFS")
 
-		BaseDialog.__init__(self, "Выбор вида графика", parent)
+		# get main widget
 		mainBox = self.get_content_area()
 
 		# create type select page
@@ -44,13 +47,17 @@ class PlotTypeSelectDialog(BaseDialog):
 		for page in pages:
 			self.stack.add_titled(page[0], page[1], page[2])
 
+		# create stack sidebar
 		self.stackSidebar = Gtk.StackSidebar(vexpand=True, hexpand=False, halign=Gtk.Align.START)
 		self.stackSidebar.set_stack(self.stack)
 		self.stackSidebar.show()
 
+		# set initial label of 'apply' button
 		self.applyBtn.set_property('label', Gtk.STOCK_GO_FORWARD)
 
+		# configure main container orientation
 		mainBox.set_orientation(Gtk.Orientation.HORIZONTAL)
+		# pack items to main container
 		mainBox.pack_start(self.stackSidebar, False, False, 0)
 		separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
 		mainBox.pack_start(separator, False, False, 0)
@@ -61,8 +68,8 @@ class PlotTypeSelectDialog(BaseDialog):
 		parent.analyzedStore.connect('row-inserted', self.on_row_inserted)
 
 		self.show_all()
-		# to determine if we need to display placeholder initially
-		self.on_store_changed()
+		# set dialog view
+		self.set_dialog_view()
 
 
 	def on_btn_clicked_apply(self, widget):
@@ -81,12 +88,12 @@ class PlotTypeSelectDialog(BaseDialog):
 			self.applyBtn.set_property('label', Gtk.STOCK_APPLY)
 
 	def on_row_inserted(self, path, iter, user_data):
-		self.on_store_changed()
+		self.set_dialog_view()
 
 	def on_row_deleted(self, path, user_data):
-		self.on_store_changed()
+		self.set_dialog_view()
 
-	def on_store_changed(self):
+	def set_dialog_view(self):
 		# if some streams are appended to store, do not show placeholder
 		if len(self.prog_select_page.store) > 0:
 			# open all program rows
@@ -102,5 +109,6 @@ class PlotTypeSelectDialog(BaseDialog):
 			pass
 			#self.holder.set_text('Программ не найдено')
 			#self.holder.show_all()
+		self.prog_select_page.store_filter.refilter()
 
 

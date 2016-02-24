@@ -9,8 +9,14 @@ class PlotProgramTreeView(Gtk.TreeView):
 
 		# remember store
 		self.store = store
-		# set store for view
-		self.set_model(self.store)
+
+		# creating store filter
+		self.store_filter = self.store.filter_new()
+		# setting the filter function
+		self.store_filter.set_visible_func(self.pid_filter_func)
+
+		# set model for tree view
+		self.set_model(self.store_filter)
 
 		# the cellrenderer for the first column - icon
 		renderer_icon = Gtk.CellRendererPixbuf()
@@ -30,8 +36,8 @@ class PlotProgramTreeView(Gtk.TreeView):
 		column_prog.set_expand(True)
 		column_prog.pack_start(renderer_icon, False)
 		column_prog.pack_start(renderer_text, True)
-		column_prog.add_attribute(renderer_icon, "icon-name", 1)
-		column_prog.add_attribute(renderer_text, "text", 2)
+		column_prog.add_attribute(renderer_icon, "icon-name", 0)
+		column_prog.add_attribute(renderer_text, "text", 1)
 		# append first column
 		self.append_column(column_prog)
 
@@ -40,16 +46,16 @@ class PlotProgramTreeView(Gtk.TreeView):
 		column_check.set_alignment(0.5)
 		column_check.set_expand(False)
 		column_check.pack_start(renderer_check, False)
-		column_check.add_attribute(renderer_check, "active", 3)
-		column_check.add_attribute(renderer_check, "inconsistent", 4)
+		column_check.add_attribute(renderer_check, "active", 2)
+		column_check.add_attribute(renderer_check, "inconsistent", 3)
 		# append second column
 		self.append_column(column_check)
 
 	def on_toggled(self, widget, path):
 		# the boolean value of the selected row
-		current_value = self.store[path][3]
+		current_value = self.store[path][2]
 		# change the boolean value of the selected row in the model
-		self.store[path][3] = not current_value
+		self.store[path][2] = not current_value
 		# new current value!
 		current_value = not current_value
 
@@ -58,14 +64,14 @@ class PlotProgramTreeView(Gtk.TreeView):
 			# get the iter associated with the stream path
 			streamIter = self.store.get_iter(path)
 			# inconsistent state is not valid when selecting a stream
-			self.store[streamIter][4] = False
+			self.store[streamIter][3] = False
 			# get the iter associated with its first child (program)
 			progIter = self.store.iter_children(streamIter)
 			# while there are programs, change the state of their boolean value
 			while progIter is not None:
-				self.store[progIter][3] = current_value
+				self.store[progIter][2] = current_value
 				# inconsistent state is not valid when selecting a stream
-				self.store[progIter][4] = False
+				self.store[progIter][3] = False
 				progIter = self.store.iter_next(progIter)
 
 		#if length of the path is 3 (that is, if we are selecting a program)
@@ -91,7 +97,7 @@ class PlotProgramTreeView(Gtk.TreeView):
 		some_selected = False
 		while citer is not None:
 			# if at least one program is not selected, set all_selected flag to false
-			if self.store[citer][3] == False:
+			if self.store[citer][2] == False:
 				all_selected = False
 			# if at least one program is selected, set some_selected flag to true
 			else:
@@ -101,6 +107,14 @@ class PlotProgramTreeView(Gtk.TreeView):
 		# if all programs are selected, the stream as well is selected
 		# if some programs are selected , the stream is partly selected (inconsistent)
 		# if no programs selected, the stream as well is not selected
-		self.store[piter][3] = all_selected
+		self.store[piter][2] = all_selected
 		if all_selected is False:
-			self.store[piter][4] = some_selected
+			self.store[piter][3] = some_selected
+
+	# hides pids from tree view
+	def pid_filter_func(self, model, iter, data):
+		print("refilter")
+		if model.iter_children(iter) is None:
+			return False
+		else:
+			return True
