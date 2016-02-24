@@ -123,7 +123,20 @@ class TranslateMessages():
 			stream_id = stream[0]
 			progs = stream[1]
 			for prog in progs:
-				guiProgInfo.append([stream_id, prog[0], prog[1]])
+				prog_info = [stream_id, prog[0], prog[1]]
+				pids = prog[4]
+				pids_info = []
+				prog_type = 0
+				for pid in pids:
+					type = pid[2].split('-')[0]
+					if type == 'video':
+						prog_type = prog_type | 1
+					elif type == 'audio':
+						prog_type = prog_type | 2
+					pids_info.append([pid[0], type])
+				prog_info.append(prog_type)
+				prog_info.append(pids_info)
+				guiProgInfo.append(prog_info)
 
 		return guiProgInfo
 

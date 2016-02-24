@@ -109,7 +109,7 @@ class Control():
 				self.currentProgList = self.msg_translator.append_prog_list_to_common(progList, self.currentProgList)
 
 				# show received program list in gui (in program selection dialog)
-				self.gui.progDlg.show_prog_list(progList)
+				self.gui.store.show_prog_list(progList)
 
 				# compare received and current analyzed prog lists
 				compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
@@ -153,7 +153,7 @@ class Control():
 	def on_end_of_stream(self, stream_id):
 		# refresh program list in gui (in this case, delete this stream from program list in prog select dialog)
 		# this is done by passing empty prog list to gui
-		self.gui.progDlg.show_prog_list([stream_id, []])
+		self.gui.store.show_prog_list([stream_id, []])
 
 		# getting state of gstreamer pipeline with corresponding stream id
 		state = self.backend.get_pipeline_state(stream_id)

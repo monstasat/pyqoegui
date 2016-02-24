@@ -9,6 +9,8 @@ from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
+from Gui.StreamProgTreeModel import StreamProgTreeModel
+from Gui.AnalyzedProgTreeModel import AnalyzedProgTreeModel
 import CustomMessages
 
 class MainWindow(Gtk.Window):
@@ -20,6 +22,9 @@ class MainWindow(Gtk.Window):
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
 
+		# applied programs info
+		self.guiProgInfo = []
+
 		# main window border width
 		self.set_border_width(Spacing.BORDER)
 		#self.maximize()
@@ -28,6 +33,12 @@ class MainWindow(Gtk.Window):
 		settings = Gtk.Settings.get_default()
 		#settings.set_property("gtk-titlebar-double-click", 'none')
 
+		# creating model for storing streaming programs lists and corresponding parameters
+		self.store = StreamProgTreeModel()
+		# creating model for storing analyzed programs lists and corresponding parameters
+		self.analyzedStore = AnalyzedProgTreeModel()
+
+		# create prog selection dialog
 		self.progDlg = ProgramSelectDialog(self)
 		self.progDlg.hide()
 
@@ -146,7 +157,7 @@ class MainWindow(Gtk.Window):
 
 	# get program list from prog select dialog
 	def get_applied_prog_list(self):
-		return self.progDlg.get_selected_prog_params()
+		return self.store.get_selected_prog_params()
 
 	# get renderers xids from cur result page
 	def get_renderers_xids(self):
@@ -154,17 +165,19 @@ class MainWindow(Gtk.Window):
 
 	# set gui for new program list
 	def set_new_programs(self, guiProgInfo):
+		self.guiProgInfo = guiProgInfo
+		# fill model
+		self.analyzedStore.add_new_programs(guiProgInfo)
 		# add new programs to gui
 		self.cur_results_page.on_prog_list_changed(guiProgInfo)
 		# determine wether table revealer button should be visible
 		self.manage_table_revealer_button_visibility()
 
 	def clear_all_programs_in_prog_dlg(self):
-		self.progDlg.clear_all_programs()
+		self.store.clear_all_programs()
 
 	def set_draw_mode_for_renderers(self, draw, stream_id):
 		self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
-
 
 	# start button was clicked
 	def on_start_clicked(self, widget):
@@ -178,8 +191,7 @@ class MainWindow(Gtk.Window):
 
 	# prog select button was clicked
 	def on_prog_select_clicked(self, widget):
-
-		#run the dialog
+		# run the dialog
 		responce = self.progDlg.run()
 
 		# if new program list was chosen
@@ -188,6 +200,7 @@ class MainWindow(Gtk.Window):
 			self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
 		self.progDlg.hide()
+		#progDlg.destroy()
 
 	# rf settings button was clicked
 	def on_rf_set_clicked(self, widget):
