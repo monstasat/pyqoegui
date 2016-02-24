@@ -50,7 +50,7 @@ class MainWindow(Gtk.Window):
 
 		# create stack pages
 		self.cur_results_page = CurrentResultsPage()
-		self.plot_page = PlotPage()
+		self.plot_page = PlotPage(self)
 		self.all_results_page = AllResultsPage()
 		pages = []
 		pages.append((self.cur_results_page, "cur_results", "Текущие результаты"))

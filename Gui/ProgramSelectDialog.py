@@ -28,7 +28,7 @@ class ProgramSelectDialog(BaseDialog):
 		scrollWnd = Gtk.ScrolledWindow(vexpand=True, hexpand=True,
 									halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
 									hscrollbar_policy=2)	#never
-		scrollWnd.set_size_request(400,400)
+		scrollWnd.set_size_request(400, 400)
 		self.progTree = ProgTree()
 
 		# creating renderers overlay
@@ -101,8 +101,8 @@ class ProgTree(Gtk.TreeView):
 
 		# data stored in treeview
 		# icon, name, is_analyzed
-		# icon name, prog name, is analyzed, is partly choosen, stream id, string describing stream
-		self.store = Gtk.TreeStore(str, str, bool, bool, int, str)
+		# icon name, prog name, is analyzed, is partly choosen, stream id, string describing stream, show_on_graph, show on graph partly choosen
+		self.store = Gtk.TreeStore(str, str, bool, bool, int, str, bool, bool)
 		# set the model
 		self.set_model(self.store)
 

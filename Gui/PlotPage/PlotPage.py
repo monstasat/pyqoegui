@@ -3,10 +3,12 @@ from Gui.Placeholder import Placeholder, PlaceholderWithButton
 from Gui.Icon import Icon
 from Gui.PlotPage.Plot.Plot import Plot
 from Gui.PlotPage.Plot import GraphTypes
+from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 
 class PlotPage(Gtk.Box):
-	def __init__(self):
+	def __init__(self, mainWnd):
 		Gtk.Box.__init__(self)
+		self.mainWnd = mainWnd
 		self.set_orientation(Gtk.Orientation.VERTICAL)
 		self.set_vexpand(True)
 		self.set_hexpand(True)
@@ -32,20 +34,28 @@ class PlotPage(Gtk.Box):
 		#self.add(actionBar)
 
 	def on_graph_add(self, widget):
-		self.placeholder.hide()
-		children = self.get_children()
-		for child in children:
-			if child is self.placeholder:
-				self.remove(child)
-		plot = Plot()
-		plot.set_title("10 РЕН-ТВ. Громкость, LUFS")
-		plot.add_interval(0.25, GraphTypes.ERROR, True)
-		plot.add_interval(0.05, GraphTypes.WARNING)
-		plot.add_interval(0.4, GraphTypes.NORMAL)
-		plot.add_interval(0.05, GraphTypes.WARNING)
-		plot.add_interval(0.25, GraphTypes.ERROR)
-		plot.set_min_max(-40, -14)
-		plot.set_y_type(" LUFS")
-		self.add(plot)
-		self.set_valign(Gtk.Align.FILL)
+		plotTypeDlg = PlotTypeSelectDialog(self.mainWnd)
+		plotTypeDlg.show_all()
+		responce = plotTypeDlg.run()
+
+		if responce == Gtk.ResponseType.APPLY:
+			self.placeholder.hide()
+			children = self.get_children()
+			for child in children:
+				if child is self.placeholder:
+					self.remove(child)
+			plot = Plot()
+			plot.set_title("10 РЕН-ТВ. Громкость, LUFS")
+			plot.add_interval(0.25, GraphTypes.ERROR, True)
+			plot.add_interval(0.05, GraphTypes.WARNING)
+			plot.add_interval(0.4, GraphTypes.NORMAL)
+			plot.add_interval(0.05, GraphTypes.WARNING)
+			plot.add_interval(0.25, GraphTypes.ERROR)
+			plot.set_min_max(-40, -14)
+			plot.set_y_type(" LUFS")
+			self.add(plot)
+			self.set_valign(Gtk.Align.FILL)
+
+		plotTypeDlg.hide()
+
 		self.show_all()
