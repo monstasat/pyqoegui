@@ -42,7 +42,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		# line width
 		self.line_width = 1
 		# graph refresh speed (1 sec by default)
-		self.speed = 1000
+		self.speed = 250
 		self.frames_per_unit = 10
 		# flag that permits graph drawing
 		self.draw = True

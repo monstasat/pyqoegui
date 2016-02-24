@@ -7,13 +7,16 @@ class PlotProgramTreeView(Gtk.TreeView):
 		sel = self.get_selection()
 		sel.set_mode(Gtk.SelectionMode.NONE)
 
+		# what programs to display?
+		self.filter_type = 0
+
 		# remember store
 		self.store = store
 
 		# creating store filter
 		self.store_filter = self.store.filter_new()
 		# setting the filter function
-		self.store_filter.set_visible_func(self.pid_filter_func)
+		self.store_filter.set_visible_func(self.pid_filter_func,)
 
 		# set model for tree view
 		self.set_model(self.store_filter)
@@ -111,10 +114,27 @@ class PlotProgramTreeView(Gtk.TreeView):
 		if all_selected is False:
 			self.store[piter][3] = some_selected
 
-	# hides pids from tree view
+	def unselect_all(self):
+		piter = self.store.get_iter_first()
+		while piter is not None:
+			self.store[piter][2] = False
+			self.store[piter][3] = False
+			citer = self.store.iter_children(piter)
+			while citer is not None:
+				self.store[citer][2] = False
+				self.store[citer][3] = False
+				citer = self.store.iter_next(citer)
+			piter = self.store.iter_next(piter)
+	def set_filter_type(self, type):
+		self.filter_type = type
+
+	# filtering function for tree view
 	def pid_filter_func(self, model, iter, data):
-		print("refilter")
+		# hides pids from tree view
 		if model.iter_children(iter) is None:
+			return False
+		# hide progs of type that is not supported by selected graph
+		elif len(str(model.get_path(iter))) == 3 and ((model[iter][4] & self.filter_type) is 0):
 			return False
 		else:
 			return True

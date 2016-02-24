@@ -154,6 +154,7 @@ class RendererGrid(Gtk.FlowBox):
 		xids = []
 		for i in range(len(self.get_children())):
 			rend = self.rend_arr[i]
+			rend.drawarea.realize()
 			xids.append([rend.stream_id, rend.progID, rend.drawarea.get_window().get_xid()])
 		return xids
 

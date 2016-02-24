@@ -3,7 +3,7 @@ from gi.repository import Gtk
 
 class AnalyzedProgTreeModel(Gtk.TreeStore):
 	def __init__(self):
-		# stream id, icon name, prog name, is selected, is partly selected, prog info
+		# icon name, prog name, is selected, is partly selected, stream id (or type if prog), type, prog info
 		Gtk.TreeStore.__init__(self, str, str, bool, bool, int, str)
 
 		self.TREE_ICONS = {
@@ -36,7 +36,7 @@ class AnalyzedProgTreeModel(Gtk.TreeStore):
 			piter = self.append(None, ["view-grid-symbolic", "Поток №" + str(stream + 1), False, False, stream, ""])
 			for prog in progList:
 				if stream == prog[0]:
-					citer = self.append(piter, [self.TREE_ICONS[prog[3]], prog[2], False, False, prog[0], json.dumps(prog) ] )
+					citer = self.append(piter, [self.TREE_ICONS[prog[3]], prog[2], False, False, prog[3], json.dumps(prog) ] )
 				pids = prog[4]
 				for pid in pids:
 					self.append(citer, [self.TREE_ICONS[pid[1].split('-')[0]], "PID " + pid[0] + ", " + pid[1] , False, False, prog[0], json.dumps(pid)])

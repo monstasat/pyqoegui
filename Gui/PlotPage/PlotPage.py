@@ -8,6 +8,8 @@ from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 class PlotPage(Gtk.Box):
 	def __init__(self, mainWnd):
 		Gtk.Box.__init__(self)
+
+		self.plot_range = { 0 : [0, 255]}
 		self.mainWnd = mainWnd
 		self.set_orientation(Gtk.Orientation.VERTICAL)
 		self.set_vexpand(True)
@@ -39,19 +41,32 @@ class PlotPage(Gtk.Box):
 		responce = plotTypeDlg.run()
 
 		if responce == Gtk.ResponseType.APPLY:
+			selected_type = plotTypeDlg.get_selected_type()
+			selected_progs = plotTypeDlg.get_selected_programs()
+
+			plot_index = selected_type.get_index()
+			plot_info = plotTypeDlg.plot_types[plot_index]
+			plot_title = plot_info[0]
+			plot_unit = plot_info[1]
+			plot_range = plot_info[2]
+
 			self.placeholder.hide()
 			children = self.get_children()
 			for child in children:
 				if child is self.placeholder:
 					self.remove(child)
 			plot = Plot()
-			plot.set_title("10 РЕН-ТВ. Громкость, LUFS")
+
+			if plot_unit is not '':
+				plot_title += ", " + plot_unit
+
+			plot.set_title(plot_title)
 			plot.add_interval(0.25, GraphTypes.ERROR, True)
 			plot.add_interval(0.05, GraphTypes.WARNING)
 			plot.add_interval(0.4, GraphTypes.NORMAL)
 			plot.add_interval(0.05, GraphTypes.WARNING)
 			plot.add_interval(0.25, GraphTypes.ERROR)
-			plot.set_min_max(-40, -14)
+			plot.set_min_max(plot_range[0], plot_range[1])
 			plot.set_y_type(" LUFS")
 			self.add(plot)
 			self.set_valign(Gtk.Align.FILL)
