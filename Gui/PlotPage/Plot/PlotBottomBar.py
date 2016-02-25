@@ -2,9 +2,16 @@ from gi.repository import Gtk, Gdk
 from Gui import Spacing
 
 class PlotBottomBarChild(Gtk.Box):
-	def __init__(self, progName, color):
+	def __init__(self, progName, color, index):
 		Gtk.Box.__init__(self)
 
+		# value unit
+		self.unit = ""
+
+		# child index in bottom bar
+		self.index = index
+
+		# set left margin
 		self.set_property('margin-start', 57)
 
 		# set horizontal orientation
@@ -14,8 +21,6 @@ class PlotBottomBarChild(Gtk.Box):
 
 		# plot color button
 		self.color_btn = Gtk.ColorButton.new_with_rgba(color)
-		#self.color_btn.
-		#Gtk.ColorChooser()
 
 		# prog name label
 		self.prog_name = Gtk.Label(label=progName)
@@ -29,9 +34,13 @@ class PlotBottomBarChild(Gtk.Box):
 		self.add(self.value)
 
 	def set_value(self, value):
-		self.value.set_text("%g"%value + " " + self.unit)
+		self.value.set_text("%g"%float(value) + " " + self.unit)
+
+	def set_unit(self, unit):
+		self.unit = unit
 
 class PlotBottomBar(Gtk.FlowBox):
+
 	def __init__(self, selected_progs):
 		Gtk.FlowBox.__init__(self)
 
@@ -58,8 +67,6 @@ class PlotBottomBar(Gtk.FlowBox):
 
 		# bottom bar child list
 		self.children = []
-		# value unit
-		self.unit = ""
 
 		# should be horizontally expandable and fill all available space
 		self.set_hexpand(True)
@@ -80,6 +87,10 @@ class PlotBottomBar(Gtk.FlowBox):
 		self.set_column_spacing(Spacing.COL_SPACING)
 		self.set_row_spacing(Spacing.ROW_SPACING)
 
+		# init colors with default_colors
+		self.colors = list(self.default_colors)
+
+		# add children to flowbox
 		self.add_children(selected_progs)
 
 	def add_children(self, selected_progs):
@@ -90,11 +101,23 @@ class PlotBottomBar(Gtk.FlowBox):
 		self.children.clear()
 		# add new children
 		for i, prog in enumerate(selected_progs):
-			child = PlotBottomBarChild(prog[2], self.default_colors[i])
+			child = PlotBottomBarChild(prog[2], self.colors[i], i)
+			child.color_btn.connect('color-set', self.on_color_chosen)
 			self.children.append(child)
 			self.insert(child, -1)
 		# show all children
 		self.show_all()
 
+	# set value unit
 	def set_unit(self, unit):
-		self.unit = unit
+		for child in self.children: child.set_unit(unit)
+
+	# if color was chosen
+	def on_color_chosen(self, color_btn):
+		index = color_btn.get_parent().index
+		rgba = color_btn.get_rgba()
+		self.colors[index] = rgba
+		print(rgba)
+
+	def set_value(self, value, index):
+		self.children[index].set_value(value)
