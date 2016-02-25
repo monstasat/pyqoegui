@@ -9,13 +9,19 @@ class PlotPage(Gtk.Box):
 	def __init__(self, mainWnd):
 		Gtk.Box.__init__(self)
 
-		self.plot_range = { 0 : [0, 255]}
+		# main window
 		self.mainWnd = mainWnd
+
+		# plot page is a box with vertical orientation
 		self.set_orientation(Gtk.Orientation.VERTICAL)
+
+		# page must be expandable
 		self.set_vexpand(True)
 		self.set_hexpand(True)
+		# set alignment
 		self.set_halign(Gtk.Align.FILL)
 		self.set_valign(Gtk.Align.CENTER)
+
 		self.addBtn = Gtk.Button(label="Добавить график")
 		#addBtn.set_image(Icon("list-add-symbolic"))
 		#addBtn.set_image_position(Gtk.PositionType.TOP)

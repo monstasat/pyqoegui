@@ -59,31 +59,31 @@ class PlotProgramTreeView(Gtk.TreeView):
 
 	def on_toggled(self, widget, path):
 		# the boolean value of the selected row
-		current_value = self.store[path][2]
+		current_value = self.store_filter[path][2]
 		# change the boolean value of the selected row in the model
-		self.store[path][2] = not current_value
+		self.store_filter[path][2] = not current_value
 		# new current value!
 		current_value = not current_value
 
 		# if length of the path is 1 (that is, if we are selecting a stream)
 		if len(path) == 1:
 			# get the iter associated with the stream path
-			streamIter = self.store.get_iter(path)
+			streamIter = self.store_filter.get_iter(path)
 			# inconsistent state is not valid when selecting a stream
-			self.store[streamIter][3] = False
+			self.store_filter[streamIter][3] = False
 			# get the iter associated with its first child (program)
-			progIter = self.store.iter_children(streamIter)
+			progIter = self.store_filter.iter_children(streamIter)
 			# while there are programs, change the state of their boolean value
 			while progIter is not None:
-				self.store[progIter][2] = current_value
+				self.store_filter[progIter][2] = current_value
 				# inconsistent state is not valid when selecting a stream
-				self.store[progIter][3] = False
-				progIter = self.store.iter_next(progIter)
+				self.store_filter[progIter][3] = False
+				progIter = self.store_filter.iter_next(progIter)
 
 		#if length of the path is 3 (that is, if we are selecting a program)
 		elif len(path) == 3:
 			# get the iter associated with the program path
-			progIter = self.store.get_iter(path)
+			progIter = self.store_filter.get_iter(path)
 
 			#set stream check button state
 			self.set_check_parent_button_state(progIter)
@@ -95,39 +95,39 @@ class PlotProgramTreeView(Gtk.TreeView):
 		# if some children are choosen - parent is in inconsistent state
 		# if no children are choosen - parent is also not choosen
 
-		piter = self.store.iter_parent(citer)
+		piter = self.store_filter.iter_parent(citer)
 
-		citer = self.store.iter_children(piter)
+		citer = self.store_filter.iter_children(piter)
 		# check if all the children are selected, or only some are selected
 		all_selected = True
 		some_selected = False
 		while citer is not None:
 			# if at least one program is not selected, set all_selected flag to false
-			if self.store[citer][2] == False:
+			if self.store_filter[citer][2] == False:
 				all_selected = False
 			# if at least one program is selected, set some_selected flag to true
 			else:
 				some_selected = True
-			citer = self.store.iter_next(citer)
+			citer = self.store_filter.iter_next(citer)
 
 		# if all programs are selected, the stream as well is selected
 		# if some programs are selected , the stream is partly selected (inconsistent)
 		# if no programs selected, the stream as well is not selected
-		self.store[piter][2] = all_selected
+		self.store_filter[piter][2] = all_selected
 		if all_selected is False:
-			self.store[piter][3] = some_selected
+			self.store_filter[piter][3] = some_selected
 
 	def unselect_all(self):
-		piter = self.store.get_iter_first()
+		piter = self.store_filter.get_iter_first()
 		while piter is not None:
-			self.store[piter][2] = False
-			self.store[piter][3] = False
-			citer = self.store.iter_children(piter)
+			self.store_filter[piter][2] = False
+			self.store_filter[piter][3] = False
+			citer = self.store_filter.iter_children(piter)
 			while citer is not None:
-				self.store[citer][2] = False
-				self.store[citer][3] = False
-				citer = self.store.iter_next(citer)
-			piter = self.store.iter_next(piter)
+				self.store_filter[citer][2] = False
+				self.store_filter[citer][3] = False
+				citer = self.store_filter.iter_next(citer)
+			piter = self.store_filter.iter_next(piter)
 	def set_filter_type(self, type):
 		self.filter_type = type
 

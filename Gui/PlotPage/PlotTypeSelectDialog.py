@@ -36,6 +36,7 @@ class PlotTypeSelectDialog(BaseDialog):
 		# create program select page
 		self.prog_select_page = PlotProgramTreeView(self.store)
 		self.prog_select_page.unselect_all()
+		#self.prog_select_page.renderer_check.connect('toggled', self.on_program_selection_changed)
 
 		# fill page list with created pages
 		pages = []
@@ -84,14 +85,33 @@ class PlotTypeSelectDialog(BaseDialog):
 		else:
 			BaseDialog.on_btn_clicked_apply(self, widget)
 
+	# when user selects/deselects programs from list
+	def on_program_selection_changed(self, widget, path):
+		# if nothing is selected, deactivate suggested button
+		if len(self.get_selected_programs()) is 0:
+			self.applyBtn.set_sensitive(False)
+		# if smth is selected, activate button
+		else:
+			self.applyBtn.set_sensitive(True)
+
 	# when dialog page is switched (to plot type select or progs select)
 	def on_page_switched(self, stack, gparam):
 		# get visible page
 		visible_page = self.stack.get_visible_child()
+
 		# if type selection page is visible now
 		if visible_page is self.type_select_page:
+			# decide on suggested button sensitivity
+			# if no type is selected, button is disabled
+			if self.get_selected_plot_type() is None:
+				self.applyBtn.set_sensitive(False)
+			# if smth is selected, activate button
+			else:
+				self.applyBtn.set_sensitive(True)
+
 			# change text on suggested button
 			self.applyBtn.set_property('label', Gtk.STOCK_GO_FORWARD)
+
 		# if prog selection type is visible now
 		else:
 			# get currently selected plot type
@@ -111,8 +131,12 @@ class PlotTypeSelectDialog(BaseDialog):
 			self.prog_select_page.store_filter.refilter()
 			# restore dialog view
 			self.set_dialog_view()
+
 			# change text on suggested button
 			self.applyBtn.set_property('label', Gtk.STOCK_APPLY)
+			# if no programs selected, deactivate suggested button
+			if len(self.get_selected_programs()) is 0:
+				self.applyBtn.set_sensitive(False)
 
 	# get information about selected plot type
 	def get_selected_plot_type_info(self, row):

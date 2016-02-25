@@ -3,6 +3,7 @@ require_version('GdkX11', '3.0')
 from gi.repository import Gtk,Gdk, GdkX11
 from Gui import Spacing
 import cairo
+import math
 
 # one instance of video renderer (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
@@ -117,6 +118,9 @@ class RendererGrid(Gtk.FlowBox):
 		self.set_column_spacing(Spacing.COL_SPACING)
 		self.set_row_spacing(Spacing.ROW_SPACING)
 
+		# connect to draw signal
+		self.connect('draw', self.on_draw)
+
 	# draw necessary number of renderers
 	def draw_renderers(self, progNum, guiProgInfo):
 
@@ -166,3 +170,42 @@ class RendererGrid(Gtk.FlowBox):
 		for i in range(len(self.get_children())):
 			if self.rend_arr[i].stream_id == stream_id:
 				self.rend_arr[i].draw = draw
+
+	def on_draw(self, widget, cr):
+		self.on_resize()
+
+	def on_resize(self):
+		rect = self.get_allocation()
+		aspect_fb = rect.height / rect.width
+		children = self.get_children()
+		cols = self.get_max_renderers_per_row(aspect_fb, 3.0/4, len(children))
+		self.set_max_children_per_line(cols)
+
+	def get_max_renderers_per_row(self, flow_box_div, rend_div, rend_num):
+		W = 1.0;
+		H = W * flow_box_div;
+
+		aspect_list = []
+
+		for rows in range(1, rend_num + 1):
+			columns = math.ceil(rend_num / float(rows))
+			S_1 = 0.0
+
+			if (W / columns * rend_div * rows) <= H:
+				S_1 = W / columns * (W / columns * rend_div)
+			else:
+				S_1 = H / rows * (H / rows / rend_div)
+
+			S_useful = S_1 * rend_num;
+			S_rects = S_1 * rows * columns;
+			space_rate = S_useful / S_rects
+
+			aspect_list.append([rows, columns, S_useful, S_rects, space_rate])
+
+		# sort by s_useful and space rate
+		sorted_al = sorted(aspect_list, key=lambda x: (x[2], x[4]))
+
+		if len(sorted_al) > 0:
+			return sorted_al[-1][1]
+		else:
+			return 0
