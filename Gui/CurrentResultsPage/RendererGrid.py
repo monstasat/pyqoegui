@@ -49,6 +49,7 @@ class Renderer(Gtk.Grid):
 
 		# creating volume button at the right edge of a renderer instance
 		volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, hexpand=False, vexpand=False)
+		volbtn.connect('value-changed', self.volume_changed)
 
 		# creating a program label
 		progname = Gtk.Label(label=self.progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
@@ -57,6 +58,9 @@ class Renderer(Gtk.Grid):
 		self.attach(self.drawarea, 0, 0, 2, 1)
 		self.attach(progname, 0, 1, 1, 1)
 		self.attach(volbtn, 1, 1, 1, 1)
+
+	def volume_changed(self, widget, value):
+		pass
 
 	def clear_background(self):
 		if self.background is not None:

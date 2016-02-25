@@ -49,6 +49,7 @@ class Control():
 		self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST, self.on_new_prog_settings_from_gui)
 		self.gui.connect(CustomMessages.ACTION_START_ANALYSIS, self.on_start_from_gui)
 		self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS, self.on_stop_from_gui)
+		self.gui.connect(CustomMessages.VOLUME_CHANGED, self.on_volume_changed)
 		# connect to usb signals
 		# --
 
@@ -191,6 +192,9 @@ class Control():
 
 	def on_stop_from_gui(self, param):
 		self.stop_analysis()
+
+	def on_volume_changed(self, param):
+		pass
 
 	# when app closes, we need to delete all gstreamer pipelines
 	def destroy(self):

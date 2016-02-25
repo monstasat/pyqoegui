@@ -17,7 +17,8 @@ class MainWindow(Gtk.Window):
 
 	__gsignals__ = {CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST, None, ()),
 					CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ()),
-					CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ())}
+					CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ()),
+     				CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST, None, ())}
 
 	def __init__(self, app):
 		Gtk.Window.__init__(self, application=app)
