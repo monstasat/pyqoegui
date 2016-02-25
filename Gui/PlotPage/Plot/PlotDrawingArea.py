@@ -3,11 +3,8 @@ require_version('PangoCairo', '1.0')
 from gi.repository import Gtk, Gdk, cairo, Pango, PangoCairo, GObject
 import math
 import random
-import collections
+from collections import deque
 from Gui.PlotPage.Plot import GraphTypes
-
-NUM_POINTS = 60 + 2
-FRAME_WIDTH = 4
 
 class Interval():
 	def __init__(self, height, type, color):
@@ -15,12 +12,16 @@ class Interval():
 		self.type = type
 		self.color = color
 
-
 class PlotDrawingArea(Gtk.DrawingArea):
 
-	def __init__(self):
-
+	def __init__(self, parent, progs, colors):
 		Gtk.DrawingArea.__init__(self)
+
+		self.NUM_POINTS = 60 + 2
+		self.FRAME_WIDTH = 4
+
+		self.parent = parent
+
 		# plot type
 		self.type = 0
 		# draw area width
@@ -42,7 +43,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		# line width
 		self.line_width = 1
 		# graph refresh speed (1 sec by default)
-		self.speed = 1000
+		self.speed = 250
 		self.frames_per_unit = 10
 		# flag that permits graph drawing
 		self.draw = True
@@ -51,8 +52,16 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		self.render_counter = self.frames_per_unit - 1
 		# background surface
 		self.background = None
-		# data array
-		self.data = collections.deque([-1.0]*NUM_POINTS, NUM_POINTS)
+		# number of displayed programs
+		self.prog_num = len(progs)
+		# list of displayed programs
+		self.progs = progs
+		# data storage for analyzed programs
+		self.data = []
+		for i in range(self.prog_num):
+			self.data.append(deque([-1.0] * self.NUM_POINTS, self.NUM_POINTS))
+
+		self.colors = colors
 
 		self.min = 0
 		self.max = 100
@@ -116,12 +125,17 @@ class PlotDrawingArea(Gtk.DrawingArea):
 	# update plot
 	def graph_update(self, data):
 
-		if self.render_counter == self.frames_per_unit - 1:
-			#print("\ndeque before rotating: " + str(self.data))
-			self.data.rotate(NUM_POINTS-1)
-			#print("\ndeque after rotating: " + str(self.data))
-			self.data[0] = random.uniform(0.4, 0.6)
-			#print("\ndeque after adding element: " + str(self.data))
+		for i in range(self.prog_num):
+			if self.render_counter == self.frames_per_unit - 1:
+				data = self.parent.get_data(i)
+				if data is None:
+					data = 0
+				data = data / self.max
+				#print("\ndeque before rotating: " + str(self.data))
+				self.data[i].rotate(self.NUM_POINTS-1)
+				#print("\ndeque after rotating: " + str(self.data))
+				self.data[i][0] = data#random.uniform(0.4, 0.6)
+				#print("\ndeque after adding element: " + str(self.data))
 
 		if self.draw is True:
 			self.graph_queue_draw()
@@ -138,7 +152,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		x_offset = 0.0
 
 		# number of pixels wide for one graph point
-		sample_width = float(self.draw_width - self.rmargin - self.indent) / float(NUM_POINTS)
+		sample_width = float(self.draw_width - self.rmargin - self.indent) / float(self.NUM_POINTS)
 		# general offset
 		x_offset = self.draw_width - self.rmargin
 		# subframe offset
@@ -155,20 +169,22 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		# 0 - butt, 1 - round, 2 - square
 		#cr.set_line_cap(1)
 		#cr.set_line_join(1)
-		cr.rectangle(self.indent + FRAME_WIDTH + 1, FRAME_WIDTH - 1, self.draw_width - self.rmargin - self.indent - 1, self.real_draw_height + FRAME_WIDTH - 1)
+		cr.rectangle(self.indent + self.FRAME_WIDTH + 1, self.FRAME_WIDTH - 1, self.draw_width - self.rmargin - self.indent - 1, self.real_draw_height + self.FRAME_WIDTH - 1)
 		cr.clip()
 
-		# for
-		cr.set_source_rgba(0, 0.2, 1.0, 1)
-		cr.move_to(x_offset, (1.0 - self.data[-1]) * self.real_draw_height + 3.5)
-		for i in range(NUM_POINTS-1):
-			cr.curve_to(x_offset - ((i - 0.5) * self.graph_delx),
-                            (1.0 - self.data[-1 - i]) * self.real_draw_height + 3.5,
+		for i in range(self.prog_num):
+			data = self.data[i]
+			Gdk.cairo_set_source_rgba(cr, self.colors[i])
+			#cr.set_source_rgba(0, 0.2, 1.0, 1)
+			cr.move_to(x_offset, (1.0 - data[-1]) * self.real_draw_height + 3.5)
+			for i in range(self.NUM_POINTS-1):
+				cr.curve_to(x_offset - ((i - 0.5) * self.graph_delx),
+                            (1.0 - data[-1 - i]) * self.real_draw_height + 3.5,
                             x_offset - ((i - 0.5) * self.graph_delx),
-                            (1.0 - self.data[-1 - i - 1]) * self.real_draw_height + 3.5,
+                            (1.0 - data[-1 - i - 1]) * self.real_draw_height + 3.5,
                             x_offset - (i * self.graph_delx),
-                            (1.0 - self.data[-1 - i - 1]) * self.real_draw_height + 3.5)
-		cr.stroke()
+                            (1.0 - data[-1 - i - 1]) * self.real_draw_height + 3.5)
+			cr.stroke()
 
 	# decide number of horizontal bars
 	def get_num_bars(self):
@@ -181,13 +197,13 @@ class PlotDrawingArea(Gtk.DrawingArea):
 			self.line_width = 2
 		elif k == 4:
 			self.num_bars = 4
-			self.line_width = 3
+			self.line_width = 2
 		elif k == 5 or k == 6:
 			self.num_bars = 5
-			self.line_width = 3
+			self.line_width = 2
 		else:
 			self.num_bars = 10
-			self.line_width = 4
+			self.line_width = 2
 
 	def add_interval(self, height, cur_type):
 		# set color
@@ -208,8 +224,8 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		self.get_num_bars()
 		self.graph_dely = (self.draw_height - 20) / self.num_bars
 		self.real_draw_height = self.graph_dely * self.num_bars
-		self.graph_delx = (self.draw_width - 2.0 - self.indent) / (NUM_POINTS - 3)
-		self.graph_buffer_offset = int((1.5 * self.graph_delx) + FRAME_WIDTH)
+		self.graph_delx = (self.draw_width - 2.0 - self.indent) / (self.NUM_POINTS - 3)
+		self.graph_buffer_offset = int((1.5 * self.graph_delx) + self.FRAME_WIDTH)
 
 		cr = self.get_window().cairo_create()
 
@@ -224,12 +240,13 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		layout.set_font_description(font_desc)
 
 		# draw frame
-		cr.translate(FRAME_WIDTH, FRAME_WIDTH)
+		cr.translate(self.FRAME_WIDTH, self.FRAME_WIDTH)
 
 		width = self.draw_width - self.rmargin - self.indent
 		y = 0
 		for interval in self.intervals:
 			cr.set_source_rgba(interval.color[0], interval.color[1], interval.color[2], 0.5)
+			cr.set_source_rgba(1, 1, 1, 0.5)
 			interval_height = interval.height * self.real_draw_height
 			cr.rectangle(self.indent, y, width, interval_height)
 			y += interval_height
@@ -271,7 +288,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 			cr.line_to(self.draw_width - self.rmargin + 0.5 + 4, i * self.graph_dely + 0.5)
 			cr.stroke()
 
-			total_seconds = int(self.speed * (NUM_POINTS - 2) / 1000)
+			total_seconds = int(self.speed * (self.NUM_POINTS - 2) / 1000)
 
 		for i in range(7):
 			x = i * (self.draw_width - self.rmargin - self.indent) / 6

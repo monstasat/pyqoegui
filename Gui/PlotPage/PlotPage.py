@@ -12,6 +12,9 @@ class PlotPage(Gtk.Box):
 		# main window
 		self.mainWnd = mainWnd
 
+		# child array
+		self.plots = []
+
 		# plot page is a box with vertical orientation
 		self.set_orientation(Gtk.Orientation.VERTICAL)
 
@@ -56,15 +59,13 @@ class PlotPage(Gtk.Box):
 			plot_unit = plot_info[1]
 			plot_range = plot_info[2]
 
-			print(selected_progs)
-
 			self.placeholder.hide()
 			children = self.get_children()
 			for child in children:
 				if child is self.placeholder:
 					self.remove(child)
 
-			plot = Plot(selected_progs)
+			plot = Plot(selected_progs, plot_index)
 
 			if plot_unit is not '':
 				plot_title += ", " + plot_unit
@@ -84,6 +85,15 @@ class PlotPage(Gtk.Box):
 			self.add(plot)
 			self.set_valign(Gtk.Align.FILL)
 
+			self.plots.append(plot)
+
 		plotTypeDlg.hide()
 
 		self.show_all()
+
+	# filtering function that passes data to plots if they need it
+	def on_incoming_data(self, data):
+		for plot in self.plots:
+			# if plot requires data for this stream/prog/pid
+			if data[0] in plot.progs:
+				plot.on_incoming_data([data[0], data[1][plot.minor_type]])

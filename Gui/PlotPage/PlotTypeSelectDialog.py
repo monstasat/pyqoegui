@@ -11,8 +11,8 @@ class PlotTypeSelectDialog(BaseDialog):
 		self.store = parent.analyzedStore
 
 		# list of available video plots
-		self.plot_types = ( 	("Количество чёрных пикселей", '%', [0, 100], 1),
-								("Количество идентичных пикселей", '%', [0, 100], 1),
+		self.plot_types = ( 	("Количество идентичных пикселей", '%', [0, 100], 1),
+								("Количество чёрных пикселей", '%', [0, 100], 1),
 								("Уровень блочности", '', [0, 10], 1),
 								("Средняя яркость кадра", '', [0, 255], 1),
 								("Среднее различие между кадрами", '', [0, 255], 1),
@@ -105,7 +105,7 @@ class PlotTypeSelectDialog(BaseDialog):
 		if visible_page is self.type_select_page:
 			# change text on suggested button
 			self.applyBtn.set_property('label', Gtk.STOCK_GO_FORWARD)
-
+			self.applyBtn.set_sensitive(True)
 		# if prog selection type is visible now
 		else:
 			# get currently selected plot type

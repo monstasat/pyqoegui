@@ -126,6 +126,7 @@ class Control():
 				#freeze black blockiness av_luma av_diff
 				vparams = self.msg_translator.translate_vparams_string_to_list(wstr[1:])
 				self.error_detector.set_video_data(vparams)
+				self.gui.on_video_measured_data(vparams)
 
 			elif wstr[0] == 'e':
 				# received end of stream

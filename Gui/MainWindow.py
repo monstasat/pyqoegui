@@ -174,6 +174,9 @@ class MainWindow(Gtk.Window):
 		# determine wether table revealer button should be visible
 		self.manage_table_revealer_button_visibility()
 
+	def on_video_measured_data(self, data):
+		self.plot_page.on_incoming_data(data)
+
 	def clear_all_programs_in_prog_dlg(self):
 		self.store.clear_all_programs()
 
