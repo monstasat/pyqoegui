@@ -41,7 +41,7 @@ class PlotPage(Gtk.Box):
 		responce = plotTypeDlg.run()
 
 		if responce == Gtk.ResponseType.APPLY:
-			selected_type = plotTypeDlg.get_selected_type()
+			selected_type = plotTypeDlg.get_selected_plot_type()
 			selected_progs = plotTypeDlg.get_selected_programs()
 
 			plot_index = selected_type.get_index()
@@ -67,7 +67,11 @@ class PlotPage(Gtk.Box):
 			plot.add_interval(0.05, GraphTypes.WARNING)
 			plot.add_interval(0.25, GraphTypes.ERROR)
 			plot.set_min_max(plot_range[0], plot_range[1])
-			plot.set_y_type(" LUFS")
+
+			# if y axis unit is %, slightly modify string (for future formatting puproses)
+			if plot_unit == '%':
+				plot_unit = '%%'
+			plot.set_y_type(plot_unit)
 			self.add(plot)
 			self.set_valign(Gtk.Align.FILL)
 
