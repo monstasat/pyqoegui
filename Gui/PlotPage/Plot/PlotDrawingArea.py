@@ -42,7 +42,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		# line width
 		self.line_width = 1
 		# graph refresh speed (1 sec by default)
-		self.speed = 250
+		self.speed = 1000
 		self.frames_per_unit = 10
 		# flag that permits graph drawing
 		self.draw = True
@@ -57,7 +57,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		self.min = 0
 		self.max = 100
 
-		self.y_type = ""
+		self.unit = ""
 
 		# start refreshing loop
 		self.timer_index = GObject.timeout_add(self.speed/self.frames_per_unit, self.graph_update, None)
@@ -68,8 +68,8 @@ class PlotDrawingArea(Gtk.DrawingArea):
 		self.min = min
 		self.max = max
 
-	def set_y_type(self, text):
-		self.y_type = text
+	def set_y_axis_unit(self, unit):
+		self.unit = unit
 		self.clear_background()
 
 	# start plotting
@@ -249,7 +249,7 @@ class PlotDrawingArea(Gtk.DrawingArea):
 
 			string = ""
 			#if i == 0:
-			string = '%d' + self.y_type
+			string = '%d' + self.unit
 			#else:
 			#	string = '%d'
 			cr.set_source_rgba(fg.red, fg.green, fg.blue, fg.alpha)

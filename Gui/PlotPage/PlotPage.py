@@ -56,12 +56,15 @@ class PlotPage(Gtk.Box):
 			plot_unit = plot_info[1]
 			plot_range = plot_info[2]
 
+			print(selected_progs)
+
 			self.placeholder.hide()
 			children = self.get_children()
 			for child in children:
 				if child is self.placeholder:
 					self.remove(child)
-			plot = Plot()
+
+			plot = Plot(selected_progs)
 
 			if plot_unit is not '':
 				plot_title += ", " + plot_unit
@@ -77,7 +80,7 @@ class PlotPage(Gtk.Box):
 			# if y axis unit is %, slightly modify string (for future formatting puproses)
 			if plot_unit == '%':
 				plot_unit = '%%'
-			plot.set_y_type(plot_unit)
+			plot.set_y_axis_unit(plot_unit)
 			self.add(plot)
 			self.set_valign(Gtk.Align.FILL)
 

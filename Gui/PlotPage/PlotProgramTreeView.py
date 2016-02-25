@@ -32,9 +32,9 @@ class PlotProgramTreeView(Gtk.TreeView):
 		renderer_text = Gtk.CellRendererText()
 
 		# the cellrenderer for the second column - toogle
-		renderer_check = Gtk.CellRendererToggle()
-		renderer_check.set_alignment(0.5, 0.5)
-		renderer_check.connect('toggled', self.on_toggled)
+		self.renderer_check = Gtk.CellRendererToggle()
+		self.renderer_check.set_alignment(0.5, 0.5)
+		self.renderer_check.connect('toggled', self.on_toggled)
 
 		# create first column
 		column_prog = Gtk.TreeViewColumn("Анализируемые программы")
@@ -51,9 +51,9 @@ class PlotProgramTreeView(Gtk.TreeView):
 		column_check = Gtk.TreeViewColumn("Отображать?")
 		column_check.set_alignment(0.5)
 		column_check.set_expand(False)
-		column_check.pack_start(renderer_check, False)
-		column_check.add_attribute(renderer_check, "active", 2)
-		column_check.add_attribute(renderer_check, "inconsistent", 3)
+		column_check.pack_start(self.renderer_check, False)
+		column_check.add_attribute(self.renderer_check, "active", 2)
+		column_check.add_attribute(self.renderer_check, "inconsistent", 3)
 		# append second column
 		self.append_column(column_check)
 

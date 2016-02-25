@@ -5,7 +5,7 @@ from Gui.PlotPage.PlotProgramTreeView import PlotProgramTreeView
 
 class PlotTypeSelectDialog(BaseDialog):
 	def __init__(self, parent):
-		BaseDialog.__init__(self, "Выбор вида графика", parent)
+		BaseDialog.__init__(self, "Настройка параметров графика", parent)
 
 		# remember store
 		self.store = parent.analyzedStore
@@ -24,6 +24,8 @@ class PlotTypeSelectDialog(BaseDialog):
 
 		# create type select page
 		self.type_select_page = Gtk.ListBox(hexpand=True)
+		# set selection mode (selection should always be done)
+		self.type_select_page.set_property('selection-mode', Gtk.SelectionMode.BROWSE)
 		# add plot types to list
 		for type in self.plot_types:
 			row = Gtk.Label(label=type[0])
@@ -36,7 +38,7 @@ class PlotTypeSelectDialog(BaseDialog):
 		# create program select page
 		self.prog_select_page = PlotProgramTreeView(self.store)
 		self.prog_select_page.unselect_all()
-		#self.prog_select_page.renderer_check.connect('toggled', self.on_program_selection_changed)
+		self.prog_select_page.renderer_check.connect('toggled', self.on_program_selection_changed)
 
 		# fill page list with created pages
 		pages = []
@@ -101,14 +103,6 @@ class PlotTypeSelectDialog(BaseDialog):
 
 		# if type selection page is visible now
 		if visible_page is self.type_select_page:
-			# decide on suggested button sensitivity
-			# if no type is selected, button is disabled
-			if self.get_selected_plot_type() is None:
-				self.applyBtn.set_sensitive(False)
-			# if smth is selected, activate button
-			else:
-				self.applyBtn.set_sensitive(True)
-
 			# change text on suggested button
 			self.applyBtn.set_property('label', Gtk.STOCK_GO_FORWARD)
 
@@ -137,6 +131,8 @@ class PlotTypeSelectDialog(BaseDialog):
 			# if no programs selected, deactivate suggested button
 			if len(self.get_selected_programs()) is 0:
 				self.applyBtn.set_sensitive(False)
+			else:
+				self.applyBtn.set_sensitive(True)
 
 	# get information about selected plot type
 	def get_selected_plot_type_info(self, row):

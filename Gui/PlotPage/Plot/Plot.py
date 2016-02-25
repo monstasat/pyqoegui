@@ -1,15 +1,19 @@
 from gi.repository import Gtk, Gdk
 from Gui.PlotPage.Plot.PlotDrawingArea import PlotDrawingArea
+from Gui.PlotPage.Plot.PlotBottomBar import PlotBottomBar
+from Gui import Spacing
 
 class Plot(Gtk.Box):
-	def __init__(self):
+	def __init__(self, selected_progs):
 		Gtk.Box.__init__(self)
 
-		# plot parameters
-		self.draw_width = 0
-		self.draw_height = 0
-
+		# main widget of a plot - box with vertical orientation
 		self.set_orientation(Gtk.Orientation.VERTICAL)
+
+		# add plot label at the top
+		self.label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, vexpand=False, label="")
+
+		# add drawing area in the middle
 		self.da = PlotDrawingArea()
 		self.da.set_hexpand(True)
 		self.da.set_vexpand(True)
@@ -20,14 +24,15 @@ class Plot(Gtk.Box):
 		self.da.connect('configure_event', self.da.graph_configure)
 		self.da.connect('destroy', self.da.graph_destroy)
 		self.da.connect('state-flags-changed', self.da.graph_state_changed)
-
 		self.da.set_events(Gdk.EventMask.EXPOSURE_MASK)
 
-		self.label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, vexpand=False, label="")
+		# add plot bottom bar at the bottom
+		self.bottom_bar = PlotBottomBar(selected_progs)
 
 		self.add(self.label)
 		self.add(self.da)
-		self.set_spacing(6)
+		self.add(self.bottom_bar)
+		self.set_spacing(Spacing.ROW_SPACING)
 
 	# set graph title
 	def set_title(self, text):
@@ -41,5 +46,6 @@ class Plot(Gtk.Box):
 	def set_min_max(self, min, max):
 		self.da.set_min_max(min, max)
 
-	def set_y_type(self, text):
-		self.da.set_y_type(text)
+	def set_y_axis_unit(self, unit):
+		self.da.set_y_axis_unit(unit)
+		self.bottom_bar.set_unit(unit)
