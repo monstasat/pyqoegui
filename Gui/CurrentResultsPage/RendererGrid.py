@@ -1,6 +1,6 @@
 from gi import require_version
 require_version('GdkX11', '3.0')
-from gi.repository import Gtk,Gdk, GdkX11
+from gi.repository import Gtk,Gdk, GdkX11, GObject
 from Gui import Spacing
 import cairo
 import math
@@ -11,9 +11,8 @@ class Renderer(Gtk.Grid):
 	def __init__(self, guiProgInfo):
 		Gtk.Grid.__init__(self)
 
-		self.is_fullscreen = False
-
-		self.background = None
+		# is renderer enlarged by user?
+		self.is_enlarged = False
 
 		self.stream_id = guiProgInfo[0]
 		# program id from PMT
@@ -38,11 +37,8 @@ class Renderer(Gtk.Grid):
 		self.drawarea.set_double_buffered(False)
 		# connect 'draw' event with callback
 		self.drawarea.connect("draw", self.on_drawingarea_draw)
-		self.drawarea.connect('configure_event', self.da_configure)
-		self.drawarea.connect('state-flags-changed', self.da_state_changed)
 		# do we need to draw black background?
 		self.draw = False
-		self.no_video = False
 
 		screen = self.drawarea.get_screen()
 		visual = screen.get_system_visual()
@@ -64,21 +60,9 @@ class Renderer(Gtk.Grid):
 	def volume_changed(self, widget, value):
 		pass
 
-	def clear_background(self):
-		if self.background is not None:
-			self.background = None
-
 	# return xid for the drawing area
 	def get_drawing_area_xid(self):
 		return self.drawarea.get_window().get_xid()
-
-	def da_configure(self, event, data):
-		self.clear_background()
-		self.drawarea.queue_draw()
-
-	def da_state_changed(self, flags, data):
-		self.clear_background()
-		self.drawarea.queue_draw()
 
 	def on_drawingarea_draw(self, widget, cr):
 		# if it is the first time we are drawing
@@ -89,9 +73,6 @@ class Renderer(Gtk.Grid):
 			h = self.drawarea.get_allocated_height()
 			cr.rectangle(0, 0, w, h)
 			cr.fill()
-			self.background = cr.get_target()
-			#print("draw" + str(self.cnt))
-			#self.cnt += 1
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
@@ -171,41 +152,72 @@ class RendererGrid(Gtk.FlowBox):
 			xids.append([rend.stream_id, rend.progID, rend.drawarea.get_window().get_xid()])
 		return xids
 
+	# setting if renderers should draw black bakground
 	def set_draw_mode_for_renderers(self, draw, stream_id):
 		for i in range(len(self.get_children())):
 			if self.rend_arr[i].stream_id == stream_id:
 				self.rend_arr[i].draw = draw
 
+	# when flowbox needs redrawing
 	def on_draw(self, widget, cr):
+		# decide on number of renderers per one line
 		self.on_resize()
 
+	# filtering function for flow box when one renderer is enlarged
 	def filter_func(self, child, user_data):
 		index = child.get_index()
-		return self.rend_arr[index].is_fullscreen
+		# if renderer is enlarged - show it
+		return self.rend_arr[index].is_enlarged
 
+	# if user double-clicks renderer
 	def on_child_activated(self, widget, child):
 		index = child.get_index()
-		if self.rend_arr[index].is_fullscreen is True:
-			self.rend_arr[index].is_fullscreen = False
+		# if renderer is enlarged - set it to normal state and show other renderers
+		if self.rend_arr[index].is_enlarged is True:
+			self.rend_arr[index].is_enlarged = False
 			self.set_filter_func((lambda x, y: True), None)
+			for rend in self.rend_arr:
+				rend.hide()
+			# show all renderers after 50 ms (for more smooth redrawing)
+			GObject.timeout_add(50, self.show_renderers, None)
+		# if renderer is not enlarged - enlarge it and hide other renderers
 		else:
-			self.rend_arr[index].is_fullscreen = True
+			self.rend_arr[index].is_enlarged = True
 			self.set_filter_func(self.filter_func, None)
 
+	# show all renderers in flowbox
+	def show_renderers(self, data):
+		for rend in self.rend_arr:
+			rend.show_all()
+		return False
+
+	# decide on number of renderers per one line
 	def on_resize(self):
 		rect = self.get_allocation()
 		aspect_fb = rect.height / rect.width
-		is_fullscreen = False
+
+		# see if any of renderers is enlarged
+		is_enlarged = False
 		for child in self.rend_arr:
-			if child.is_fullscreen is True:
-				is_fullscreen = True
+			if child.is_enlarged is True:
+				is_enlarged = True
 		children = self.get_children()
-		if is_fullscreen is True:
+
+		# if one of renderers is enlarged - set 1 child per row
+		if is_enlarged is True:
 			cols = 1
+		# in other way (if all renderers are shown) - decide on optimal number of renderers per line
 		else:
-			cols = self.get_max_renderers_per_row(aspect_fb, 3.0/4, len(children))
+			renderer_aspect = 0
+			if len(children) is not 0:
+				# get renderer ratio (height/width)
+				rect = self.rend_arr[0].get_allocation()
+				ratio = rect.height/rect.width
+			cols = self.get_max_renderers_per_row(aspect_fb, ratio, len(children))
+		# set max renderers per line
 		self.set_max_children_per_line(cols)
 
+	# algorithm for computing optimal arranging of renderers (by F. Maximenkov)
 	def get_max_renderers_per_row(self, flow_box_div, rend_div, rend_num):
 		W = 1.0;
 		H = W * flow_box_div;
