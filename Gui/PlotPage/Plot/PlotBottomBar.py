@@ -34,7 +34,7 @@ class PlotBottomBarChild(Gtk.Box):
 		self.add(self.value)
 
 	def set_value(self, value):
-		self.value.set_text("%g"%float(value) + " " + self.unit)
+		self.value.set_text("%.1f"%float(value) + " " + self.unit)
 
 	def set_unit(self, unit):
 		self.unit = unit

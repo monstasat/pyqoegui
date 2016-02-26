@@ -36,7 +36,7 @@ class Plot(Gtk.Box):
 		self.set_orientation(Gtk.Orientation.VERTICAL)
 
 		# add plot label at the top
-		self.label = Gtk.Label(halign=Gtk.Align.START, hexpand=True, vexpand=False, label="")
+		self.label = Gtk.Label(halign=Gtk.Align.END, hexpand=True, vexpand=False, label="")
 
 		# add drawing area in the middle
 		self.da = Gtk.DrawingArea()
@@ -166,7 +166,10 @@ class Plot(Gtk.Box):
 
 	# set unit for plot y axis
 	def set_y_axis_unit(self, unit):
-		self.unit = unit
+		if unit == '%':
+			self.unit = '%%'
+		else:
+			self.unit = unit
 		self.clear_background()
 		self.bottom_bar.set_unit(unit)
 
