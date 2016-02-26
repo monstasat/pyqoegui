@@ -49,7 +49,7 @@ class MainWindow(Gtk.Window):
 		# add menu button to header bar
 		menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
 					image=Icon("open-menu-symbolic"))
-		popover = Gtk.PopoverMenu(border_width=Spacing.BORDER)
+		popover = Gtk.Popover(border_width=Spacing.BORDER)
 		popBox = Gtk.HBox(spacing=Spacing.COL_SPACING)
 		darkThemeCheck = Gtk.Switch()
 		darkThemeCheck.connect('state-set', self.on_dark_theme_check)
@@ -137,9 +137,7 @@ class MainWindow(Gtk.Window):
 	# called when a stackswitcher switches a page. Hides a table revealer button
 	def page_switched(self, stack, gparam):
 		self.manage_table_revealer_button_visibility()
-		#for rend in self.cur_results_page.rend.rend_arr:
-			#rend.drawn = False
-			#rend.drawarea.queue_draw()
+		print(stack.get_visible_child_name())
 
 	# called to hide header bar button if table is invisible
 	def manage_table_revealer_button_visibility(self):

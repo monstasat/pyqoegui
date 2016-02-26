@@ -7,6 +7,7 @@ from Gui import Spacing
 from collections import deque
 from functools import reduce
 import math
+from Gui.Icon import Icon
 
 # selected progs example
 # [[0, '2020', '12 Спас', 3, [['2021', 'video-h264'], ['2022', 'audio-mpeg1']]], [0, '2030', '13 СТС', 3, [['2031', 'video-h264'], ['2032', 'audio-mpeg1']]]]
@@ -37,6 +38,13 @@ class Plot(Gtk.Box):
 
 		# add plot label at the top
 		self.label = Gtk.Label(halign=Gtk.Align.END, hexpand=True, vexpand=False, label="")
+		self.close_button = Gtk.Button(image=Icon("window-close"))
+		self.close_button.set_relief(Gtk.ReliefStyle.NONE)
+		self.label_box = Gtk.Box()
+		self.label_box.set_orientation(Gtk.Orientation.HORIZONTAL)
+		self.label_box.set_spacing(Spacing.COL_SPACING)
+		self.label_box.add(self.label)
+		self.label_box.add(self.close_button)
 
 		# add drawing area in the middle
 		self.da = Gtk.DrawingArea()
@@ -55,7 +63,7 @@ class Plot(Gtk.Box):
 		# add plot bottom bar at the bottom
 		self.bottom_bar = PlotBottomBar(selected_progs)
 
-		self.add(self.label)
+		self.add(self.label_box)
 		self.add(self.da)
 		self.add(self.bottom_bar)
 		self.set_spacing(Spacing.ROW_SPACING)
@@ -278,8 +286,6 @@ class Plot(Gtk.Box):
 		self.graph_delx = (self.draw_width - 2.0 - self.indent) / (self.NUM_POINTS - 3)
 		self.graph_buffer_offset = int((1.5 * self.graph_delx) + self.FRAME_WIDTH)
 
-		#rect = self.da.get_allocation()
-		#surface = self.da.get_window().create_similar_surface(cairo.Content.COLOR_ALPHA, rect.width, rect.height)
 		cr = self.da.get_window().cairo_create()
 
 		styleContext = self.get_parent().get_style_context()
@@ -298,11 +304,16 @@ class Plot(Gtk.Box):
 		width = self.draw_width - self.rmargin - self.indent
 		y = 0
 		for interval in self.intervals:
-			cr.set_source_rgba(interval.color[0], interval.color[1], interval.color[2], 0.5)
-			cr.set_source_rgba(1, 1, 1, 0.5)
+			cr.set_source_rgba(interval.color[0], interval.color[1], interval.color[2], 1)
 			interval_height = interval.height * self.real_draw_height
 			cr.rectangle(self.indent, y, width, interval_height)
 			y += interval_height
+			cr.fill()
+
+		if len(self.intervals) is 0:
+			cr.set_source_rgba(1, 1, 1, 1)
+			rect = self.da.get_allocation()
+			cr.rectangle(self.indent, 0, width, self.real_draw_height)
 			cr.fill()
 
 		cr.set_line_width(1.0)

@@ -11,7 +11,8 @@ class Renderer(Gtk.Grid):
 	def __init__(self, guiProgInfo):
 		Gtk.Grid.__init__(self)
 
-		#self.cnt = 0
+		self.is_fullscreen = False
+
 		self.background = None
 
 		self.stream_id = guiProgInfo[0]
@@ -118,8 +119,12 @@ class RendererGrid(Gtk.FlowBox):
 		self.set_column_spacing(Spacing.COL_SPACING)
 		self.set_row_spacing(Spacing.ROW_SPACING)
 
+		self.set_activate_on_single_click(False)
+
 		# connect to draw signal
 		self.connect('draw', self.on_draw)
+		# connect to child activated signal
+		self.connect('child-activated', self.on_child_activated)
 
 	# draw necessary number of renderers
 	def draw_renderers(self, progNum, guiProgInfo):
@@ -174,11 +179,31 @@ class RendererGrid(Gtk.FlowBox):
 	def on_draw(self, widget, cr):
 		self.on_resize()
 
+	def filter_func(self, child, user_data):
+		index = child.get_index()
+		return self.rend_arr[index].is_fullscreen
+
+	def on_child_activated(self, widget, child):
+		index = child.get_index()
+		if self.rend_arr[index].is_fullscreen is True:
+			self.rend_arr[index].is_fullscreen = False
+			self.set_filter_func((lambda x, y: True), None)
+		else:
+			self.rend_arr[index].is_fullscreen = True
+			self.set_filter_func(self.filter_func, None)
+
 	def on_resize(self):
 		rect = self.get_allocation()
 		aspect_fb = rect.height / rect.width
+		is_fullscreen = False
+		for child in self.rend_arr:
+			if child.is_fullscreen is True:
+				is_fullscreen = True
 		children = self.get_children()
-		cols = self.get_max_renderers_per_row(aspect_fb, 3.0/4, len(children))
+		if is_fullscreen is True:
+			cols = 1
+		else:
+			cols = self.get_max_renderers_per_row(aspect_fb, 3.0/4, len(children))
 		self.set_max_children_per_line(cols)
 
 	def get_max_renderers_per_row(self, flow_box_div, rend_div, rend_num):

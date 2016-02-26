@@ -117,7 +117,6 @@ class PlotBottomBar(Gtk.FlowBox):
 		index = color_btn.get_parent().index
 		rgba = color_btn.get_rgba()
 		self.colors[index] = rgba
-		print(rgba)
 
 	def set_value(self, value, index):
 		self.children[index].set_value(value)
