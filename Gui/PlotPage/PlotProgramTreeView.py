@@ -19,7 +19,7 @@ class PlotProgramTreeView(Gtk.TreeView):
 		# creating store filter
 		self.store_filter = self.store.filter_new()
 		# setting the filter function
-		self.store_filter.set_visible_func(self.pid_filter_func,)
+		self.store_filter.set_visible_func(self.pid_filter_func)
 
 		# set model for tree view
 		self.set_model(self.store_filter)

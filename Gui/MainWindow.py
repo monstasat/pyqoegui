@@ -12,6 +12,7 @@ from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
 from Gui.StreamProgTreeModel import StreamProgTreeModel
 from Gui.AnalyzedProgTreeModel import AnalyzedProgTreeModel
+from Gui.ErrorTypesModel import ErrorTypesModel
 import CustomMessages
 
 class MainWindow(Gtk.Window):
@@ -39,6 +40,8 @@ class MainWindow(Gtk.Window):
 		self.store = StreamProgTreeModel()
 		# creating model for storing analyzed programs lists and corresponding parameters
 		self.analyzedStore = AnalyzedProgTreeModel()
+		# creating model for storing analysis settings
+		self.errorSettingsStore = ErrorTypesModel()
 
 		# create prog selection dialog
 		self.progDlg = ProgramSelectDialog(self)
