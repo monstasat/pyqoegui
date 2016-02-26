@@ -6,6 +6,7 @@ from Gui.CurrentResultsPage.CurrentResultsPage import CurrentResultsPage
 from Gui.PlotPage.PlotPage import PlotPage
 from Gui.AllResultsPage.AllResultsPage import AllResultsPage
 from Gui.ProgramSelectDialog import ProgramSelectDialog
+from Gui.AnalysisSettingsDialog import AnalysisSettingsDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
@@ -137,7 +138,6 @@ class MainWindow(Gtk.Window):
 	# called when a stackswitcher switches a page. Hides a table revealer button
 	def page_switched(self, stack, gparam):
 		self.manage_table_revealer_button_visibility()
-		print(stack.get_visible_child_name())
 
 	# called to hide header bar button if table is invisible
 	def manage_table_revealer_button_visibility(self):
@@ -185,10 +185,8 @@ class MainWindow(Gtk.Window):
 	def on_start_clicked(self, widget):
 		# send stop message if button label is stop and vice versa
 		if widget.get_label() == "Стоп":
-			print("send stop")
 			self.emit(CustomMessages.ACTION_STOP_ANALYSIS)
 		else:
-			print("send start")
 			self.emit(CustomMessages.ACTION_START_ANALYSIS)
 
 	# prog select button was clicked
@@ -210,7 +208,16 @@ class MainWindow(Gtk.Window):
 
 	# analysis settings button was clicked
 	def on_analysis_set_clicked(self, widget):
-		pass
+		# create the dialog
+		analysisSetDlg = AnalysisSettingsDialog(self)
+		responce = analysisSetDlg.run()
+
+		# if new settings applied
+		if responce == Gtk.ResponseType.APPLY:
+			# emit signal from gui to control about new analysis params
+			pass
+
+		analysisSetDlg.destroy()
 
 	# dump button was clicked
 	def on_dump_clicked(self, widget):
