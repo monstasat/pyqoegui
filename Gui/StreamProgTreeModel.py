@@ -1,20 +1,22 @@
-from gi.repository import Gtk
 import json
+
+from gi.repository import Gtk
+
 
 class StreamProgTreeModel(Gtk.TreeStore):
     def __init__(self):
-        # icon name, prog name, is analyzed, is partly choosen, stream id, string describing row, show_on_graph, show on graph partly choosen
+        # icon name,
+        # prog name,
+        # is analyzed,
+        # is partly choosen,
+        # stream id,
+        # string describing row
         Gtk.TreeStore.__init__(self, str, str, bool, bool, int, str)
 
-        self.TREE_ICONS = {    "ts" : "view-grid-symbolic",
-                "program" : "applications-multimedia",
-                "video" : "video-x-generic",
-                "audio" : "audio-x-generic",}
-
-        # data stored in treeview
-        # icon, name, is_analyzed
-        # icon name, prog name, is analyzed, is partly choosen, stream id, string describing stream, show_on_graph, show on graph partly choosen
-        #self.store = Gtk.TreeStore(str, str, bool, bool, int, str, bool, bool)
+        self.TREE_ICONS = {"ts": "view-grid-symbolic",
+                           "program": "applications-multimedia",
+                           "video": "video-x-generic",
+                           "audio": "audio-x-generic"}
 
     def clear_all_programs(self):
         self.clear()
@@ -47,7 +49,8 @@ class StreamProgTreeModel(Gtk.TreeStore):
                     while piditer is not None:
                         # if pid is selected
                         if self[piditer][2] is True:
-                            pids_params_list.append(json.loads(self[piditer][5]))
+                            pids_params_list.append(
+                                json.loads(self[piditer][5]))
                         piditer = self.iter_next(piditer)
 
                     # replacing pids info
@@ -81,14 +84,27 @@ class StreamProgTreeModel(Gtk.TreeStore):
         # fill the model
         stream_info = progList[1]
         if len(stream_info) != 0:
-            piter = self.append(None, [self.TREE_ICONS["ts"], "Поток №"+str(stream_id + 1), False, False, stream_id, json.dumps(progList)])
+            piter = self.append(None, [self.TREE_ICONS["ts"],
+                                       "Поток №"+str(stream_id + 1),
+                                       False,
+                                       False,
+                                       stream_id,
+                                       json.dumps(progList)])
         for prog in stream_info:
 
             # get prog params
-            # prog[0] - progID, prog[1] - prog name, prog[2] - prov_name, prog[3] - pids num
+            # prog[0] - progID,
+            # prog[1] - prog name,
+            # prog[2] - prov_name,
+            # prog[3] - pids num
             pidsNum = int(prog[3])
 
-            ppiter = self.append(piter, [self.TREE_ICONS["program"], (prog[1] + " (" + prog[2] + ")"), False, False, stream_id, json.dumps(prog)])
+            ppiter = self.append(piter, [self.TREE_ICONS["program"],
+                                         (prog[1] + " (" + prog[2] + ")"),
+                                         False,
+                                         False,
+                                         stream_id,
+                                         json.dumps(prog)])
 
             pids_info = prog[4]
             for pid in pids_info:
@@ -96,8 +112,13 @@ class StreamProgTreeModel(Gtk.TreeStore):
                 # pid[0] - pid, pid[1] - pid type, pid[2] - codec type string
                 strPidType = pid[2].split('-')[0]
 
-                self.append(ppiter, [self.TREE_ICONS[strPidType], "PID " + pid[0] + ", " + pid[2] , False, False, stream_id, json.dumps(pid)])
+                self.append(ppiter, [self.TREE_ICONS[strPidType],
+                                     "PID " + pid[0] + ", " + pid[2],
+                                     False,
+                                     False,
+                                     stream_id,
+                                     json.dumps(pid)])
 
         # return program number
         return len(stream_info)
-    
+

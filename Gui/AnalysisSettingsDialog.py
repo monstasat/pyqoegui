@@ -1,4 +1,5 @@
 from gi.repository import Gtk
+
 from Gui.BaseDialog import BaseDialog
 from Gui import Spacing
 

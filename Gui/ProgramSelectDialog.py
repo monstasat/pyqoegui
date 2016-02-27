@@ -1,18 +1,20 @@
 # data format from gs pipeline
 # stream id
-    # num
-    # name
-    # provider
-    # pids num
-        # pid
-        # pid type
-        # codec name
+# num
+# name
+# provider
+# pids num
+# pid
+# pid type
+# codec name
 
 from gi.repository import Gtk
+
 from Gui.Placeholder import Placeholder
 from Gui.BaseDialog import BaseDialog
 from Gui.ProgramTreeView import ProgramTreeView
 from Gui import Spacing
+
 
 class ProgramSelectDialog(BaseDialog):
 
@@ -25,16 +27,22 @@ class ProgramSelectDialog(BaseDialog):
         mainBox = self.get_content_area()
 
         # packing elements to dialog
-        scrollWnd = Gtk.ScrolledWindow(vexpand=True, hexpand=True,
-                                    halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
-                                    hscrollbar_policy=2)    #never
+        scrollWnd = Gtk.ScrolledWindow(vexpand=True,
+                                       hexpand=True,
+                                       halign=Gtk.Align.FILL,
+                                       valign=Gtk.Align.FILL,
+                                       hscrollbar_policy=2)
         scrollWnd.set_size_request(400, 400)
         self.progTree = ProgramTreeView(parent.store)
 
         # creating prog list overlay
-        overlay = Gtk.Overlay(valign=Gtk.Align.FILL, hexpand=True, vexpand=True)
+        overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
+                              hexpand=True,
+                              vexpand=True)
         overlay.add(self.progTree)
-        self.holder = Placeholder("dialog-warning-symbolic", 'Программ не найдено', 72)
+        self.holder = Placeholder("dialog-warning-symbolic",
+                                  'Программ не найдено',
+                                  72)
         overlay.add_overlay(self.holder)
 
         # connect to store signals
@@ -74,5 +82,4 @@ class ProgramSelectDialog(BaseDialog):
         else:
             self.holder.set_text('Программ не найдено')
             self.holder.show_all()
-
 

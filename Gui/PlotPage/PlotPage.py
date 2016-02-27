@@ -1,10 +1,12 @@
 from gi.repository import Gtk
-from Gui.Placeholder import Placeholder, PlaceholderWithButton
+
+from Gui.Placeholder import Placeholder
 from Gui.Icon import Icon
 from Gui.PlotPage.Plot.Plot import Plot
 from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 from Gui import Spacing
+
 
 class PlotPage(Gtk.Box):
     def __init__(self, mainWnd):
@@ -33,11 +35,14 @@ class PlotPage(Gtk.Box):
 
         # create add plot button
         self.addBtn = Gtk.Button(label="Добавить график")
-        self.addBtn.get_style_context().add_class(Gtk.STYLE_CLASS_SUGGESTED_ACTION)
+        self.addBtn.get_style_context().add_class(
+            Gtk.STYLE_CLASS_SUGGESTED_ACTION)
         self.addBtn.set_halign(Gtk.Align.CENTER)
 
-        #self.placeholder = PlaceholderWithButton("list-add-symbolic", "Для добавления нового графика нажмите кнопку", 72, "Добавить график")
-        self.placeholder = Placeholder("list-add-symbolic", "Для добавления нового графика нажмите кнопку", 72)
+        self.placeholder = Placeholder(
+            "list-add-symbolic",
+            "Для добавления нового графика нажмите кнопку",
+            72)
         self.placeholder.set_valign(Gtk.Align.CENTER)
 
         # placeholder box (with add button)
@@ -91,11 +96,11 @@ class PlotPage(Gtk.Box):
             if plot_unit is not '':
                 plot_title += ", " + plot_unit
             plot.set_title(plot_title)
-            #plot.add_interval(0.25, GraphTypes.ERROR, True)
-            #plot.add_interval(0.05, GraphTypes.WARNING)
-            #plot.add_interval(0.4, GraphTypes.NORMAL)
-            #plot.add_interval(0.05, GraphTypes.WARNING)
-            #plot.add_interval(0.25, GraphTypes.ERROR)
+            # plot.add_interval(0.25, GraphTypes.ERROR, True)
+            # plot.add_interval(0.05, GraphTypes.WARNING)
+            # plot.add_interval(0.4, GraphTypes.NORMAL)
+            # plot.add_interval(0.05, GraphTypes.WARNING)
+            # plot.add_interval(0.25, GraphTypes.ERROR)
             plot.set_min_max(plot_range[0], plot_range[1])
             plot.set_y_axis_unit(plot_unit)
             # show plot
@@ -130,7 +135,8 @@ class PlotPage(Gtk.Box):
         self.plots.remove(plot)
         self.remove(plot)
 
-        # if number of plots on page is 0, show placeholder and move button to center of the page
+        # if number of plots on page is 0,
+        # show placeholder and move button to center of the page
         if len(self.plots) is 0:
             self.set_valign(Gtk.Align.CENTER)
             self.placeholder.show_all()
@@ -139,3 +145,4 @@ class PlotPage(Gtk.Box):
         # if number of plots on page is less that max, activate add button
         if len(self.plots) < self.MAX_PLOTS:
                 self.addBtn.set_sensitive(True)
+

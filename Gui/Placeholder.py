@@ -1,6 +1,8 @@
 from gi.repository import Gtk
+
 from Gui.Icon import Icon
 from Gui import Spacing
+
 
 # base placeholder class
 class Placeholder(Gtk.VBox):
@@ -33,11 +35,3 @@ class Placeholder(Gtk.VBox):
     def set_text(self, text):
         self.label.set_text(text)
 
-class PlaceholderWithButton(Placeholder):
-    def __init__(self, ico_name, label_text, size, btn_label):
-        Placeholder.__init__(self, ico_name, label_text, size)
-        self.btn = Gtk.Button(label=btn_label)
-        self.btn.get_style_context().add_class(Gtk.STYLE_CLASS_SUGGESTED_ACTION)
-        self.btn.set_hexpand(False)
-        self.btn.set_halign(Gtk.Align.CENTER)
-        self.add(self.btn)

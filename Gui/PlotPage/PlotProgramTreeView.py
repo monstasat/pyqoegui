@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 
+
 class PlotProgramTreeView(Gtk.TreeView):
     def __init__(self, store):
         Gtk.TreeView.__init__(self)
@@ -80,15 +81,16 @@ class PlotProgramTreeView(Gtk.TreeView):
                 self.store_filter[progIter][3] = False
                 progIter = self.store_filter.iter_next(progIter)
 
-        #if length of the path is 3 (that is, if we are selecting a program)
+        # if length of the path is 3 (that is, if we are selecting a program)
         elif len(path) == 3:
             # get the iter associated with the program path
             progIter = self.store_filter.get_iter(path)
 
-            #set stream check button state
+            # set stream check button state
             self.set_check_parent_button_state(progIter)
 
-    # call to set parent check button state (if pid - set program state, if program - set stream state)
+    # call to set parent check button state
+    # (if pid - set program state, if program - set stream state)
     def set_check_parent_button_state(self, citer):
         # set parent check button state dependent on children choosen
         # if all children are choosen - parent is choosen
@@ -102,16 +104,18 @@ class PlotProgramTreeView(Gtk.TreeView):
         all_selected = True
         some_selected = False
         while citer is not None:
-            # if at least one program is not selected, set all_selected flag to false
+            # if at least one program is not selected,
+            # set all_selected flag to false
             if self.store_filter[citer][2] == False:
                 all_selected = False
-            # if at least one program is selected, set some_selected flag to true
+            # if at least one program is selected,
+            # set some_selected flag to true
             else:
                 some_selected = True
             citer = self.store_filter.iter_next(citer)
 
         # if all programs are selected, the stream as well is selected
-        # if some programs are selected , the stream is partly selected (inconsistent)
+        # if some programs are selected , the stream is partly selected
         # if no programs selected, the stream as well is not selected
         self.store_filter[piter][2] = all_selected
         if all_selected is False:
@@ -128,6 +132,7 @@ class PlotProgramTreeView(Gtk.TreeView):
                 self.store_filter[citer][3] = False
                 citer = self.store_filter.iter_next(citer)
             piter = self.store_filter.iter_next(piter)
+
     def set_filter_type(self, type):
         self.filter_type = type
 
@@ -137,7 +142,9 @@ class PlotProgramTreeView(Gtk.TreeView):
         if model.iter_children(iter) is None:
             return False
         # hide progs of type that is not supported by selected graph
-        elif len(str(model.get_path(iter))) == 3 and ((model[iter][4] & self.filter_type) is 0):
+        elif len(str(model.get_path(iter))) == 3 and \
+                ((model[iter][4] & self.filter_type) is 0):
             return False
         else:
             return True
+

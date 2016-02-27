@@ -1,7 +1,10 @@
 import json
+
 from gi.repository import Gtk
+
 from Gui.BaseDialog import BaseDialog
 from Gui.PlotPage.PlotProgramTreeView import PlotProgramTreeView
+
 
 class PlotTypeSelectDialog(BaseDialog):
     def __init__(self, parent):
@@ -11,13 +14,14 @@ class PlotTypeSelectDialog(BaseDialog):
         self.store = parent.analyzedStore
 
         # list of available video plots
-        self.plot_types = (     ("Количество идентичных пикселей", '%', [0, 100], 1),
-                                ("Количество чёрных пикселей", '%', [0, 100], 1),
-                                ("Уровень блочности", '', [0, 10], 1),
-                                ("Средняя яркость кадра", '', [0, 255], 1),
-                                ("Среднее различие между кадрами", '', [0, 255], 1),
-                                ("Моментальная громкость", 'LUFS', [-40, -14], 2),
-                                ("Кратковременная громкость", 'LUFS', [-40, -14], 2) )
+        self.plot_types = (
+            ("Количество идентичных пикселей", '%', [0, 100], 1),
+            ("Количество чёрных пикселей", '%', [0, 100], 1),
+            ("Уровень блочности", '', [0, 10], 1),
+            ("Средняя яркость кадра", '', [0, 255], 1),
+            ("Среднее различие между кадрами", '', [0, 255], 1),
+            ("Моментальная громкость", 'LUFS', [-40, -14], 2),
+            ("Кратковременная громкость", 'LUFS', [-40, -14], 2))
 
         # get main widget
         mainBox = self.get_content_area()
@@ -25,38 +29,48 @@ class PlotTypeSelectDialog(BaseDialog):
         # create type select page
         self.type_select_page = Gtk.ListBox(hexpand=True)
         # set selection mode (selection should always be done)
-        self.type_select_page.set_property('selection-mode', Gtk.SelectionMode.BROWSE)
+        self.type_select_page.set_property('selection-mode',
+                                           Gtk.SelectionMode.BROWSE)
         # add plot types to list
         for type in self.plot_types:
             row = Gtk.Label(label=type[0])
             self.type_select_page.insert(row, -1)
 
         # selecting first type
-        self.type_select_page.select_row(self.type_select_page.get_row_at_index(0))
+        self.type_select_page.select_row(
+            self.type_select_page.get_row_at_index(0))
         self.selected_row = self.get_selected_plot_type()
 
         # create program select page
         self.prog_select_page = PlotProgramTreeView(self.store)
         self.prog_select_page.unselect_all()
-        self.prog_select_page.renderer_check.connect('toggled', self.on_program_selection_changed)
+        self.prog_select_page.renderer_check.connect(
+            'toggled',
+            self.on_program_selection_changed)
 
         # fill page list with created pages
         pages = []
-        pages.append((self.type_select_page, "type_select", "Тип графика"))
-        pages.append((self.prog_select_page, "prog_select", "Программы на графике"))
+        pages.append((self.type_select_page,
+                      "type_select",
+                      "Тип графика"))
+        pages.append((self.prog_select_page,
+                      "prog_select",
+                      "Программы на графике"))
 
         # create stack
         self.stack = Gtk.Stack(halign=Gtk.Align.FILL, hexpand=True)
-        #self.stack.set_transition_duration(200)
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP_DOWN)
         # add callback when page is switched
         self.stack.connect("notify::visible-child", self.on_page_switched)
-        #add pages to stack
+        # add pages to stack
         for page in pages:
             self.stack.add_titled(page[0], page[1], page[2])
 
         # create stack sidebar
-        self.stackSidebar = Gtk.StackSidebar(vexpand=True, hexpand=False, halign=Gtk.Align.START)
+        self.stackSidebar = Gtk.StackSidebar(
+            vexpand=True,
+            hexpand=False,
+            halign=Gtk.Align.START)
         self.stackSidebar.set_stack(self.stack)
         self.stackSidebar.show()
 
@@ -120,7 +134,8 @@ class PlotTypeSelectDialog(BaseDialog):
 
             # get current plot type info
             plot_info = self.get_selected_plot_type_info(row)
-            # we need to filter all programs that are not consistent with selected plot type
+            # we need to filter all programs
+            # that are not consistent with selected plot type
             self.prog_select_page.set_filter_type(plot_info[3])
             self.prog_select_page.store_filter.refilter()
             # restore dialog view
@@ -175,11 +190,10 @@ class PlotTypeSelectDialog(BaseDialog):
                     self.prog_select_page.expand_row(path, False)
                 piter = self.prog_select_page.store.iter_next(piter)
             # hide placeholder
-            #self.holder.hide()
+            # self.holder.hide()
         else:
             pass
-            #self.holder.set_text('Программ не найдено')
-            #self.holder.show_all()
+            # self.holder.set_text('Программ не найдено')
+            # self.holder.show_all()
         self.prog_select_page.store_filter.refilter()
-
 

@@ -1,6 +1,7 @@
 from Backend.GstreamerPipeline import GstreamerPipeline
 from Backend import State
 
+
 class Backend():
     def __init__(self, streams=1, port=1600):
 
@@ -53,6 +54,7 @@ class Backend():
         # if stream with sent number exist and program num is not null
         if (self.is_pipeline(progList[0]) is True):
             print("\napplying new prog list")
-            # determine number of programs in this stream to get necessary number of xids
+            # determine number of programs in this stream
+            # to get necessary number of xids
             self.gs_pipelines[progList[0]].apply_new_program_list(progList)
-            
+

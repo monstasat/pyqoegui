@@ -7,3 +7,4 @@ RUNNING = 1
 TERMINATED = 2
 # process does not exist
 NONEXISTENT = 3
+

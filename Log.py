@@ -1,11 +1,12 @@
 # write message to log
-from datetime import datetime
 import os
+from datetime import datetime
 
 # log event types
 TYPE_INFO = 0
 TYPE_WARNING = 1
 TYPE_ERROR = 2
+
 
 class Log():
     def __init__(self, filename):
@@ -14,7 +15,10 @@ class Log():
         f = open(self.filename, 'w')
 
     # write message to log file
-    def write_log_message(self, msg, from_new_line=False, event_type=TYPE_INFO):
+    def write_log_message(self,
+                          msg,
+                          from_new_line=False,
+                          event_type=TYPE_INFO):
 
         # continue writing to a file
         f = open(self.filename, 'a')

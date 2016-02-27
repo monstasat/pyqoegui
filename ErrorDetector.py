@@ -12,5 +12,5 @@ class ErrorDetector():
         pass
 
     def set_video_data(self, vparams):
-        #print(vparams)
         pass
+

@@ -1,5 +1,7 @@
 from gi.repository import Gtk, Gdk
+
 from Gui import Spacing
+
 
 class PlotBottomBarChild(Gtk.Box):
     def __init__(self, progName, color, index):
@@ -31,36 +33,38 @@ class PlotBottomBarChild(Gtk.Box):
         self.add(self.value)
 
     def set_value(self, value):
-        self.value.set_text("%.1f"%float(value) + " " + self.unit)
+        self.value.set_text("%.1f" % float(value) + " " + self.unit)
 
     def set_unit(self, unit):
         self.unit = unit
+
 
 class PlotBottomBar(Gtk.FlowBox):
 
     def __init__(self, selected_progs):
         Gtk.FlowBox.__init__(self)
 
-        self.default_colors = ( Gdk.RGBA(0.529412, 0.807843, 0.921569, 1.0), #skyblue
-                                Gdk.RGBA(0.486275, 0.988235, 0.000000, 1.0), #lawngreen
-                                Gdk.RGBA(1.000000, 0.627451, 0.478431, 1.0), #lightsalmon
-                                Gdk.RGBA(0.517647, 0.439216, 1.000000, 1.0), #lightslateblue
-                                Gdk.RGBA(1.000000, 0.000000, 1.000000, 1.0), #magenta
-                                Gdk.RGBA(0.941176, 0.901961, 0.549020, 1.0), #khaki
-                                Gdk.RGBA(1.000000, 0.941176, 0.960784, 1.0), #lavenderblush
-                                Gdk.RGBA(1.000000, 0.980392, 0.803922, 1.0), #lemonchiffon
-                                Gdk.RGBA(0.294118, 0.000000, 0.509804, 1.0), #indigo
-                                Gdk.RGBA(0.827451, 0.827451, 0.827451, 1.0), #lightgrey
-                                Gdk.RGBA(0.400000, 0.803922, 0.666667, 1.0), #mediumaquamarine
-                                Gdk.RGBA(0.117647, 0.564706, 1.000000, 1.0), #dodgerblue
-                                Gdk.RGBA(0.960784, 0.960784, 0.960784, 1.0), #whitesmoke
-                                Gdk.RGBA(0.956863, 0.643137, 0.376471, 1.0), #sandybrown
-                                Gdk.RGBA(0.854902, 0.439216, 0.839216, 1.0), #orchid
-                                Gdk.RGBA(1.000000, 0.843137, 0.000000, 1.0), #gold
-                                Gdk.RGBA(0.000000, 1.000000, 1.000000, 1.0), #cyan
-                                Gdk.RGBA(0.862745, 0.078431, 0.235294, 1.0), #crimson
-                                Gdk.RGBA(0.854902, 0.647059, 0.125490, 1.0), #goldenrod
-                                Gdk.RGBA(0.866667, 0.627451, 0.866667, 1.0)) #plum
+        self.default_colors = (
+            Gdk.RGBA(0.529412, 0.807843, 0.921569, 1.0),  # skyblue
+            Gdk.RGBA(0.486275, 0.988235, 0.000000, 1.0),  # lawngreen
+            Gdk.RGBA(1.000000, 0.627451, 0.478431, 1.0),  # lightsalmon
+            Gdk.RGBA(0.517647, 0.439216, 1.000000, 1.0),  # lightslateblue
+            Gdk.RGBA(1.000000, 0.000000, 1.000000, 1.0),  # magenta
+            Gdk.RGBA(0.941176, 0.901961, 0.549020, 1.0),  # khaki
+            Gdk.RGBA(1.000000, 0.941176, 0.960784, 1.0),  # lavenderblush
+            Gdk.RGBA(1.000000, 0.980392, 0.803922, 1.0),  # lemonchiffon
+            Gdk.RGBA(0.294118, 0.000000, 0.509804, 1.0),  # indigo
+            Gdk.RGBA(0.827451, 0.827451, 0.827451, 1.0),  # lightgrey
+            Gdk.RGBA(0.400000, 0.803922, 0.666667, 1.0),  # mediumaquamarine
+            Gdk.RGBA(0.117647, 0.564706, 1.000000, 1.0),  # dodgerblue
+            Gdk.RGBA(0.960784, 0.960784, 0.960784, 1.0),  # whitesmoke
+            Gdk.RGBA(0.956863, 0.643137, 0.376471, 1.0),  # sandybrown
+            Gdk.RGBA(0.854902, 0.439216, 0.839216, 1.0),  # orchid
+            Gdk.RGBA(1.000000, 0.843137, 0.000000, 1.0),  # gold
+            Gdk.RGBA(0.000000, 1.000000, 1.000000, 1.0),  # cyan
+            Gdk.RGBA(0.862745, 0.078431, 0.235294, 1.0),  # crimson
+            Gdk.RGBA(0.854902, 0.647059, 0.125490, 1.0),  # goldenrod
+            Gdk.RGBA(0.866667, 0.627451, 0.866667, 1.0))  # plum
 
         # bottom bar child list
         self.children = []
@@ -70,7 +74,6 @@ class PlotBottomBar(Gtk.FlowBox):
 
         # should be horizontally expandable and fill all available space
         self.set_hexpand(True)
-        #self.set_vexpand(True)
         self.set_halign(Gtk.Align.FILL)
         self.set_valign(Gtk.Align.FILL)
 
@@ -110,7 +113,8 @@ class PlotBottomBar(Gtk.FlowBox):
 
     # set value unit
     def set_unit(self, unit):
-        for child in self.children: child.set_unit(unit)
+        for child in self.children:
+            child.set_unit(unit)
 
     # if color was chosen
     def on_color_chosen(self, color_btn):
@@ -120,3 +124,4 @@ class PlotBottomBar(Gtk.FlowBox):
 
     def set_value(self, value, index):
         self.children[index].set_value(value)
+

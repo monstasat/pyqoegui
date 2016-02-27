@@ -1,16 +1,17 @@
-from gi.repository import Gtk, Gio
 import time
+
+from gi.repository import Gtk, Gio
 
 from Backend.Backend import Backend
 from Gui.MainWindow import MainWindow
-#from Usb.Usb import Usb
-
+# from Usb.Usb import Usb
 from Backend import State
 from Config import Config
 from Log import Log
 from TranslateMessages import TranslateMessages
 from ErrorDetector import ErrorDetector
 import CustomMessages
+
 
 class Control():
 
@@ -46,10 +47,19 @@ class Control():
         # self.usb = Usb()
 
         # connect to gui signals
-        self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST, self.on_new_prog_settings_from_gui)
-        self.gui.connect(CustomMessages.ACTION_START_ANALYSIS, self.on_start_from_gui)
-        self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS, self.on_stop_from_gui)
-        self.gui.connect(CustomMessages.VOLUME_CHANGED, self.on_volume_changed)
+        self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
+                         self.on_new_prog_settings_from_gui
+                         )
+        self.gui.connect(CustomMessages.ACTION_START_ANALYSIS,
+                         self.on_start_from_gui
+                         )
+        self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS,
+                         self.on_stop_from_gui
+                         )
+        self.gui.connect(CustomMessages.VOLUME_CHANGED,
+                         self.on_volume_changed
+                         )
+
         # connect to usb signals
         # --
 
@@ -59,7 +69,8 @@ class Control():
         # set gui for analyzed programs
         self.apply_prog_list_to_gui(self.analyzedProgList)
 
-        # initially set drawing black background for corresponding renderers to True
+        # initially set drawing black background
+        # for corresponding renderers to True
         for stream in self.analyzedProgList:
             self.gui.set_draw_mode_for_renderers(True, stream[0])
 
@@ -97,7 +108,7 @@ class Control():
         buffer = istream.read_bytes(1000)
         data = buffer.get_data()
 
-        #decode string back to unicode
+        # decode string back to unicode
         wstr = data.decode('utf-8', 'ignore')
 
         if len(wstr) > 0:
@@ -109,22 +120,28 @@ class Control():
                 # add received progList to common prog list
                 self.currentProgList = self.msg_translator.append_prog_list_to_common(progList, self.currentProgList)
 
-                # show received program list in gui (in program selection dialog)
+                # show received program list in gui
+                # (in program selection dialog)
                 self.gui.store.show_prog_list(progList)
 
                 # compare received and current analyzed prog lists
                 compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
 
-                # apply compared program list to backend (compared list contains only program equal prorams from current and received lists)
+                # apply compared program list to backend
+                # (compared list contains only program equal prorams
+                # from current and received lists)
                 self.apply_prog_list_to_backend(compared_prog_list)
 
-                # set drawing black background for corresponding renderers to False
-                self.gui.set_draw_mode_for_renderers(False, compared_prog_list[0])
+                # set drawing black background
+                # for corresponding renderers to False
+                self.gui.set_draw_mode_for_renderers(False,
+                                                     compared_prog_list[0])
 
             elif wstr[0] == 'v':
                 # received video parameters
-                #freeze black blockiness av_luma av_diff
-                vparams = self.msg_translator.translate_vparams_string_to_list(wstr[1:])
+                # freeze black blockiness av_luma av_diff
+                vparams = self.msg_translator.translate_vparams_string_to_list(
+                    wstr[1:])
                 self.error_detector.set_video_data(vparams)
                 self.gui.on_video_measured_data(vparams)
 
@@ -135,32 +152,40 @@ class Control():
 
     # make changes in gui according to program list
     def apply_prog_list_to_gui(self, progList):
-        # gui only needs program names and ids to redraw - so we need to extract them from program list
-        guiProgInfo = self.msg_translator.translate_prog_list_to_gui_prog_info(progList)
+        # gui only needs program names and ids to redraw
+        # so we need to extract them from program list
+        guiProgInfo = self.msg_translator.translate_prog_list_to_gui_prog_info(
+            progList)
 
         # set gui for new programs from program list
         self.gui.set_new_programs(guiProgInfo)
 
     # applying prog list to backend
     def apply_prog_list_to_backend(self, progList):
-        # to draw video backend needs xid of drawing areas - so we get them from gui
+        # to draw video backend needs xid of drawing areas
+        # so we get them from gui
         xids = self.gui.get_renderers_xids()
         # combine prog list with xids
-        combinedProgList = self.msg_translator.combine_prog_list_with_xids(progList, xids)
+        combinedProgList = self.msg_translator.combine_prog_list_with_xids(
+            progList,
+            xids)
 
-        # apply new settings to backend (settings consist of program list and xids)
+        # apply new settings to backend
+        # (settings consist of program list and xids)
         self.backend.apply_new_program_list(combinedProgList)
 
     # actions when backend send "end of stream" message
     def on_end_of_stream(self, stream_id):
-        # refresh program list in gui (in this case, delete this stream from program list in prog select dialog)
+        # refresh program list in gui (in this case,
+        # delete this stream from program list in prog select dialog)
         # this is done by passing empty prog list to gui
         self.gui.store.show_prog_list([stream_id, []])
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)
 
-        # if current state is RUNNING (this means that pipeline currently decoding some programs)
+        # if current state is RUNNING
+        # (this means that pipeline currently decoding some programs)
         # we need to restart this pipeline
         if state is State.RUNNING:
             self.backend.restart_pipeline(stream_id)
@@ -178,8 +203,11 @@ class Control():
         # redraw gui according to new program list
         self.apply_prog_list_to_gui(self.analyzedProgList)
 
-        # we need to restart gstreamer pipelines with ids that were selected - so we need to extract these ids from program list
-        stream_ids = self.msg_translator.translate_prog_list_to_stream_ids(self.analyzedProgList)
+        # we need to restart gstreamer pipelines with ids that were selected
+        # so we need to extract these ids from program list
+        stream_ids = self.msg_translator.translate_prog_list_to_stream_ids(
+            self.analyzedProgList
+                                                                           )
 
         # restart pipelines with selected ids
         for process_id in stream_ids:
@@ -201,3 +229,4 @@ class Control():
     def destroy(self):
         # terminate all gstreamer pipelines
         self.backend.terminate_all_pipelines()
+

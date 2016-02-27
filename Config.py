@@ -1,5 +1,7 @@
 import json
+
 from gi.repository import Gio
+
 
 class Config():
     def __init__(self):
@@ -19,3 +21,4 @@ class Config():
             progList = []
 
         return progList
+

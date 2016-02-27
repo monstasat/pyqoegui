@@ -2,7 +2,7 @@ class TranslateMessages():
     def __init__(self):
         pass
 
-################################ PROG LIST #####################################
+# PROG LIST
 
     # add received prog list to common prog list
     def append_prog_list_to_common(self, progList, commonProgList):
@@ -19,7 +19,10 @@ class TranslateMessages():
     def translate_prog_string_to_prog_list(self, progList):
         PROG_DIVIDER = ':*:'
         PARAM_DIVIDER = '^:'
-        PROG_PARAMS = {"number" : 0, "prog_name" : 1, "prov_name" : 2, "pids_num" : 3}
+        PROG_PARAMS = {"number": 0,
+                       "prog_name": 1,
+                       "prov_name": 2,
+                       "pids_num": 3}
 
         stream_params = []
 
@@ -43,7 +46,7 @@ class TranslateMessages():
 
             pids_params_list = []
             # iterating over program pids
-            for i in range( int(prog_params_list[3]) ):
+            for i in range(int(prog_params_list[3])):
 
                 pid_params_list = []
                 for j in range(3):
@@ -91,8 +94,9 @@ class TranslateMessages():
                                 j = 0
                                 while pidsNum != 0:
                                     # if found selected pid in received list
-                                    if (gsPid[0] == pids[j][0]) and (gsPid[2] == pids[j][2]):
-                                    # same pid found!
+                                    if (gsPid[0] == pids[j][0]) and \
+                                            (gsPid[2] == pids[j][2]):
+                                        # same pid found!
                                         compared_pids.append(pids[j])
                                         break
                                     pidsNum = pidsNum - 1
@@ -170,7 +174,7 @@ class TranslateMessages():
         return combined_stream
 
 
-############################# VIDEO PARAMETERS #################################
+# VIDEO PARAMETERS
 
     def translate_vparams_string_to_list(self, vparams_string):
         PART_DIVIDER = ':*:'
@@ -179,7 +183,7 @@ class TranslateMessages():
         param_list = []
 
         # split string to stream params and video params
-        str_parts  = vparams_string.split(PART_DIVIDER)
+        str_parts = vparams_string.split(PART_DIVIDER)
         # split stream parameters
         stream_params = str_parts[0].split(PARAM_DIVIDER)
         sparams_int = []
@@ -187,7 +191,6 @@ class TranslateMessages():
             sparams_int.append(int(param))
 
         param_list.append(sparams_int)
-
 
         video_params_pack = [[], [], [], [], []]
         for params_single_frame in str_parts[1:]:
@@ -200,7 +203,4 @@ class TranslateMessages():
         param_list.append(video_params_pack)
 
         return param_list
-
-
-
 

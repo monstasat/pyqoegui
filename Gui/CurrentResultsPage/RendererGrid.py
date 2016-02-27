@@ -1,11 +1,15 @@
-from gi import require_version
-require_version('GdkX11', '3.0')
-from gi.repository import Gtk,Gdk, GdkX11, GObject
-from Gui import Spacing
 import cairo
 import math
 
-# one instance of video renderer (includes renderer window, prog name label, volume button)
+from gi import require_version
+require_version('GdkX11', '3.0')
+from gi.repository import Gtk, Gdk, GdkX11, GObject
+
+from Gui import Spacing
+
+
+# one instance of video renderer
+# (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
 
     def __init__(self, guiProgInfo):
@@ -26,13 +30,12 @@ class Renderer(Gtk.Grid):
         self.set_halign(Gtk.Align.FILL)
         self.set_valign(Gtk.Align.FILL)
 
-
         # creating renderer window - drawing area
         self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
         self.drawarea.set_events(Gdk.EventMask.EXPOSURE_MASK)
         self.drawarea.set_app_paintable(False)
         # set default renderer size (4:3)
-        self.drawarea.set_size_request(100,75)
+        self.drawarea.set_size_request(100, 75)
         # this is to remove flickering
         self.drawarea.set_double_buffered(False)
         # connect 'draw' event with callback
@@ -42,15 +45,21 @@ class Renderer(Gtk.Grid):
 
         screen = self.drawarea.get_screen()
         visual = screen.get_system_visual()
-        if visual != None:
+        if visual is not None:
             self.drawarea.set_visual(visual)
 
         # creating volume button at the right edge of a renderer instance
-        volbtn = Gtk.VolumeButton(halign=Gtk.Align.END, hexpand=False, vexpand=False)
+        volbtn = Gtk.VolumeButton(halign=Gtk.Align.END,
+                                  hexpand=False,
+                                  vexpand=False)
+
         volbtn.connect('value-changed', self.volume_changed)
 
         # creating a program label
-        progname = Gtk.Label(label=self.progName, halign=Gtk.Align.END, hexpand=False, vexpand=False)
+        progname = Gtk.Label(label=self.progName,
+                             halign=Gtk.Align.END,
+                             hexpand=False,
+                             vexpand=False)
 
         # attach elements to grid
         self.attach(self.drawarea, 0, 0, 2, 1)
@@ -67,12 +76,12 @@ class Renderer(Gtk.Grid):
     def on_drawingarea_draw(self, widget, cr):
         # if it is the first time we are drawing
         if self.draw is True:
-            #if self.background is None:
             cr.set_source_rgb(0, 0, 0)
             w = self.drawarea.get_allocated_width()
             h = self.drawarea.get_allocated_height()
             cr.rectangle(0, 0, w, h)
             cr.fill()
+
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
@@ -112,18 +121,8 @@ class RendererGrid(Gtk.FlowBox):
 
         # first of all delete all previous renderers
         self.remove_renderers()
-
-         # set max children per line
-        if progNum > 3:
-            if(progNum%2):
-                max_ch = progNum/2 + 1
-            else:
-                max_ch = progNum/2
-        else:
-            max_ch = progNum
-        self.set_max_children_per_line(max_ch)
-
         self.rend_arr.clear()
+
         # add number of renderers
         for i in range(progNum):
             self.rend_arr.append(Renderer(guiProgInfo[i]))
@@ -136,7 +135,7 @@ class RendererGrid(Gtk.FlowBox):
         # show all renderers
         self.show_all()
 
-      # delete all renderers
+    # delete all renderers
     def remove_renderers(self):
         children = self.get_children()
         for child in children:
@@ -149,7 +148,10 @@ class RendererGrid(Gtk.FlowBox):
         for i in range(len(self.get_children())):
             rend = self.rend_arr[i]
             rend.drawarea.realize()
-            xids.append([rend.stream_id, rend.progID, rend.drawarea.get_window().get_xid()])
+            xids.append([rend.stream_id,
+                         rend.progID,
+                         rend.drawarea.get_window().get_xid()]
+                        )
         return xids
 
     # setting if renderers should draw black bakground
@@ -172,7 +174,8 @@ class RendererGrid(Gtk.FlowBox):
     # if user double-clicks renderer
     def on_child_activated(self, widget, child):
         index = child.get_index()
-        # if renderer is enlarged - set it to normal state and show other renderers
+        # if renderer is enlarged -
+        # set it to normal state and show other renderers
         if self.rend_arr[index].is_enlarged is True:
             self.rend_arr[index].is_enlarged = False
             self.set_filter_func((lambda x, y: True), None)
@@ -206,22 +209,26 @@ class RendererGrid(Gtk.FlowBox):
         # if one of renderers is enlarged - set 1 child per row
         if is_enlarged is True:
             cols = 1
-        # in other way (if all renderers are shown) - decide on optimal number of renderers per line
+        # in other way (if all renderers are shown)
+        # decide on optimal number of renderers per line
         else:
             renderer_aspect = 0
             if len(children) is not 0:
                 # get renderer ratio (height/width)
                 rect = self.rend_arr[0].get_allocation()
                 ratio = rect.height/rect.width
-            else: ratio = 0
-            cols = self.get_max_renderers_per_row(aspect_fb, ratio, len(children))
+            else:
+                ratio = 0
+            cols = self.get_max_renderers_per_row(aspect_fb,
+                                                  ratio,
+                                                  len(children))
         # set max renderers per line
         self.set_max_children_per_line(cols)
 
     # algorithm for computing optimal arranging of renderers (by F. Maximenkov)
     def get_max_renderers_per_row(self, flow_box_div, rend_div, rend_num):
-        W = 1.0;
-        H = W * flow_box_div;
+        W = 1.0
+        H = W * flow_box_div
 
         aspect_list = []
 
@@ -234,8 +241,8 @@ class RendererGrid(Gtk.FlowBox):
             else:
                 S_1 = H / rows * (H / rows / rend_div)
 
-            S_useful = S_1 * rend_num;
-            S_rects = S_1 * rows * columns;
+            S_useful = S_1 * rend_num
+            S_rects = S_1 * rows * columns
             space_rate = S_useful / S_rects
 
             aspect_list.append([rows, columns, S_useful, S_rects, space_rate])
@@ -247,3 +254,4 @@ class RendererGrid(Gtk.FlowBox):
             return sorted_al[-1][1]
         else:
             return 0
+

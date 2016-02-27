@@ -15,12 +15,18 @@ from Gui.AnalyzedProgTreeModel import AnalyzedProgTreeModel
 from Gui.ErrorTypesModel import ErrorTypesModel
 import CustomMessages
 
+
 class MainWindow(Gtk.Window):
 
-    __gsignals__ = {CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST, None, ()),
-                    CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ()),
-                    CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST, None, ()),
-                     CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST, None, ())}
+    __gsignals__ = {
+        CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ()),
+        CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ()),
+        CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
+                                              None, ()),
+        CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                        None, ())}
 
     def __init__(self, app):
         Gtk.Window.__init__(self, application=app)
@@ -30,16 +36,20 @@ class MainWindow(Gtk.Window):
 
         # main window border width
         self.set_border_width(Spacing.BORDER)
-        #self.maximize()
-        #self.set_resizable(False)
+        # self.maximize()
+        # self.set_resizable(False)
         # can't resize window by double click on header bar
         settings = Gtk.Settings.get_default()
-        #settings.set_property("gtk-titlebar-double-click", 'none')
+        # settings.set_property("gtk-titlebar-double-click", 'none')
 
-        # creating model for storing streaming programs lists and corresponding parameters
+        # creating model for storing streaming programs lists
+        # and corresponding parameters
         self.store = StreamProgTreeModel()
-        # creating model for storing analyzed programs lists and corresponding parameters
+
+        # creating model for storing analyzed programs lists
+        # and corresponding parameters
         self.analyzedStore = AnalyzedProgTreeModel()
+
         # creating model for storing analysis settings
         self.errorSettingsStore = ErrorTypesModel()
 
@@ -51,8 +61,12 @@ class MainWindow(Gtk.Window):
         hb = Gtk.HeaderBar()
 
         # add menu button to header bar
-        menuBtn = Gtk.MenuButton(name="menu", always_show_image=True, has_tooltip=True, tooltip_text="Меню",
-                    image=Icon("open-menu-symbolic"))
+        menuBtn = Gtk.MenuButton(name="menu",
+                                 always_show_image=True,
+                                 has_tooltip=True,
+                                 tooltip_text="Меню",
+                                 image=Icon("open-menu-symbolic"))
+
         popover = Gtk.Popover(border_width=Spacing.BORDER)
         popBox = Gtk.HBox(spacing=Spacing.COL_SPACING)
         darkThemeCheck = Gtk.Switch()
@@ -69,9 +83,15 @@ class MainWindow(Gtk.Window):
         self.plot_page = PlotPage(self)
         self.all_results_page = AllResultsPage()
         pages = []
-        pages.append((self.cur_results_page, "cur_results", "Текущие результаты"))
-        pages.append((self.plot_page, "plots", "Графики"))
-        pages.append((self.all_results_page, "all_results", "Общие результаты"))
+        pages.append((self.cur_results_page,
+                      "cur_results",
+                      "Текущие результаты"))
+        pages.append((self.plot_page,
+                      "plots",
+                      "Графики"))
+        pages.append((self.all_results_page,
+                      "all_results",
+                      "Общие результаты"))
 
         # create stack
         self.myStack = Gtk.Stack()
@@ -79,7 +99,7 @@ class MainWindow(Gtk.Window):
         self.myStack.set_transition_type(Gtk.StackTransitionType.NONE)
         # add callback when page is switched
         self.myStack.connect("notify::visible-child", self.page_switched)
-        #add pages to stack
+        # add pages to stack
         for page in pages:
             self.myStack.add_titled(page[0], page[1], page[2])
 
@@ -92,8 +112,11 @@ class MainWindow(Gtk.Window):
         self.toolbar = ButtonToolbar()
 
         # main window grid
-        mainGrid = Gtk.Grid(row_spacing=Spacing.ROW_SPACING, column_spacing=Spacing.COL_SPACING,
-                            halign=Gtk.Align.FILL, valign=Gtk.Align.FILL)
+        mainGrid = Gtk.Grid(row_spacing=Spacing.ROW_SPACING,
+                            column_spacing=Spacing.COL_SPACING,
+                            halign=Gtk.Align.FILL,
+                            valign=Gtk.Align.FILL
+                            )
         mainGrid.attach(self.toolbar, 0, 0, 1, 1)
         mainGrid.attach(self.myStack, 1, 0, 1, 1)
 
@@ -101,11 +124,17 @@ class MainWindow(Gtk.Window):
         self.add(mainGrid)
 
         # add prgtbl button to header bar
-        self.showTableBtn = Gtk.ToggleButton(always_show_image=True, name="table_btn", active=False,
-                        has_tooltip=True, image=Icon("pan-down-symbolic"))
+        self.showTableBtn = Gtk.ToggleButton(always_show_image=True,
+                                             name="table_btn",
+                                             active=False,
+                                             has_tooltip=True,
+                                             image=Icon("pan-down-symbolic"))
         # connect to the callback function of the tooltip
         self.showTableBtn.connect("query-tooltip", self.tooltip_callback)
-        self.showTableBtn.connect("clicked", self.reveal_child, self.cur_results_page.get_table_revealer())
+        self.showTableBtn.connect("clicked",
+                                  self.reveal_child,
+                                  self.cur_results_page.get_table_revealer()
+                                  )
         hb.pack_end(self.showTableBtn)
 
         self.set_titlebar(hb)
@@ -138,7 +167,8 @@ class MainWindow(Gtk.Window):
             tooltip.set_text("Показать таблицу результатов")
         return True
 
-    # called when a stackswitcher switches a page. Hides a table revealer button
+    # called when a stackswitcher switches a page.
+    # Hides a table revealer button
     def page_switched(self, stack, gparam):
         self.manage_table_revealer_button_visibility()
 
@@ -155,7 +185,8 @@ class MainWindow(Gtk.Window):
     # dark theme switch button was activated
     def on_dark_theme_check(self, widget, gparam):
         settings = Gtk.Settings.get_default()
-        settings.set_property("gtk-application-prefer-dark-theme", widget.get_active())
+        settings.set_property("gtk-application-prefer-dark-theme",
+                              widget.get_active())
 
     # get program list from prog select dialog
     def get_applied_prog_list(self):
@@ -203,7 +234,6 @@ class MainWindow(Gtk.Window):
             self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
         self.progDlg.hide()
-        #progDlg.destroy()
 
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
@@ -230,5 +260,7 @@ class MainWindow(Gtk.Window):
     def on_about_clicked(self, widget):
         aboutDlg = AboutDialog(self)
         responce = aboutDlg.run()
-        if responce == Gtk.ResponseType.DELETE_EVENT or responce == Gtk.ResponseType.CANCEL:
+        if responce == Gtk.ResponseType.DELETE_EVENT or \
+           responce == Gtk.ResponseType.CANCEL:
             aboutDlg.destroy()
+

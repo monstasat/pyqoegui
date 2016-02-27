@@ -1,11 +1,13 @@
 #!/usr/bin/python3
+import sys
+
 from gi import require_version
 require_version('Gtk', '3.0')
 from gi.repository import Gtk
-import sys
 
 from Control import Control
 from Log import Log
+
 
 class AtsApp(Gtk.Application):
 
@@ -32,3 +34,4 @@ class AtsApp(Gtk.Application):
 app = AtsApp()
 exit_status = app.run(sys.argv)
 sys.exit(exit_status)
+

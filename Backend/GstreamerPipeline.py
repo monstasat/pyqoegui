@@ -1,7 +1,10 @@
-from gi.repository import Gio
 import subprocess
 from struct import pack
+
+from gi.repository import Gio
+
 from Backend import State
+
 
 class GstreamerPipeline():
     def __init__(self, stream_id):
@@ -22,21 +25,29 @@ class GstreamerPipeline():
         self.terminate()
 
         # execute new process
-        #ip = "224.1.2." + str(2 + self.stream_id)
+        # ip = "224.1.2." + str(2 + self.stream_id)
         # this is for testing purposes
         ip = "127.0.0.1"
         stream = str(self.stream_id)
-        port  = str(1234 + self.stream_id)
+        port = str(1234 + self.stream_id)
         print(ip)
         print(stream)
         print(port)
-        self.proc = subprocess.Popen(["ats3-backend", "--stream", stream, "--ip", ip, "--port", port])
-        if self.proc != None:
+        self.proc = subprocess.Popen(
+                            ["ats3-backend",
+                             "--stream",
+                             stream,
+                             "--ip",
+                             ip,
+                             "--port",
+                             port]
+                                    )
+        if self.proc is not None:
             self.state = State.IDLE
         print("executing pipeline")
 
     def terminate(self):
-        if self.proc != None:
+        if self.proc is not None:
             self.proc.terminate()
             self.proc = None
             self.state = State.TERMINATED
@@ -58,7 +69,7 @@ class GstreamerPipeline():
         # checking if settings are really for this particular process
         if self.stream_id == stream_id:
             # pack stream id
-            msg_parts.append( pack('I', stream_id) )
+            msg_parts.append(pack('I', stream_id))
 
             for i, prog in enumerate(progs):
                 msg_parts.append(pack('I', self.BYTE_PROG_DIVIDER))
@@ -86,3 +97,4 @@ class GstreamerPipeline():
         ostream.write(msg)
         # close connection
         connection.close(None)
+

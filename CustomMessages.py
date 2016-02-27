@@ -6,3 +6,4 @@ ACTION_START_ANALYSIS = 'action_start_analysis'
 ACTION_STOP_ANALYSIS = 'action_stop_analysis'
 # renderer volume changed
 VOLUME_CHANGED = 'renderer_volume_changed'
+
