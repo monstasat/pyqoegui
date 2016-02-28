@@ -69,7 +69,7 @@ class StreamProgTreeModel(Gtk.TreeStore):
         return streams_params_list
 
     # show new program list received from backend
-    def show_prog_list(self, progList):
+    def update_stream_info(self, progList):
 
         stream_id = progList[0]
 

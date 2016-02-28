@@ -1,6 +1,7 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
+from Gui.Icon import Icon
 from Gui import Spacing
 
 
@@ -149,6 +150,9 @@ class AnalysisSettingsDialog(BaseDialog):
         separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
+
+        expertBtn = Gtk.ToggleButton(image=Icon('emblem-system-symbolic'))
+        self.header.pack_end(expertBtn)
 
         self.show_all()
 

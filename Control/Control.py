@@ -3,14 +3,15 @@ import time
 from gi.repository import Gtk, Gio
 
 from Backend.Backend import Backend
+from Backend import State
 from Gui.MainWindow import MainWindow
 # from Usb.Usb import Usb
-from Backend import State
-from Config import Config
+from Control.TranslateMessages import TranslateMessages
+from Control.ErrorDetector import ErrorDetector
+from Control import CustomMessages
+from Control.ErrorTypesModel import ErrorTypesModel
+from Config.Config import Config
 from Log import Log
-from TranslateMessages import TranslateMessages
-from ErrorDetector import ErrorDetector
-import CustomMessages
 
 
 class Control():
@@ -28,6 +29,9 @@ class Control():
         # execute server for receiving messages from gstreamer pipeline
         self.start_server(1600)
 
+        # create error types model
+        self.error_model = ErrorTypesModel()
+
         # create parameters which should be stored in control
         # currently received prog list with all received streams
         self.currentProgList = []
@@ -43,7 +47,7 @@ class Control():
         # parameters of all results page
 
         self.backend = Backend(streams=1)
-        self.gui = MainWindow(app)
+        self.gui = MainWindow(app, self.error_model)
         # self.usb = Usb()
 
         # connect to gui signals
@@ -120,9 +124,8 @@ class Control():
                 # add received progList to common prog list
                 self.currentProgList = self.msg_translator.append_prog_list_to_common(progList, self.currentProgList)
 
-                # show received program list in gui
-                # (in program selection dialog)
-                self.gui.store.show_prog_list(progList)
+                # update program list model
+                self.gui.store.update_stream_info(progList)
 
                 # compare received and current analyzed prog lists
                 compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
@@ -176,10 +179,10 @@ class Control():
 
     # actions when backend send "end of stream" message
     def on_end_of_stream(self, stream_id):
-        # refresh program list in gui (in this case,
-        # delete this stream from program list in prog select dialog)
+        # refresh program list model
+        # delete this stream from model
         # this is done by passing empty prog list to gui
-        self.gui.store.show_prog_list([stream_id, []])
+        self.gui.store.update_stream_info([stream_id, []])
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)

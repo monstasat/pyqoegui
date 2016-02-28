@@ -12,8 +12,8 @@ from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
 from Gui.StreamProgTreeModel import StreamProgTreeModel
 from Gui.AnalyzedProgTreeModel import AnalyzedProgTreeModel
-from Gui.ErrorTypesModel import ErrorTypesModel
-import CustomMessages
+from Control.ErrorTypesModel import ErrorTypesModel
+from Control import CustomMessages
 
 
 class MainWindow(Gtk.Window):
@@ -28,7 +28,7 @@ class MainWindow(Gtk.Window):
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                         None, ())}
 
-    def __init__(self, app):
+    def __init__(self, app, error_model):
         Gtk.Window.__init__(self, application=app)
 
         # applied programs info
@@ -51,7 +51,7 @@ class MainWindow(Gtk.Window):
         self.analyzedStore = AnalyzedProgTreeModel()
 
         # creating model for storing analysis settings
-        self.errorSettingsStore = ErrorTypesModel()
+        self.errorSettingsStore = error_model
 
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
