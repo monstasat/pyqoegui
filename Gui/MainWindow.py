@@ -247,8 +247,9 @@ class MainWindow(Gtk.Window):
 
         # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
+            # apply settings
+            analysisSetDlg.apply_settings()
             # emit signal from gui to control about new analysis params
-            pass
 
         analysisSetDlg.destroy()
 
