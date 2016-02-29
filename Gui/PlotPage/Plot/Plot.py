@@ -54,6 +54,7 @@ class Plot(Gtk.Box):
         self.da.set_events(Gdk.EventMask.EXPOSURE_MASK)
 
         # add plot bottom bar at the bottom
+        print(selected_progs)
         self.bottom_bar = PlotBottomBar(selected_progs)
 
         self.add(self.label_box)
@@ -80,13 +81,14 @@ class Plot(Gtk.Box):
             prog_info.append(prog[0])
             # prog id
             prog_info.append(prog[1])
-            for pid in prog[4]:
-                if pid[1].split('-')[0] == self.major_type:
+            for pid in prog[5]:
+                if pid[2].split('-')[0] == self.major_type:
                     # pid
                     prog_info.append(pid[0])
             # convert strings to int
             prog_info = list(map(int, prog_info))
             self.progs.append(prog_info)
+        print(self.progs)
 
         # buffers for storing input data before it is shown on graph
         self.buffer = []

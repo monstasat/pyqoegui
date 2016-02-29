@@ -123,7 +123,7 @@ class Control():
             if wstr[0] == 'd':
                 # received program list
                 # convert program string from pipeline to program list (array)
-                progList = self.stream_progs.convert_stream_string_to_list(
+                progList = self.msg_translator.convert_stream_string_to_list(
                     wstr[1:])
 
                 # append prog list to model

@@ -15,13 +15,13 @@ class PlotTypeSelectDialog(BaseDialog):
 
         # list of available video plots
         self.plot_types = (
-            ("Количество идентичных пикселей", '%', [0, 100], 1),
-            ("Количество чёрных пикселей", '%', [0, 100], 1),
-            ("Уровень блочности", '', [0, 10], 1),
-            ("Средняя яркость кадра", '', [0, 255], 1),
-            ("Среднее различие между кадрами", '', [0, 255], 1),
-            ("Моментальная громкость", 'LUFS', [-40, -14], 2),
-            ("Кратковременная громкость", 'LUFS', [-40, -14], 2))
+            ("Количество идентичных пикселей", '%', [0, 100], 'video'),
+            ("Количество чёрных пикселей", '%', [0, 100], 'video'),
+            ("Уровень блочности", '', [0, 10], 'video'),
+            ("Средняя яркость кадра", '', [0, 255], 'video'),
+            ("Среднее различие между кадрами", '', [0, 255], 'video'),
+            ("Моментальная громкость", 'LUFS', [-40, -14], 'audio'),
+            ("Кратковременная громкость", 'LUFS', [-40, -14], 'audio'))
 
         # get main widget
         mainBox = self.get_content_area()
@@ -165,7 +165,9 @@ class PlotTypeSelectDialog(BaseDialog):
             citer = self.store.iter_children(piter)
             while citer is not None:
                 if self.store[citer][2] is True:
-                    selected_progs.append(json.loads(self.store[citer][5]))
+                    prog_info = json.loads(self.store[citer][5])
+                    prog_info.insert(0, self.store[piter][4])
+                    selected_progs.append(prog_info)
                 citer = self.store.iter_next(citer)
             piter = self.store.iter_next(piter)
         return selected_progs

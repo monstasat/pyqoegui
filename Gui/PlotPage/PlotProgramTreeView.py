@@ -12,7 +12,7 @@ class PlotProgramTreeView(Gtk.TreeView):
         sel.set_mode(Gtk.SelectionMode.NONE)
 
         # what programs to display?
-        self.filter_type = 0
+        self.filter_type = ''
 
         # remember store
         self.store = store
@@ -133,8 +133,8 @@ class PlotProgramTreeView(Gtk.TreeView):
                 citer = self.store_filter.iter_next(citer)
             piter = self.store_filter.iter_next(piter)
 
-    def set_filter_type(self, type):
-        self.filter_type = type
+    def set_filter_type(self, filter_type):
+        self.filter_type = filter_type
 
     # filtering function for tree view
     def pid_filter_func(self, model, iter, data):
@@ -142,9 +142,18 @@ class PlotProgramTreeView(Gtk.TreeView):
         if model.iter_children(iter) is None:
             return False
         # hide progs of type that is not supported by selected graph
-        elif len(str(model.get_path(iter))) == 3 and \
-                ((model[iter][4] & self.filter_type) is 0):
-            return False
+        elif len(str(model.get_path(iter))) == 3:
+            import json
+            type_found = False
+            pidIter = model.iter_children(iter)
+            while pidIter is not None:
+                pid_info = json.loads(model[pidIter][5])
+                pid_type = pid_info[2].split('-')[0]
+                if pid_type == self.filter_type:
+                    type_found = True
+                    break
+                pidIter = model.iter_next(pidIter)
+            return type_found
         else:
             return True
 
