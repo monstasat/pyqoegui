@@ -10,9 +10,6 @@ from Gui.AnalysisSettingsDialog import AnalysisSettingsDialog
 from Gui.Icon import Icon
 from Gui.AboutDialog import AboutDialog
 from Gui import Spacing
-from Gui.StreamProgTreeModel import StreamProgTreeModel
-from Gui.AnalyzedProgTreeModel import AnalyzedProgTreeModel
-from Control.ErrorTypesModel import ErrorTypesModel
 from Control import CustomMessages
 
 
@@ -28,7 +25,12 @@ class MainWindow(Gtk.Window):
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                         None, ())}
 
-    def __init__(self, app, error_model):
+    def __init__(self,
+                 app,
+                 stream_progs_model,
+                 analyzed_progs_model,
+                 error_model):
+
         Gtk.Window.__init__(self, application=app)
 
         # applied programs info
@@ -42,15 +44,14 @@ class MainWindow(Gtk.Window):
         settings = Gtk.Settings.get_default()
         # settings.set_property("gtk-titlebar-double-click", 'none')
 
-        # creating model for storing streaming programs lists
+        # get models from control
+        # remember model for storing streaming programs lists
         # and corresponding parameters
-        self.store = StreamProgTreeModel()
-
-        # creating model for storing analyzed programs lists
+        self.store = stream_progs_model
+        # remember model for storing analyzed programs lists
         # and corresponding parameters
-        self.analyzedStore = StreamProgTreeModel()
-
-        # creating model for storing analysis settings
+        self.analyzedStore = analyzed_progs_model
+        # remember model for storing analysis settings
         self.errorSettingsStore = error_model
 
         # create prog selection dialog
@@ -188,10 +189,6 @@ class MainWindow(Gtk.Window):
         settings.set_property("gtk-application-prefer-dark-theme",
                               widget.get_active())
 
-    # get program list from prog select dialog
-    def get_applied_prog_list(self):
-        return self.store.get_selected_prog_params()
-
     # get renderers xids from cur result page
     def get_renderers_xids(self):
         return self.cur_results_page.get_renderers_xid()
@@ -199,8 +196,6 @@ class MainWindow(Gtk.Window):
     # set gui for new program list
     def set_new_programs(self, guiProgInfo):
         self.guiProgInfo = guiProgInfo
-        # fill model
-        self.analyzedStore.add_new_programs(guiProgInfo)
         # add new programs to gui
         self.cur_results_page.on_prog_list_changed(guiProgInfo)
         # determine wether table revealer button should be visible
@@ -208,9 +203,6 @@ class MainWindow(Gtk.Window):
 
     def on_video_measured_data(self, data):
         self.plot_page.on_incoming_data(data)
-
-    def clear_all_programs_in_prog_dlg(self):
-        self.store.clear_all_programs()
 
     def set_draw_mode_for_renderers(self, draw, stream_id):
         self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)

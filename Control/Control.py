@@ -10,6 +10,7 @@ from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector import ErrorDetector
 from Control import CustomMessages
 from Control.ErrorTypesModel import ErrorTypesModel
+from Control.ProgramTreeModel import ProgramTreeModel
 from Config.Config import Config
 from Log import Log
 
@@ -29,16 +30,16 @@ class Control():
         # execute server for receiving messages from gstreamer pipeline
         self.start_server(1600)
 
+        # create program tree model for programs in stream
+        self.stream_progs = ProgramTreeModel()
+        # create program tree model for analyzed programs
+        self.analyzed_progs = ProgramTreeModel()
+        # append list of analyzed programs from config to model
+        self.analyzed_progs.add_all_streams(self.config.load_prog_list())
         # create error types model
         self.error_model = ErrorTypesModel()
 
         # create parameters which should be stored in control
-        # currently received prog list with all received streams
-        self.currentProgList = []
-        # analyzed prog list with all analyzed streams
-        self.analyzedProgList = self.config.load_prog_list()
-        self.analysisSettings = []
-        self.dumpSettings = []
         self.language = ""
         self.color_theme = ""
         # parameters of current results page
@@ -47,7 +48,10 @@ class Control():
         # parameters of all results page
 
         self.backend = Backend(streams=1)
-        self.gui = MainWindow(app, self.error_model)
+        self.gui = MainWindow(app,
+                              self.stream_progs,
+                              self.analyzed_progs,
+                              self.error_model)
         # self.usb = Usb()
 
         # connect to gui signals
@@ -71,11 +75,11 @@ class Control():
         self.start_analysis()
 
         # set gui for analyzed programs
-        self.apply_prog_list_to_gui(self.analyzedProgList)
+        self.apply_prog_list_to_gui()
 
         # initially set drawing black background
         # for corresponding renderers to True
-        for stream in self.analyzedProgList:
+        for stream in self.analyzed_progs.get_list():
             self.gui.set_draw_mode_for_renderers(True, stream[0])
 
         self.gui.queue_draw()
@@ -89,10 +93,10 @@ class Control():
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
         self.gui.toolbar.change_start_icon()
-        self.gui.clear_all_programs_in_prog_dlg()
+        self.stream_progs.clear_model()
 
         # set drawing black background for all renderers to True
-        for stream in self.analyzedProgList:
+        for stream in self.analyzed_progs.get_list():
             self.gui.set_draw_mode_for_renderers(True, stream[0])
         # force redrawing of gui
         self.gui.queue_draw()
@@ -119,16 +123,15 @@ class Control():
             if wstr[0] == 'd':
                 # received program list
                 # convert program string from pipeline to program list (array)
-                progList = self.msg_translator.translate_prog_string_to_prog_list(wstr[1:])
+                progList = self.stream_progs.convert_stream_string_to_list(
+                    wstr[1:])
 
-                # add received progList to common prog list
-                self.currentProgList = self.msg_translator.append_prog_list_to_common(progList, self.currentProgList)
-
-                # update program list model
-                self.gui.store.update_stream_info(progList)
+                # append prog list to model
+                self.stream_progs.add_one_stream(progList)
 
                 # compare received and current analyzed prog lists
-                compared_prog_list = self.msg_translator.translate_prog_list_to_compared_prog_list(self.analyzedProgList, progList)
+                compared_prog_list = self.analyzed_progs.get_compared_list(
+                    progList)
 
                 # apply compared program list to backend
                 # (compared list contains only program equal prorams
@@ -154,11 +157,10 @@ class Control():
                 print(wstr)
 
     # make changes in gui according to program list
-    def apply_prog_list_to_gui(self, progList):
+    def apply_prog_list_to_gui(self):
         # gui only needs program names and ids to redraw
         # so we need to extract them from program list
-        guiProgInfo = self.msg_translator.translate_prog_list_to_gui_prog_info(
-            progList)
+        guiProgInfo = self.analyzed_progs.get_progs_in_gui_format()
 
         # set gui for new programs from program list
         self.gui.set_new_programs(guiProgInfo)
@@ -169,20 +171,17 @@ class Control():
         # so we get them from gui
         xids = self.gui.get_renderers_xids()
         # combine prog list with xids
-        combinedProgList = self.msg_translator.combine_prog_list_with_xids(
-            progList,
-            xids)
 
         # apply new settings to backend
         # (settings consist of program list and xids)
-        self.backend.apply_new_program_list(combinedProgList)
+        self.backend.apply_new_program_list(progList, xids)
 
     # actions when backend send "end of stream" message
     def on_end_of_stream(self, stream_id):
         # refresh program list model
         # delete this stream from model
-        # this is done by passing empty prog list to gui
-        self.gui.store.update_stream_info([stream_id, []])
+        # this is done by passing empty prog list to model
+        self.stream_progs.add_one_stream([stream_id, []])
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)
@@ -200,24 +199,25 @@ class Control():
 
     # actions when gui send NEW_SETTINS_PROG_LIST message
     def on_new_prog_settings_from_gui(self, param):
-        # get program list from gui and store it in control
-        self.analyzedProgList = self.gui.get_applied_prog_list()
+        # get selected program list from stream progs model
+        selected_progs = self.stream_progs.get_selected_list()
+
+        # append program list to analyzed progs model
+        self.analyzed_progs.add_all_streams(selected_progs)
 
         # redraw gui according to new program list
-        self.apply_prog_list_to_gui(self.analyzedProgList)
+        self.apply_prog_list_to_gui()
 
         # we need to restart gstreamer pipelines with ids that were selected
         # so we need to extract these ids from program list
-        stream_ids = self.msg_translator.translate_prog_list_to_stream_ids(
-            self.analyzedProgList
-                                                                           )
+        stream_ids = self.analyzed_progs.get_stream_ids()
 
         # restart pipelines with selected ids
         for process_id in stream_ids:
             self.backend.restart_pipeline(process_id)
 
         # save program list in config
-        self.config.save_prog_list(self.analyzedProgList)
+        self.config.save_prog_list(analyzedProgList)
 
     def on_start_from_gui(self, param):
         self.start_analysis()
