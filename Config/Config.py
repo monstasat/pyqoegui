@@ -12,8 +12,10 @@ class Config():
         except:
             self.config['DEFAULT'] = {'prog_list': '[]',
                                       'dark_theme': 'False',
-                                      'table_revealed': 'True',
+                                      'table_revealer': 'True',
                                       'language': 'ru'}
+
+            self.config['user'] = {}
             self.write_ini()
 
     def write_ini(self):
@@ -21,36 +23,29 @@ class Config():
             self.config.write(configfile)
 
     def save_prog_list(self, progList):
-        try:
-            self.config['user']['prog_list'] = str(dark_theme)
-        except:
-            self.config['user'] = {'prog_list': json.dumps(progList)}
-
+        self.config['user']['prog_list'] = json.dumps(progList)
         self.write_ini()
 
     def load_prog_list(self):
         self.config.read('config.ini')
-        try:
-            progList = self.config['user']['prog_list']
-        except:
-            progList = '[]'
+        progList = self.config['user'].get('prog_list', '[]')
 
         return json.loads(progList)
 
     def get_dark_theme(self):
         self.config.read('config.ini')
-        try:
-            dark_theme = self.config['user'].getboolean('dark_theme')
-        except:
-            print("no dark_theme section")
-            dark_theme = False
+        dark_theme = self.config['user'].getboolean('dark_theme')
         return bool(dark_theme)
 
     def set_dark_theme(self, dark_theme):
-        #self.config['prog_list'] = {'analyzed': str(dark_theme)}
-        try:
-            self.config['user']['dark_theme'] = str(bool(dark_theme))
-        except:
-            self.config['user'] = {'dark_theme': str(bool(dark_theme))}
+        self.config['user']['dark_theme'] = str(bool(dark_theme))
         self.write_ini()
 
+    def set_table_revealer(self, table_revealer):
+        self.config['user']['table_revealer'] = str(bool(table_revealer))
+        self.write_ini()
+
+    def get_table_revealer(self):
+        self.config.read('config.ini')
+        table_revealer = self.config['user'].getboolean('table_revealer')
+        return bool(table_revealer)

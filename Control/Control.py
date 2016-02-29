@@ -46,7 +46,8 @@ class Control():
                               self.stream_progs,
                               self.analyzed_progs,
                               self.error_model,
-                              self.config.get_dark_theme())
+                              self.config.get_dark_theme(),
+                              self.config.get_table_revealer())
         # self.usb = Usb()
 
         # connect to gui signals
@@ -64,6 +65,10 @@ class Control():
                          )
         self.gui.connect(CustomMessages.COLOR_THEME,
                          self.on_gui_color_theme_changed)
+
+        self.gui.connect(CustomMessages.PROG_TABLE_REVEALER,
+                         self.on_gui_table_revealer)
+
 
         # connect to usb signals
         # --
@@ -227,6 +232,9 @@ class Control():
 
     def on_gui_color_theme_changed(self, wnd, data):
         self.config.set_dark_theme(data)
+
+    def on_gui_table_revealer(self, wnd, data):
+        self.config.set_table_revealer(data)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

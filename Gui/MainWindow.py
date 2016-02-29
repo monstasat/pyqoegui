@@ -34,7 +34,8 @@ class MainWindow(Gtk.Window):
                  stream_progs_model,
                  analyzed_progs_model,
                  error_model,
-                 color_theme):
+                 color_theme,
+                 table_revealed):
 
         Gtk.Window.__init__(self, application=app)
 
@@ -43,7 +44,7 @@ class MainWindow(Gtk.Window):
 
         # main window border width
         self.set_border_width(Spacing.BORDER)
-        # self.maximize()
+        self.maximize()
         # self.set_resizable(False)
         # can't resize window by double click on header bar
         settings = Gtk.Settings.get_default()
@@ -145,8 +146,11 @@ class MainWindow(Gtk.Window):
 
         self.set_titlebar(hb)
 
+        # set initial gui view
         if color_theme is True:
             darkThemeCheck.set_active(True)
+        if table_revealed is True:
+            self.showTableBtn.set_active(table_revealed)
 
         self.show_all()
 
