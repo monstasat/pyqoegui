@@ -217,7 +217,7 @@ class Control():
             self.backend.restart_pipeline(process_id)
 
         # save program list in config
-        self.config.save_prog_list(analyzedProgList)
+        self.config.save_prog_list(selected_progs)
 
     def on_start_from_gui(self, param):
         self.start_analysis()

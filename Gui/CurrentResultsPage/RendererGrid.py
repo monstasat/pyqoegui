@@ -163,7 +163,6 @@ class RendererGrid(Gtk.FlowBox):
     # when flowbox needs redrawing
     def on_draw(self, widget, cr):
         # decide on number of renderers per one line
-        print("Draw!!!")
         self.on_resize()
 
     # filtering function for flow box when one renderer is enlarged
