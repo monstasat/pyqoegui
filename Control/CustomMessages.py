@@ -6,4 +6,7 @@ ACTION_START_ANALYSIS = 'action_start_analysis'
 ACTION_STOP_ANALYSIS = 'action_stop_analysis'
 # renderer volume changed
 VOLUME_CHANGED = 'renderer_volume_changed'
-
+# dark theme on/off
+COLOR_THEME = 'color_theme_changed'
+# program table shown/hidden
+PROG_TABLE_REVEALER = 'prog_table_visibility_changed'

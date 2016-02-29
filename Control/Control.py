@@ -67,6 +67,8 @@ class Control():
         self.gui.connect(CustomMessages.VOLUME_CHANGED,
                          self.on_volume_changed
                          )
+        self.gui.connect(CustomMessages.COLOR_THEME,
+                         self.on_gui_color_theme_changed)
 
         # connect to usb signals
         # --
@@ -219,14 +221,17 @@ class Control():
         # save program list in config
         self.config.save_prog_list(selected_progs)
 
-    def on_start_from_gui(self, param):
+    def on_start_from_gui(self, wnd):
         self.start_analysis()
 
-    def on_stop_from_gui(self, param):
+    def on_stop_from_gui(self, wnd):
         self.stop_analysis()
 
-    def on_volume_changed(self, param):
+    def on_volume_changed(self, wnd):
         pass
+
+    def on_gui_color_theme_changed(self, wnd, data):
+        self.config.set_dark_theme(data)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

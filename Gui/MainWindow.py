@@ -23,7 +23,11 @@ class MainWindow(Gtk.Window):
         CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
                                               None, ()),
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                        None, ())}
+                                        None, ()),
+        CustomMessages.COLOR_THEME: (GObject.SIGNAL_RUN_FIRST,
+                                        None, (int,)),
+        CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
+                                        None, (int,))}
 
     def __init__(self,
                  app,
@@ -159,6 +163,8 @@ class MainWindow(Gtk.Window):
     # on reveal table button (in header bar) clicked
     def reveal_child(self, button, revealer):
         revealer.set_reveal_child(not revealer.get_reveal_child())
+        self.emit(CustomMessages.PROG_TABLE_REVEALER,
+                  not revealer.get_reveal_child())
 
     # tooltip callback for reveal table button (in header bar)
     def tooltip_callback(self, widget, x, y, keyboad_mode, tooltip):
@@ -188,6 +194,7 @@ class MainWindow(Gtk.Window):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-application-prefer-dark-theme",
                               widget.get_active())
+        self.emit(CustomMessages.COLOR_THEME, widget.get_active())
 
     # get renderers xids from cur result page
     def get_renderers_xids(self):
