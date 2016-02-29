@@ -163,6 +163,7 @@ class RendererGrid(Gtk.FlowBox):
     # when flowbox needs redrawing
     def on_draw(self, widget, cr):
         # decide on number of renderers per one line
+        print("Draw!!!")
         self.on_resize()
 
     # filtering function for flow box when one renderer is enlarged
@@ -197,7 +198,10 @@ class RendererGrid(Gtk.FlowBox):
     # decide on number of renderers per one line
     def on_resize(self):
         rect = self.get_allocation()
-        aspect_fb = rect.height / rect.width
+        if rect.width is 0:
+            aspect_fb = 0
+        else:
+            aspect_fb = rect.height / rect.width
 
         # see if any of renderers is enlarged
         is_enlarged = False
@@ -216,7 +220,11 @@ class RendererGrid(Gtk.FlowBox):
             if len(children) is not 0:
                 # get renderer ratio (height/width)
                 rect = self.rend_arr[0].get_allocation()
-                ratio = rect.height/rect.width
+                if rect.width is 0:
+                    ratio = 0
+                else:
+                    ratio = rect.height / rect.width
+                #ratio = rect.height/rect.width
             else:
                 ratio = 0
             cols = self.get_max_renderers_per_row(aspect_fb,
@@ -253,5 +261,5 @@ class RendererGrid(Gtk.FlowBox):
         if len(sorted_al) > 0:
             return sorted_al[-1][1]
         else:
-            return 0
+            return 1
 
