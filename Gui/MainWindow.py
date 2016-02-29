@@ -33,7 +33,8 @@ class MainWindow(Gtk.Window):
                  app,
                  stream_progs_model,
                  analyzed_progs_model,
-                 error_model):
+                 error_model,
+                 color_theme):
 
         Gtk.Window.__init__(self, application=app)
 
@@ -143,6 +144,9 @@ class MainWindow(Gtk.Window):
         hb.pack_end(self.showTableBtn)
 
         self.set_titlebar(hb)
+
+        if color_theme is True:
+            darkThemeCheck.set_active(True)
 
         self.show_all()
 

@@ -1,5 +1,6 @@
 #ignore python cache
 *.pyc
+*.ini
 
 #ignore txt
 *.txt

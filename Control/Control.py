@@ -39,19 +39,14 @@ class Control():
         # create error types model
         self.error_model = ErrorTypesModel()
 
-        # create parameters which should be stored in control
-        self.language = ""
-        self.color_theme = ""
-        # parameters of current results page
-        self.progTableVisible = True
-        # parameters of plot page
-        # parameters of all results page
-
+        # create backend
         self.backend = Backend(streams=1)
+        # create gui
         self.gui = MainWindow(app,
                               self.stream_progs,
                               self.analyzed_progs,
-                              self.error_model)
+                              self.error_model,
+                              self.config.get_dark_theme())
         # self.usb = Usb()
 
         # connect to gui signals

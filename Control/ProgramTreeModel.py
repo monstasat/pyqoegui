@@ -25,7 +25,6 @@ class ProgramTreeModel(Gtk.TreeStore):
     def get_progs_in_gui_format(self):
         # get prog list from model
         progList = self.get_list()
-        #print("\n" + str(progList))
         guiProgInfo = []
 
         for stream in progList:
@@ -163,7 +162,6 @@ class ProgramTreeModel(Gtk.TreeStore):
                 #pid_type = 'video'
                 pid_type = pid[2].split('-')[0]
                 if (pid_type == 'video') or (pid_type == 'audio'):
-                    print(pid_type)
                     self.append(citer, [self.TREE_ICONS[pid_type],
                                         "PID " + pid[0] + ", " + pid[2],
                                         False,
