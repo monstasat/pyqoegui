@@ -151,8 +151,8 @@ class AnalysisSettingsDialog(BaseDialog):
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
 
-        expertBtn = Gtk.ToggleButton(image=Icon('emblem-system-symbolic'))
-        self.header.pack_end(expertBtn)
+        # expertBtn = Gtk.ToggleButton(image=Icon('emblem-system-symbolic'))
+        # self.header.pack_end(expertBtn)
 
         self.show_all()
 

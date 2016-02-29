@@ -18,7 +18,7 @@ class StreamProgTreeModel(Gtk.TreeStore):
                            "video": "video-x-generic",
                            "audio": "audio-x-generic"}
 
-    def clear_all_programs(self):
+    def clear_model(self):
         self.clear()
 
     def get_selected_prog_params(self):
@@ -84,41 +84,60 @@ class StreamProgTreeModel(Gtk.TreeStore):
         # fill the model
         stream_info = progList[1]
         if len(stream_info) != 0:
-            piter = self.append(None, [self.TREE_ICONS["ts"],
-                                       "Поток №"+str(stream_id + 1),
-                                       False,
-                                       False,
-                                       stream_id,
-                                       json.dumps(progList)])
-        for prog in stream_info:
-
-            # get prog params
-            # prog[0] - progID,
-            # prog[1] - prog name,
-            # prog[2] - prov_name,
-            # prog[3] - pids num
-            pidsNum = int(prog[3])
-
-            ppiter = self.append(piter, [self.TREE_ICONS["program"],
-                                         (prog[1] + " (" + prog[2] + ")"),
-                                         False,
-                                         False,
-                                         stream_id,
-                                         json.dumps(prog)])
-
-            pids_info = prog[4]
-            for pid in pids_info:
-                # get pid params
-                # pid[0] - pid, pid[1] - pid type, pid[2] - codec type string
-                strPidType = pid[2].split('-')[0]
-
-                self.append(ppiter, [self.TREE_ICONS[strPidType],
-                                     "PID " + pid[0] + ", " + pid[2],
-                                     False,
-                                     False,
-                                     stream_id,
-                                     json.dumps(pid)])
+            self.update_stream_in_model(progList)
 
         # return program number
         return len(stream_info)
 
+    # apply new list of streams
+    def add_new_programs(self, progList):
+        self.clear_all_programs()
+        # fill the model
+        streams = []
+        for prog in progList:
+
+            # get prog params
+            stream = prog[0]
+
+            for id in streams:
+                if id == stream:
+                    break
+            else:
+                streams.append(stream)
+
+        for stream in streams:
+            self.update_stream_in_model(progList)
+
+    def update_stream_in_model(self, progList):
+        piter = self.append(None, [self.TREE_ICONS['ts'],
+                                   "Поток №" + str(progList[0] + 1),
+                                   False,
+                                   False,
+                                   progList[0],
+                                   json.dumps(progList)])
+
+        for prog in progList[1]:
+            citer = self.append(piter, [self.TREE_ICONS['program'],
+                                        prog[2],
+                                        False,
+                                        False,
+                                        prog[3],
+                                        json.dumps(prog)])
+            pids = prog[4]
+
+            for pid in pids:
+                self.append(citer, [self.TREE_ICONS[pid[1].split('-')[0]],
+                                    "PID " + pid[0] + ", " + pid[1],
+                                    False,
+                                    False,
+                                    prog[0],
+                                    json.dumps(pid)])
+
+    # extract stream ids from model
+    def get_stream_ids(self):
+        stream_ids = []
+
+        for rows in self:
+            stream_ids.append(row[4])
+
+        return stream_ids

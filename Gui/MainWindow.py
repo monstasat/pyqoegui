@@ -48,7 +48,7 @@ class MainWindow(Gtk.Window):
 
         # creating model for storing analyzed programs lists
         # and corresponding parameters
-        self.analyzedStore = AnalyzedProgTreeModel()
+        self.analyzedStore = StreamProgTreeModel()
 
         # creating model for storing analysis settings
         self.errorSettingsStore = error_model
