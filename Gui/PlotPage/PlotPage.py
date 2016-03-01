@@ -1,14 +1,17 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from Gui.Placeholder import Placeholder
 from Gui.Icon import Icon
 from Gui.PlotPage.Plot.Plot import Plot
 from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
+from Gui.PlotPage import PlotTypes
 from Gui import Spacing
+from Control import CustomMessages
 
 
 class PlotPage(Gtk.Box):
+
     def __init__(self, mainWnd):
         Gtk.Box.__init__(self)
 
@@ -53,13 +56,13 @@ class PlotPage(Gtk.Box):
         self.placeholder_box.add(self.addBtn)
 
         # connect buttons to callbacks
-        self.addBtn.connect('clicked', self.on_plot_add)
+        self.addBtn.connect('clicked', self.on_plot_add_dialog)
 
         # initially add only placeholder
         self.add(self.placeholder_box)
 
     # if add plot button was pressed
-    def on_plot_add(self, widget):
+    def on_plot_add_dialog(self, widget):
 
         # show plot selection dialog
         plotTypeDlg = PlotTypeSelectDialog(self.mainWnd)
@@ -72,60 +75,65 @@ class PlotPage(Gtk.Box):
             # get selected plot parameters
             selected_type = plotTypeDlg.get_selected_plot_type()
             selected_progs = plotTypeDlg.get_selected_programs()
-
-            # unselect all programs in model
-            plotTypeDlg.prog_select_page.unselect_all()
-
-            # get information about selected prog type
             plot_index = selected_type.get_index()
-            plot_info = plotTypeDlg.plot_types[plot_index]
-            plot_title = plot_info[0]
-            plot_unit = plot_info[1]
-            plot_range = plot_info[2]
-
-            # hide placeholder and move add button to right edge of the page
-            self.placeholder.hide()
-            self.addBtn.set_halign(Gtk.Align.END)
-
-            # create new plot with selected parameters
-            plot = Plot(selected_progs, plot_index)
-            # connect delete plot event to plot close button
-            plot.close_button.connect('clicked', self.on_plot_delete)
-
-            # append plot unit (if any) to plot title
-            if plot_unit is not '':
-                plot_title += ", " + plot_unit
-            plot.set_title(plot_title)
-            # plot.add_interval(0.25, GraphTypes.ERROR, True)
-            # plot.add_interval(0.05, GraphTypes.WARNING)
-            # plot.add_interval(0.4, GraphTypes.NORMAL)
-            # plot.add_interval(0.05, GraphTypes.WARNING)
-            # plot.add_interval(0.25, GraphTypes.ERROR)
-            plot.set_min_max(plot_range[0], plot_range[1])
-            plot.set_y_axis_unit(plot_unit)
-            # show plot
-            plot.show_all()
+            plot_info = PlotTypes.PLOT_TYPES[plot_index]
 
             # add plot to plot page
-            self.add(plot)
-            # align plot page to fill all available space
-            self.set_valign(Gtk.Align.FILL)
+            self.add_plot(plot_info, selected_progs)
 
-            # append plot to plot list
-            self.plots.append(plot)
-            # if maximum plot number reached, disable add button
-            if len(self.plots) >= self.MAX_PLOTS:
-                self.addBtn.set_sensitive(False)
+            # emit message about plot num change to control
+            self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
         # hide plot selection dialog
         plotTypeDlg.hide()
 
-    # filtering function that passes measured data to plots if they need it
-    def on_incoming_data(self, data):
-        for plot in self.plots:
-            # if plot requires data for this stream/prog/pid
-            if data[0] in plot.progs:
-                plot.on_incoming_data([data[0], data[1][plot.minor_type]])
+    def add_plot(self, plot_info, plot_progs):
+
+        # get information about selected prog type
+        plot_title = plot_info[0]
+        plot_unit = plot_info[1]
+        plot_range = plot_info[2]
+
+        # create new plot with selected parameters
+        plot = Plot(plot_info, plot_progs)
+        # connect delete plot event to plot close button
+        plot.close_button.connect('clicked', self.on_plot_delete)
+
+        # append plot unit (if any) to plot title
+        if plot_unit == '%%':
+            plot_title += ', ' + '%'
+        elif plot_unit is not '':
+            plot_title += ", " + plot_unit
+        plot.set_title(plot_title)
+        # plot.add_interval(0.25, GraphTypes.ERROR, True)
+        # plot.add_interval(0.05, GraphTypes.WARNING)
+        # plot.add_interval(0.4, GraphTypes.NORMAL)
+        # plot.add_interval(0.05, GraphTypes.WARNING)
+        # plot.add_interval(0.25, GraphTypes.ERROR)
+        plot.set_min_max(plot_range[0], plot_range[1])
+        plot.set_y_axis_unit(plot_unit)
+        # show plot
+        plot.show_all()
+
+        # add plot to plot page
+        self.add(plot)
+
+        # append plot to plot list
+        self.plots.append(plot)
+
+        # unselect all programs in model
+        self.mainWnd.analyzedStore.unselect_all()
+
+        # hide placeholder and move add button to right edge of the page
+        self.placeholder.hide()
+        self.addBtn.set_halign(Gtk.Align.END)
+
+        # align plot page to fill all available space
+        self.set_valign(Gtk.Align.FILL)
+
+        # if maximum plot number reached, disable add button
+        if len(self.plots) >= self.MAX_PLOTS:
+            self.addBtn.set_sensitive(False)
 
     # if user deletes the plot from page
     def on_plot_delete(self, widget):
@@ -146,3 +154,12 @@ class PlotPage(Gtk.Box):
         if len(self.plots) < self.MAX_PLOTS:
                 self.addBtn.set_sensitive(True)
 
+        # emit message about plot num change to control
+        self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
+
+    # filtering function that passes measured data to plots if they need it
+    def on_incoming_data(self, data):
+        for plot in self.plots:
+            # if plot requires data for this stream/prog/pid
+            if data[0] in plot.progs:
+                plot.on_incoming_data([data[0], data[1][plot.data_index]])

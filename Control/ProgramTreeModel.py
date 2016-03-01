@@ -18,6 +18,18 @@ class ProgramTreeModel(Gtk.TreeStore):
                            "video": "video-x-generic",
                            "audio": "audio-x-generic"}
 
+    def unselect_all(self):
+        piter = self.get_iter_first()
+        while piter is not None:
+            self[piter][2] = False
+            self[piter][3] = False
+            citer = self.iter_children(piter)
+            while citer is not None:
+                self[citer][2] = False
+                self[citer][3] = False
+                citer = self.iter_next(citer)
+            piter = self.iter_next(piter)
+
     def clear_model(self):
         self.clear()
 

@@ -20,8 +20,12 @@ class Interval():
 
 
 class Plot(Gtk.Box):
-    def __init__(self, selected_progs, plot_index):
+    def __init__(self, plot_type, plot_progs):
         Gtk.Box.__init__(self)
+
+        # save incoming parameters
+        self.plot_type = plot_type
+        self.plot_progs = plot_progs
 
         # main widget of a plot - box with vertical orientation
         self.set_orientation(Gtk.Orientation.VERTICAL)
@@ -54,8 +58,7 @@ class Plot(Gtk.Box):
         self.da.set_events(Gdk.EventMask.EXPOSURE_MASK)
 
         # add plot bottom bar at the bottom
-        print(selected_progs)
-        self.bottom_bar = PlotBottomBar(selected_progs)
+        self.bottom_bar = PlotBottomBar(plot_progs)
 
         self.add(self.label_box)
         self.add(self.da)
@@ -69,13 +72,17 @@ class Plot(Gtk.Box):
 
         # plot parameters
         # plot type
-        self.minor_type = plot_index
-        self.major_type = 'video' if plot_index < 5 else 'audio'
+        # minor type - name of parameter
+        self.minor_type = plot_type[0]
+        # major type - video or audio
+        self.major_type = plot_type[3]
+        # measured data index
+        self.data_index = plot_type[4]
 
         # progs displayed on graph. needed for mapping data
         # to corresponding plot line
         self.progs = []
-        for prog in selected_progs:
+        for prog in plot_progs:
             prog_info = []
             # stream id
             prog_info.append(prog[0])
@@ -172,10 +179,7 @@ class Plot(Gtk.Box):
 
     # set unit for plot y axis
     def set_y_axis_unit(self, unit):
-        if unit == '%':
-            self.unit = '%%'
-        else:
-            self.unit = unit
+        self.unit = unit
         self.clear_background()
         self.bottom_bar.set_unit(unit)
 

@@ -35,7 +35,7 @@ class Control():
         # create program tree model for analyzed programs
         self.analyzed_progs = ProgramTreeModel()
         # append list of analyzed programs from config to model
-        self.analyzed_progs.add_all_streams(self.config.load_prog_list())
+        self.analyzed_progs.add_all_streams(self.config.get_prog_list())
         # create error types model
         self.error_model = ErrorTypesModel()
 
@@ -47,7 +47,8 @@ class Control():
                               self.analyzed_progs,
                               self.error_model,
                               self.config.get_dark_theme(),
-                              self.config.get_table_revealer())
+                              self.config.get_table_revealer(),
+                              self.config.get_plot_info())
         # self.usb = Usb()
 
         # connect to gui signals
@@ -68,6 +69,9 @@ class Control():
 
         self.gui.connect(CustomMessages.PROG_TABLE_REVEALER,
                          self.on_gui_table_revealer)
+
+        self.gui.connect(CustomMessages.PLOT_PAGE_CHANGED,
+                         self.on_gui_plot_page_changed)
 
 
         # connect to usb signals
@@ -172,7 +176,6 @@ class Control():
         # to draw video backend needs xid of drawing areas
         # so we get them from gui
         xids = self.gui.get_renderers_xids()
-        # combine prog list with xids
 
         # apply new settings to backend
         # (settings consist of program list and xids)
@@ -219,7 +222,7 @@ class Control():
             self.backend.restart_pipeline(process_id)
 
         # save program list in config
-        self.config.save_prog_list(selected_progs)
+        self.config.set_prog_list(selected_progs)
 
     def on_start_from_gui(self, wnd):
         self.start_analysis()
@@ -235,6 +238,10 @@ class Control():
 
     def on_gui_table_revealer(self, wnd, data):
         self.config.set_table_revealer(data)
+
+    def on_gui_plot_page_changed(self, wnd):
+        plot_info = self.gui.get_plot_info()
+        self.config.set_plot_info(plot_info)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

@@ -4,6 +4,7 @@ from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
 from Gui.PlotPage.PlotProgramTreeView import PlotProgramTreeView
+from Gui.PlotPage import PlotTypes
 
 
 class PlotTypeSelectDialog(BaseDialog):
@@ -12,16 +13,6 @@ class PlotTypeSelectDialog(BaseDialog):
 
         # remember store
         self.store = parent.analyzedStore
-
-        # list of available video plots
-        self.plot_types = (
-            ("Количество идентичных пикселей", '%', [0, 100], 'video'),
-            ("Количество чёрных пикселей", '%', [0, 100], 'video'),
-            ("Уровень блочности", '', [0, 10], 'video'),
-            ("Средняя яркость кадра", '', [0, 255], 'video'),
-            ("Среднее различие между кадрами", '', [0, 255], 'video'),
-            ("Моментальная громкость", 'LUFS', [-40, -14], 'audio'),
-            ("Кратковременная громкость", 'LUFS', [-40, -14], 'audio'))
 
         # get main widget
         mainBox = self.get_content_area()
@@ -32,8 +23,8 @@ class PlotTypeSelectDialog(BaseDialog):
         self.type_select_page.set_property('selection-mode',
                                            Gtk.SelectionMode.BROWSE)
         # add plot types to list
-        for type in self.plot_types:
-            row = Gtk.Label(label=type[0])
+        for type_ in PlotTypes.PLOT_TYPES:
+            row = Gtk.Label(label=type_[0])
             self.type_select_page.insert(row, -1)
 
         # selecting first type
@@ -43,7 +34,7 @@ class PlotTypeSelectDialog(BaseDialog):
 
         # create program select page
         self.prog_select_page = PlotProgramTreeView(self.store)
-        self.prog_select_page.unselect_all()
+        self.store.unselect_all()
         self.prog_select_page.renderer_check.connect(
             'toggled',
             self.on_program_selection_changed)
@@ -127,7 +118,7 @@ class PlotTypeSelectDialog(BaseDialog):
             # if currently selected type is different from previous selection
             if row != self.selected_row:
                 # clear program selection
-                self.prog_select_page.unselect_all()
+                self.store.unselect_all()
 
             # rewrite previously selected row
             self.selected_row = row
@@ -151,7 +142,7 @@ class PlotTypeSelectDialog(BaseDialog):
 
     # get information about selected plot type
     def get_selected_plot_type_info(self, row):
-        return self.plot_types[row.get_index()]
+        return PlotTypes.PLOT_TYPES[row.get_index()]
 
     # get selected plot type
     def get_selected_plot_type(self):

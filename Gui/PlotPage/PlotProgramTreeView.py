@@ -121,18 +121,6 @@ class PlotProgramTreeView(Gtk.TreeView):
         if all_selected is False:
             self.store_filter[piter][3] = some_selected
 
-    def unselect_all(self):
-        piter = self.store_filter.get_iter_first()
-        while piter is not None:
-            self.store_filter[piter][2] = False
-            self.store_filter[piter][3] = False
-            citer = self.store_filter.iter_children(piter)
-            while citer is not None:
-                self.store_filter[citer][2] = False
-                self.store_filter[citer][3] = False
-                citer = self.store_filter.iter_next(citer)
-            piter = self.store_filter.iter_next(piter)
-
     def set_filter_type(self, filter_type):
         self.filter_type = filter_type
 

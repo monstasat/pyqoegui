@@ -27,7 +27,9 @@ class MainWindow(Gtk.Window):
         CustomMessages.COLOR_THEME: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int,)),
         CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
-                                        None, (int,))}
+                                        None, (int,)),
+        CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ())}
 
     def __init__(self,
                  app,
@@ -35,7 +37,8 @@ class MainWindow(Gtk.Window):
                  analyzed_progs_model,
                  error_model,
                  color_theme,
-                 table_revealed):
+                 table_revealed,
+                 plot_info):
 
         Gtk.Window.__init__(self, application=app)
 
@@ -146,13 +149,16 @@ class MainWindow(Gtk.Window):
 
         self.set_titlebar(hb)
 
+        self.show_all()
+
         # set initial gui view
         if color_theme is True:
             darkThemeCheck.set_active(True)
         if table_revealed is True:
             self.showTableBtn.set_active(table_revealed)
-
-        self.show_all()
+        for plot in plot_info:
+            print(plot)
+            self.plot_page.add_plot(plot[0], plot[1])
 
         # code to set some elements initially visible/invisible
         self.cur_results_page.hide_renderer_and_table()
@@ -221,6 +227,13 @@ class MainWindow(Gtk.Window):
 
     def set_draw_mode_for_renderers(self, draw, stream_id):
         self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
+
+    # get plot page parameters
+    def get_plot_info(self):
+        plot_info = []
+        for plot in self.plot_page.plots:
+            plot_info.append([plot.plot_type, plot.plot_progs])
+        return plot_info
 
     # start button was clicked
     def on_start_clicked(self, widget):

@@ -36,7 +36,10 @@ class PlotBottomBarChild(Gtk.Box):
         self.value.set_text("%.1f" % float(value) + " " + self.unit)
 
     def set_unit(self, unit):
-        self.unit = unit
+        if unit == '%%':
+            self.unit = '%'
+        else:
+            self.unit = unit
 
 
 class PlotBottomBar(Gtk.FlowBox):

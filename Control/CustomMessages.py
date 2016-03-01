@@ -10,3 +10,5 @@ VOLUME_CHANGED = 'renderer_volume_changed'
 COLOR_THEME = 'color_theme_changed'
 # program table shown/hidden
 PROG_TABLE_REVEALER = 'prog_table_visibility_changed'
+# plot was added/deleted
+PLOT_PAGE_CHANGED = 'plot_page_changed'

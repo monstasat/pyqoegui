@@ -12,7 +12,7 @@ class Config():
         except:
             self.config['DEFAULT'] = {'prog_list': '[]',
                                       'dark_theme': 'False',
-                                      'table_revealer': 'True',
+                                      'table_revealer': 'False',
                                       'language': 'ru'}
 
             self.config['user'] = {}
@@ -22,11 +22,11 @@ class Config():
         with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
 
-    def save_prog_list(self, progList):
+    def set_prog_list(self, progList):
         self.config['user']['prog_list'] = json.dumps(progList)
         self.write_ini()
 
-    def load_prog_list(self):
+    def get_prog_list(self):
         self.config.read('config.ini')
         progList = self.config['user'].get('prog_list', '[]')
 
@@ -49,3 +49,14 @@ class Config():
         self.config.read('config.ini')
         table_revealer = self.config['user'].getboolean('table_revealer')
         return bool(table_revealer)
+
+    def set_plot_info(self, plot_info):
+        print("\n", plot_info)
+        self.config['user']['plot_info'] = json.dumps(plot_info)
+        self.write_ini()
+
+    def get_plot_info(self):
+        self.config.read('config.ini')
+        plot_info = self.config['user'].get('plot_info', '[]')
+
+        return json.loads(plot_info)
