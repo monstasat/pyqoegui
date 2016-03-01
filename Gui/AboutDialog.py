@@ -1,4 +1,4 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 
 # version number
 # major, minor, revision
@@ -24,5 +24,11 @@ class AboutDialog(Gtk.AboutDialog):
                           "Анализ качества изображения и звука "
                           "в цифровых ТВ программах")
         self.set_property("copyright", '© 2016 АО "НИИ телевидения"')
-        self.set_property("logo-icon-name", "help-about")
+
+        try:
+            logo = GdkPixbuf.Pixbuf.new_from_file('./Gui/logo_square.png')
+            logo = logo.scale_simple(128, 128, GdkPixbuf.InterpType.BILINEAR)
+            self.set_property("logo", logo)
+        except:
+            self.set_property("logo-icon-name", "help-about")
 
