@@ -88,3 +88,7 @@ class CurrentResultsPage(Gtk.Grid):
     def get_table_revealer(self):
         return self.tableRevealer
 
+    def mute_all_renderers(self):
+        for rend in self.rend.rend_arr:
+            rend.set_volume(0)
+

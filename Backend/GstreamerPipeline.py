@@ -95,14 +95,16 @@ class GstreamerPipeline():
 
     def send_message_to_pipeline(self, msg, destination):
         # open connection with gstreamer pipeline
-        client = Gio.SocketClient.new()
-        connection = client.connect_to_host("localhost", destination, None)
-        istream = connection.get_input_stream()
-        ostream = connection.get_output_stream()
-        # send message
-        ostream.write(msg)
-        # close connection
-        connection.close(None)
+        # if pipeline is not terminated
+        if self.state is not State.TERMINATED:
+            client = Gio.SocketClient.new()
+            connection = client.connect_to_host("localhost", destination, None)
+            istream = connection.get_input_stream()
+            ostream = connection.get_output_stream()
+            # send message
+            ostream.write(msg)
+            # close connection
+            connection.close(None)
 
     def change_volume(self, prog_id, pid, value):
         msg_parts = []

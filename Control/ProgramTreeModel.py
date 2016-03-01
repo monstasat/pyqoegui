@@ -56,7 +56,6 @@ class ProgramTreeModel(Gtk.TreeStore):
                     pids_info.append([pid[0], type_])
                 prog_info.append(prog_type)
                 prog_info.append(pids_info)
-                print(prog_info)
                 guiProgInfo.append(prog_info)
 
         return guiProgInfo

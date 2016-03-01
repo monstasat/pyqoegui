@@ -8,7 +8,6 @@ class Backend():
         self.gs_pipelines = []
         # create gs pipeline instances
         for stream_id in range(streams):
-            print("stream id is: " + str(stream_id))
             self.gs_pipelines.append(GstreamerPipeline(stream_id))
 
     # check if stream id parameter is valid

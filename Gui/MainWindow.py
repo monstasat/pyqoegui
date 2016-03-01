@@ -242,6 +242,9 @@ class MainWindow(Gtk.Window):
             plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
         return plot_info
 
+    def mute_all_renderers(self):
+        self.cur_results_page.mute_all_renderers()
+
     # start button was clicked
     def on_start_clicked(self, widget):
         # send stop message if button label is stop and vice versa

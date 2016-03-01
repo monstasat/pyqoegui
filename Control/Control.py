@@ -103,11 +103,17 @@ class Control():
         self.backend.start_all_pipelines()
         self.gui.toolbar.change_start_icon()
 
+        # set volume on all renderers to null
+        self.gui.mute_all_renderers()
+
     def stop_analysis(self):
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
         self.gui.toolbar.change_start_icon()
         self.stream_progs.clear_model()
+
+        # set volume on all renderers to null
+        self.gui.mute_all_renderers()
 
         # set drawing black background for all renderers to True
         for stream in self.analyzed_progs.get_list():
@@ -210,6 +216,13 @@ class Control():
         # force redrawing of gui
         self.gui.queue_draw()
 
+    def send_analysis_params_to_backend(self):
+        analysis_settings = self.error_model.get_settings_list()
+        self.config.set_analysis_settings(analysis_settings)
+        black_pixel_val = int(analysis_settings[5][2])
+        pixel_diff = int(analysis_settings[9][2])
+        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
+
     # actions when gui send NEW_SETTINS_PROG_LIST message
     def on_new_prog_settings_from_gui(self, param):
         # get selected program list from stream progs model
@@ -228,6 +241,8 @@ class Control():
         # restart pipelines with selected ids
         for process_id in stream_ids:
             self.backend.restart_pipeline(process_id)
+            # apply analysis params to backend
+            self.send_analysis_params_to_backend()
 
         # save program list in config
         self.config.set_prog_list(selected_progs)
@@ -252,11 +267,7 @@ class Control():
         self.config.set_plot_info(plot_info)
 
     def on_analysis_settings_changed(self, wnd):
-        analysis_settings = self.error_model.get_settings_list()
-        self.config.set_analysis_settings(analysis_settings)
-        black_pixel_val = int(analysis_settings[5][2])
-        pixel_diff = int(analysis_settings[9][2])
-        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
+        self.send_analysis_params_to_backend()
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

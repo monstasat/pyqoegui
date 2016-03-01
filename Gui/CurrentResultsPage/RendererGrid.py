@@ -65,15 +65,15 @@ class Renderer(Gtk.Grid):
             self.drawarea.set_visual(visual)
 
         # creating volume button at the right edge of a renderer instance
-        volbtn = Gtk.VolumeButton(halign=Gtk.Align.END,
+        self.volbtn = Gtk.VolumeButton(halign=Gtk.Align.END,
                                   hexpand=False,
                                   vexpand=False)
 
-        volbtn.connect('value-changed', self.volume_changed)
+        self.volbtn.connect('value-changed', self.volume_changed)
         # if program to this renderer do no contain audio,
         # disable volume button
         if (guiProgInfo[3] != 2) and (guiProgInfo[3] != 3):
-            volbtn.set_sensitive(False)
+            self.volbtn.set_sensitive(False)
 
         # creating a program label
         progname = Gtk.Label(label=self.progName,
@@ -84,7 +84,7 @@ class Renderer(Gtk.Grid):
         # attach elements to grid
         self.attach(self.drawarea, 0, 0, 2, 1)
         self.attach(progname, 0, 1, 1, 1)
-        self.attach(volbtn, 1, 1, 1, 1)
+        self.attach(self.volbtn, 1, 1, 1, 1)
 
     def volume_changed(self, widget, value):
         self.emit(CustomMessages.VOLUME_CHANGED,
@@ -105,6 +105,9 @@ class Renderer(Gtk.Grid):
             h = self.drawarea.get_allocated_height()
             cr.rectangle(0, 0, w, h)
             cr.fill()
+
+    def set_volume(self, value):
+        self.volbtn.set_value(value)
 
 
 # a grid of video renderers
