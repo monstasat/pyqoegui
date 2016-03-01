@@ -50,11 +50,11 @@ class PlotBottomBar(Gtk.FlowBox):
             Gdk.RGBA(1.000000, 0.627451, 0.478431, 1.0),  # lightsalmon
             Gdk.RGBA(0.517647, 0.439216, 1.000000, 1.0),  # lightslateblue
             Gdk.RGBA(1.000000, 0.000000, 1.000000, 1.0),  # magenta
-            Gdk.RGBA(0.941176, 0.901961, 0.549020, 1.0),  # khaki
-            Gdk.RGBA(1.000000, 0.941176, 0.960784, 1.0),  # lavenderblush
-            Gdk.RGBA(1.000000, 0.980392, 0.803922, 1.0),  # lemonchiffon
+            Gdk.RGBA(0.000000, 0.000000, 0.501961, 1.0),  # navy
+            Gdk.RGBA(0.698039, 0.133333, 0.133333, 1.0),  # firebrick
+            Gdk.RGBA(0.254902, 0.411765, 0.882353, 1.0),  # royalblue
             Gdk.RGBA(0.294118, 0.000000, 0.509804, 1.0),  # indigo
-            Gdk.RGBA(0.827451, 0.827451, 0.827451, 1.0),  # lightgrey
+            Gdk.RGBA(0.443137, 0.776471, 0.443137, 1.0),  # sgichartreuse
             Gdk.RGBA(0.400000, 0.803922, 0.666667, 1.0),  # mediumaquamarine
             Gdk.RGBA(0.117647, 0.564706, 1.000000, 1.0),  # dodgerblue
             Gdk.RGBA(0.960784, 0.960784, 0.960784, 1.0),  # whitesmoke
