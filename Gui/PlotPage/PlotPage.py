@@ -100,9 +100,7 @@ class PlotPage(Gtk.Box):
         plot.close_button.connect('clicked', self.on_plot_delete)
 
         # append plot unit (if any) to plot title
-        if plot_unit == '%%':
-            plot_title += ', ' + '%'
-        elif plot_unit is not '':
+        if plot_unit is not '':
             plot_title += ", " + plot_unit
         plot.set_title(plot_title)
         # plot.add_interval(0.25, GraphTypes.ERROR, True)

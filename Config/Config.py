@@ -13,7 +13,9 @@ class Config():
             self.config['DEFAULT'] = {'prog_list': '[]',
                                       'dark_theme': 'False',
                                       'table_revealer': 'False',
-                                      'language': 'ru'}
+                                      'language': 'ru',
+                                      'plot_info': '[]',
+                                      'analysis_settings': '[]'}
 
             self.config['user'] = {}
             self.write_ini()
@@ -51,6 +53,8 @@ class Config():
         return bool(table_revealer)
 
     def set_plot_info(self, plot_info):
+        for plot in plot_info:
+            plot[0][1] = plot[0][1].replace('%', '%%')
         self.config['user']['plot_info'] = json.dumps(plot_info)
         self.write_ini()
 
@@ -59,3 +63,15 @@ class Config():
         plot_info = self.config['user'].get('plot_info', '[]')
 
         return json.loads(plot_info)
+
+    def set_analysis_settings(self, analysis_settings):
+        for setting in analysis_settings:
+            setting[0] = setting[0].replace('%', '%%')
+        self.config['user']['analysis_settings'] = json.dumps(analysis_settings)
+        self.write_ini()
+
+    def get_analysis_settings(self):
+        self.config.read('config.ini')
+        analysis_settings = self.config['user'].get('analysis_settings', '[]')
+
+        return json.loads(analysis_settings)

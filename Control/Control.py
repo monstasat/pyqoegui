@@ -38,6 +38,8 @@ class Control():
         self.analyzed_progs.add_all_streams(self.config.get_prog_list())
         # create error types model
         self.error_model = ErrorTypesModel()
+        # append list of analysis settings from config to model
+        self.error_model.set_settings(self.config.get_analysis_settings())
 
         # create backend
         self.backend = Backend(streams=1)
@@ -72,6 +74,9 @@ class Control():
 
         self.gui.connect(CustomMessages.PLOT_PAGE_CHANGED,
                          self.on_gui_plot_page_changed)
+
+        self.gui.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
+                         self.on_analysis_settings_changed)
 
 
         # connect to usb signals
@@ -242,6 +247,10 @@ class Control():
     def on_gui_plot_page_changed(self, wnd):
         plot_info = self.gui.get_plot_info()
         self.config.set_plot_info(plot_info)
+
+    def on_analysis_settings_changed(self, wnd):
+        analysis_settings = self.error_model.get_settings_list()
+        self.config.set_analysis_settings(analysis_settings)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

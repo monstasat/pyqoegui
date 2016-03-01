@@ -12,3 +12,5 @@ COLOR_THEME = 'color_theme_changed'
 PROG_TABLE_REVEALER = 'prog_table_visibility_changed'
 # plot was added/deleted
 PLOT_PAGE_CHANGED = 'plot_page_changed'
+# analysis settings changed
+ANALYSIS_SETTINGS_CHANGED = 'analysis_settings_changed'

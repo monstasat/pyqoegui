@@ -87,3 +87,32 @@ class ErrorTypesModel(Gtk.ListStore):
             iter = self.get_iter_from_string(str(index))
             return self[iter][5]
 
+    # return settings in the list format
+    def get_settings_list(self):
+        settings_list = []
+        # iterating over model rows (settings)
+        for row in self:
+            param_list = []
+            # iterating over row parameters
+            for param in row:
+                param_list.append(param)
+            settings_list.append(param_list)
+
+        return settings_list
+
+    def set_settings(self, analysis_settings):
+        self.clear()
+
+        # check if input parameter is consistent
+        if len(analysis_settings) != len(self.default_values):
+            analysis_settings = self.default_values
+
+        # fill the model
+        for value in analysis_settings:
+            self.append([value[0],
+                         value[1],
+                         value[2],
+                         value[3],
+                         value[4],
+                         value[5]])
+

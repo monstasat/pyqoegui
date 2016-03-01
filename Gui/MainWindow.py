@@ -29,6 +29,8 @@ class MainWindow(Gtk.Window):
         CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int,)),
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ()),
+        CustomMessages.ANALYSIS_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, ())}
 
     def __init__(self,
@@ -237,7 +239,7 @@ class MainWindow(Gtk.Window):
             colors = []
             for color in plot.colors:
                 colors.append([color.red, color.green, color.blue, color.alpha])
-            plot_info.append([plot.plot_type, plot.plot_progs, colors])
+            plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
         return plot_info
 
     # start button was clicked
@@ -275,6 +277,7 @@ class MainWindow(Gtk.Window):
             # apply settings
             analysisSetDlg.apply_settings()
             # emit signal from gui to control about new analysis params
+            self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
         analysisSetDlg.destroy()
 
