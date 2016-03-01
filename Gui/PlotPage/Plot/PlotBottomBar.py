@@ -1,6 +1,7 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GObject
 
 from Gui import Spacing
+from Control import CustomMessages
 
 
 class PlotBottomBarChild(Gtk.Box):
@@ -44,7 +45,11 @@ class PlotBottomBarChild(Gtk.Box):
 
 class PlotBottomBar(Gtk.FlowBox):
 
-    def __init__(self, selected_progs):
+    __gsignals__ = {
+        CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ())}
+
+    def __init__(self, selected_progs, colors):
         Gtk.FlowBox.__init__(self)
 
         self.default_colors = (
@@ -94,7 +99,7 @@ class PlotBottomBar(Gtk.FlowBox):
         self.set_row_spacing(Spacing.ROW_SPACING)
 
         # init colors with default_colors
-        self.colors = list(self.default_colors)
+        self.colors = colors
 
         # add children to flowbox
         self.add_children(selected_progs)
@@ -107,6 +112,13 @@ class PlotBottomBar(Gtk.FlowBox):
         self.children.clear()
         # add new children
         for i, prog in enumerate(selected_progs):
+            try:
+                self.colors[i]
+            # if index is out of range
+            # append one of default colors to list
+            except IndexError:
+                self.colors.append(
+                    self.default_colors[i % len(self.default_colors)])
             child = PlotBottomBarChild(prog[2], self.colors[i], i)
             child.color_btn.connect('color-set', self.on_color_chosen)
             self.children.append(child)
@@ -124,6 +136,7 @@ class PlotBottomBar(Gtk.FlowBox):
         index = color_btn.get_parent().index
         rgba = color_btn.get_rgba()
         self.colors[index] = rgba
+        self.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
     def set_value(self, value, index):
         self.children[index].set_value(value)

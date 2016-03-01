@@ -157,8 +157,10 @@ class MainWindow(Gtk.Window):
         if table_revealed is True:
             self.showTableBtn.set_active(table_revealed)
         for plot in plot_info:
-            print(plot)
-            self.plot_page.add_plot(plot[0], plot[1])
+            colors = []
+            for color in plot[2]:
+                colors.append(Gdk.RGBA(color[0], color[1], color[2], color[3]))
+            self.plot_page.add_plot(plot[0], plot[1], colors)
 
         # code to set some elements initially visible/invisible
         self.cur_results_page.hide_renderer_and_table()
@@ -232,7 +234,10 @@ class MainWindow(Gtk.Window):
     def get_plot_info(self):
         plot_info = []
         for plot in self.plot_page.plots:
-            plot_info.append([plot.plot_type, plot.plot_progs])
+            colors = []
+            for color in plot.colors:
+                colors.append([color.red, color.green, color.blue, color.alpha])
+            plot_info.append([plot.plot_type, plot.plot_progs, colors])
         return plot_info
 
     # start button was clicked

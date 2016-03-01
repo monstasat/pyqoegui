@@ -51,7 +51,6 @@ class Config():
         return bool(table_revealer)
 
     def set_plot_info(self, plot_info):
-        print("\n", plot_info)
         self.config['user']['plot_info'] = json.dumps(plot_info)
         self.write_ini()
 

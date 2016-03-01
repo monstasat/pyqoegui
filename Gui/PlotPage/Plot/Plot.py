@@ -10,6 +10,7 @@ from Gui.PlotPage.Plot.PlotBottomBar import PlotBottomBar
 from Gui.PlotPage.Plot import GraphTypes
 from Gui import Spacing
 from Gui.Icon import Icon
+from Control import CustomMessages
 
 
 class Interval():
@@ -20,7 +21,12 @@ class Interval():
 
 
 class Plot(Gtk.Box):
-    def __init__(self, plot_type, plot_progs):
+
+    __gsignals__ = {
+        CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ())}
+
+    def __init__(self, plot_type, plot_progs, colors):
         Gtk.Box.__init__(self)
 
         # save incoming parameters
@@ -58,7 +64,12 @@ class Plot(Gtk.Box):
         self.da.set_events(Gdk.EventMask.EXPOSURE_MASK)
 
         # add plot bottom bar at the bottom
-        self.bottom_bar = PlotBottomBar(plot_progs)
+        self.bottom_bar = PlotBottomBar(plot_progs, colors)
+        self.bottom_bar.connect(CustomMessages.PLOT_PAGE_CHANGED,
+                                self.on_plot_changed)
+
+        # remember colors of bottom bar
+        self.colors = self.bottom_bar.colors
 
         self.add(self.label_box)
         self.add(self.da)
@@ -95,7 +106,6 @@ class Plot(Gtk.Box):
             # convert strings to int
             prog_info = list(map(int, prog_info))
             self.progs.append(prog_info)
-        print(self.progs)
 
         # buffers for storing input data before it is shown on graph
         self.buffer = []
@@ -443,4 +453,8 @@ class Plot(Gtk.Box):
             average = None
         self.buffer[index].clear()
         return average
+
+    # when plot colors are changed
+    def on_plot_changed(self, wnd):
+        self.emit(CustomMessages.PLOT_PAGE_CHANGED)
 

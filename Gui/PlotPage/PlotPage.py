@@ -79,7 +79,7 @@ class PlotPage(Gtk.Box):
             plot_info = PlotTypes.PLOT_TYPES[plot_index]
 
             # add plot to plot page
-            self.add_plot(plot_info, selected_progs)
+            self.add_plot(plot_info, selected_progs, [])
 
             # emit message about plot num change to control
             self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
@@ -87,7 +87,7 @@ class PlotPage(Gtk.Box):
         # hide plot selection dialog
         plotTypeDlg.hide()
 
-    def add_plot(self, plot_info, plot_progs):
+    def add_plot(self, plot_info, plot_progs, colors):
 
         # get information about selected prog type
         plot_title = plot_info[0]
@@ -95,7 +95,7 @@ class PlotPage(Gtk.Box):
         plot_range = plot_info[2]
 
         # create new plot with selected parameters
-        plot = Plot(plot_info, plot_progs)
+        plot = Plot(plot_info, plot_progs, colors)
         # connect delete plot event to plot close button
         plot.close_button.connect('clicked', self.on_plot_delete)
 
@@ -112,6 +112,8 @@ class PlotPage(Gtk.Box):
         # plot.add_interval(0.25, GraphTypes.ERROR)
         plot.set_min_max(plot_range[0], plot_range[1])
         plot.set_y_axis_unit(plot_unit)
+        # connect plot to changed signal
+        plot.connect(CustomMessages.PLOT_PAGE_CHANGED, self.on_plot_changed)
         # show plot
         plot.show_all()
 
@@ -155,6 +157,9 @@ class PlotPage(Gtk.Box):
                 self.addBtn.set_sensitive(True)
 
         # emit message about plot num change to control
+        self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
+
+    def on_plot_changed(self, wnd):
         self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
     # filtering function that passes measured data to plots if they need it
