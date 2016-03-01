@@ -13,6 +13,7 @@ from Control.ErrorTypesModel import ErrorTypesModel
 from Control.ProgramTreeModel import ProgramTreeModel
 from Config.Config import Config
 from Log import Log
+from Control.RfExchange import RfExchange
 
 
 class Control():
@@ -27,6 +28,8 @@ class Control():
         self.msg_translator = TranslateMessages()
         # create error detector
         self.error_detector = ErrorDetector()
+        # create tv tuner control
+        self.rf_tuner = RfExchange()
         # execute server for receiving messages from gstreamer pipeline
         self.start_server(1600)
 
