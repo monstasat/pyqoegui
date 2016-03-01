@@ -20,6 +20,8 @@ class GstreamerPipeline():
         self.BYTE_PROG_DIVIDER = 0xACDC0000
         self.HEADER_PROG_LIST = 0xDEADBEEF
 
+        self.HEADER_SOUND = 0x0EFA1922
+
     def execute(self):
         # terminate previously executed process if any
         self.terminate()
@@ -84,7 +86,7 @@ class GstreamerPipeline():
             msg_parts.append(pack('I', self.HEADER_PROG_LIST))
             msg = b"".join(msg_parts)
             # send message to gstreamer pipeline
-            self.send_message_to_pipeline(msg, 1500 + int(stream_id))
+            self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
             self.state = State.RUNNING
 
     def send_message_to_pipeline(self, msg, destination):
@@ -97,4 +99,22 @@ class GstreamerPipeline():
         ostream.write(msg)
         # close connection
         connection.close(None)
+
+    def change_volume(self, prog_id, pid, value):
+        msg_parts = []
+
+        # add message header
+        msg_parts.append(pack('I', self.HEADER_SOUND))
+
+        # add message parameters
+        msg_parts.append(pack('I', prog_id))
+        msg_parts.append(pack('I', pid))
+        msg_parts.append(pack('I', value))
+
+        # add message ending
+        msg_parts.append(pack('I', self.HEADER_SOUND))
+        msg = b"".join(msg_parts)
+
+        # send message to gstreamer pipeline
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 

@@ -76,3 +76,8 @@ class Backend():
 
         return [stream_id, combined_progs]
 
+    # change renderer volume
+    def change_volume(self, stream_id, prog_id, pid, value):
+        if (self.is_pipeline(stream_id) is True):
+            self.gs_pipelines[stream_id].change_volume(prog_id, pid, value)
+

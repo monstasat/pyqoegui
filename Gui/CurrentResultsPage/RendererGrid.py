@@ -6,11 +6,16 @@ require_version('GdkX11', '3.0')
 from gi.repository import Gtk, Gdk, GdkX11, GObject
 
 from Gui import Spacing
+from Control import CustomMessages
 
 
 # one instance of video renderer
 # (includes renderer window, prog name label, volume button)
 class Renderer(Gtk.Grid):
+
+    __gsignals__ = {
+        CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, (int, int, int, int,))}
 
     def __init__(self, guiProgInfo):
         Gtk.Grid.__init__(self)
@@ -23,6 +28,17 @@ class Renderer(Gtk.Grid):
         self.progID = guiProgInfo[1]
         # program name from SDT
         self.progName = guiProgInfo[2]
+        # video pid
+        self.video_pid = None
+        # audio pid
+        self.audio_pid = None
+
+        for pid in guiProgInfo[4]:
+            pid_type = pid[1].split('-')[0]
+            if pid_type == 'video':
+                self.video_pid = int(pid[0])
+            elif pid_type == 'audio':
+                self.audio_pid = int(pid[0])
 
         # should be horizontally expandable and fill all available space
         self.set_hexpand_set(True)
@@ -54,6 +70,10 @@ class Renderer(Gtk.Grid):
                                   vexpand=False)
 
         volbtn.connect('value-changed', self.volume_changed)
+        # if program to this renderer do no contain audio,
+        # disable volume button
+        if (guiProgInfo[3] != 2) and (guiProgInfo[3] != 3):
+            volbtn.set_sensitive(False)
 
         # creating a program label
         progname = Gtk.Label(label=self.progName,
@@ -67,7 +87,11 @@ class Renderer(Gtk.Grid):
         self.attach(volbtn, 1, 1, 1, 1)
 
     def volume_changed(self, widget, value):
-        pass
+        self.emit(CustomMessages.VOLUME_CHANGED,
+                  int(self.stream_id),
+                  int(self.progID),
+                  int(self.audio_pid),
+                  int(value * 100))
 
     # return xid for the drawing area
     def get_drawing_area_xid(self):
@@ -85,6 +109,11 @@ class Renderer(Gtk.Grid):
 
 # a grid of video renderers
 class RendererGrid(Gtk.FlowBox):
+
+    __gsignals__ = {
+        CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, (int, int, int, int,))}
+
     def __init__(self):
         Gtk.FlowBox.__init__(self)
 
@@ -126,6 +155,9 @@ class RendererGrid(Gtk.FlowBox):
         # add number of renderers
         for i in range(progNum):
             self.rend_arr.append(Renderer(guiProgInfo[i]))
+            # connect renderer to volume changed signal
+            self.rend_arr[i].connect(CustomMessages.VOLUME_CHANGED,
+                                     self.on_volume_changed)
             af = Gtk.AspectFrame(hexpand=True, vexpand=True)
             af.set(0.5, 0.5, 4.0/3.0, False)
             af.add(self.rend_arr[i])
@@ -134,6 +166,13 @@ class RendererGrid(Gtk.FlowBox):
 
         # show all renderers
         self.show_all()
+
+    def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
+        self.emit(CustomMessages.VOLUME_CHANGED,
+                  stream_id,
+                  prog_id,
+                  pid,
+                  value)
 
     # delete all renderers
     def remove_renderers(self):

@@ -48,14 +48,15 @@ class ProgramTreeModel(Gtk.TreeStore):
                 pids_info = []
                 prog_type = 0
                 for pid in pids:
-                    type = pid[2]
-                    if type.split('-')[0] == 'video':
+                    type_ = pid[2]
+                    if type_.split('-')[0] == 'video':
                         prog_type = prog_type | 1
-                    elif type.split('-')[0] == 'audio':
+                    elif type_.split('-')[0] == 'audio':
                         prog_type = prog_type | 2
-                    pids_info.append([pid[0], type])
+                    pids_info.append([pid[0], type_])
                 prog_info.append(prog_type)
                 prog_info.append(pids_info)
+                print(prog_info)
                 guiProgInfo.append(prog_info)
 
         return guiProgInfo

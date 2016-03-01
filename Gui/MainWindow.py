@@ -23,7 +23,7 @@ class MainWindow(Gtk.Window):
         CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
                                               None, ()),
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                        None, ()),
+                                        None, (int, int, int, int)),
         CustomMessages.COLOR_THEME: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int,)),
         CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
@@ -49,7 +49,7 @@ class MainWindow(Gtk.Window):
 
         # main window border width
         self.set_border_width(Spacing.BORDER)
-        self.maximize()
+        #self.maximize()
         # self.set_resizable(False)
         # can't resize window by double click on header bar
         settings = Gtk.Settings.get_default()
@@ -91,7 +91,7 @@ class MainWindow(Gtk.Window):
         hb.pack_end(menuBtn)
 
         # create stack pages
-        self.cur_results_page = CurrentResultsPage()
+        self.cur_results_page = CurrentResultsPage(self)
         self.plot_page = PlotPage(self)
         self.all_results_page = AllResultsPage()
         pages = []

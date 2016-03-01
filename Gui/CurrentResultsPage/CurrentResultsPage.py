@@ -4,14 +4,19 @@ from Gui.CurrentResultsPage.RendererGrid import RendererGrid
 from Gui.CurrentResultsPage.ProgramTable import ProgramTable
 from Gui.Placeholder import Placeholder
 from Gui import Spacing
+from Control import CustomMessages
 
 
 class CurrentResultsPage(Gtk.Grid):
-    def __init__(self):
+    def __init__(self, parent):
         Gtk.Grid.__init__(self)
+
+        # main window
+        self.mainWnd = parent
 
         # creating renderers
         self.rend = RendererGrid()
+        self.rend.connect(CustomMessages.VOLUME_CHANGED, self.on_volume_changed)
 
         # creating renderers overlay
         overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
@@ -45,6 +50,14 @@ class CurrentResultsPage(Gtk.Grid):
         self.set_valign(Gtk.Align.FILL)
         self.set_column_spacing(Spacing.COL_SPACING)
         self.set_row_spacing(Spacing.ROW_SPACING)
+
+    # when user changes volume of renderer
+    def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
+        self.mainWnd.emit(CustomMessages.VOLUME_CHANGED,
+                  stream_id,
+                  prog_id,
+                  pid,
+                  value)
 
     def get_renderers_xid(self):
         return self.rend.get_renderers_xid()

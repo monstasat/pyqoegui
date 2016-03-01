@@ -238,8 +238,8 @@ class Control():
     def on_stop_from_gui(self, wnd):
         self.stop_analysis()
 
-    def on_volume_changed(self, wnd):
-        pass
+    def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
+        self.backend.change_volume(stream_id, prog_id, pid, value)
 
     def on_gui_color_theme_changed(self, wnd, data):
         self.config.set_dark_theme(data)
