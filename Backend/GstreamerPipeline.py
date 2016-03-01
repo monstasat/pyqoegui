@@ -22,6 +22,10 @@ class GstreamerPipeline():
 
         self.HEADER_SOUND = 0x0EFA1922
 
+        self.HEADER_VIDEO_PARAMS = 0xCDDA1307
+        self.TYPE_BLACK_PIX = 0xBA1306BA
+        self.TYPE_PIXEL_DIFF = 0xDA0476AD
+
     def execute(self):
         # terminate previously executed process if any
         self.terminate()
@@ -117,4 +121,36 @@ class GstreamerPipeline():
 
         # send message to gstreamer pipeline
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
+    # apply new analysis parameters
+    def change_analysis_params(self, black_pixel, diff_level):
+
+        msg_parts = []
+
+        # add message header
+        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
+        # add param type and param
+        msg_parts.append(pack('I', self.TYPE_BLACK_PIX))
+        msg_parts.append(pack('I', black_pixel))
+        # add message ending
+        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
+        msg = b"".join(msg_parts)
+
+        # send message to gstreamer pipeline
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
+        msg_parts = []
+
+        # add message header
+        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
+        # add param type and param
+        msg_parts.append(pack('I', self.TYPE_PIXEL_DIFF))
+        msg_parts.append(pack('I', diff_level))
+        # add message ending
+        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
+        msg = b"".join(msg_parts)
+
+        # send message to gstreamer pipeline
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
 

@@ -254,6 +254,9 @@ class Control():
     def on_analysis_settings_changed(self, wnd):
         analysis_settings = self.error_model.get_settings_list()
         self.config.set_analysis_settings(analysis_settings)
+        black_pixel_val = int(analysis_settings[5][2])
+        pixel_diff = int(analysis_settings[9][2])
+        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):
