@@ -2,7 +2,7 @@ from gi.repository import Gtk
 
 # version number
 # major, minor, revision
-VERSION = "0.2.1a"
+VERSION = "0.2.2a"
 
 # about ats analyzer dialog based on Gtk.AboutDialog
 class AboutDialog(Gtk.AboutDialog):
