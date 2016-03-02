@@ -120,7 +120,7 @@ class Plot(Gtk.Box):
         # number of horizontal bars
         self.num_bars = 1
         self.graph_dely = 0
-        self.real_draw_height = 0
+        self.real_draw_height = 0.0
         self.graph_delx = 0
         self.graph_buffer_offset = 0
         # offset from left border
@@ -136,8 +136,8 @@ class Plot(Gtk.Box):
         # flag that permits graph drawing
         self.draw = True
         # graph range
-        self.min = 0
-        self.max = 100
+        self.min = plot_type[2][0]
+        self.max = plot_type[2][1]
         # y axis unit
         self.unit = ""
         # background intervals
@@ -159,7 +159,7 @@ class Plot(Gtk.Box):
         # data storage for analyzed programs
         self.data = []
         for i in range(self.prog_num):
-            self.data.append(deque([-1.0] * self.NUM_POINTS, self.NUM_POINTS))
+            self.data.append(deque([float(self.min)] * self.NUM_POINTS, self.NUM_POINTS))
 
     # set graph title
     def set_title(self, text):
@@ -304,7 +304,7 @@ class Plot(Gtk.Box):
         # self.graph_configure()
         self.get_num_bars()
         self.graph_dely = (self.draw_height - 20) / self.num_bars
-        self.real_draw_height = self.graph_dely * self.num_bars
+        self.real_draw_height = float(self.graph_dely) * float(self.num_bars)
         self.graph_delx = (self.draw_width - 2.0 - self.indent) / (self.NUM_POINTS - 3)
         self.graph_buffer_offset = int((1.5 * self.graph_delx) + self.FRAME_WIDTH)
 
@@ -341,6 +341,7 @@ class Plot(Gtk.Box):
         cr.set_line_width(1.0)
         cr.set_source_rgb(0.89, 0.89, 0.89)
 
+        # draw horizontal bars
         for i in range(self.num_bars + 1):
             y = 0.0
             if i == 0:
@@ -371,7 +372,7 @@ class Plot(Gtk.Box):
             cr.line_to(self.draw_width - self.rmargin + 0.5 + 4, i * self.graph_dely + 0.5)
             cr.stroke()
 
-            total_seconds = int(self.speed * (self.NUM_POINTS - 2) / 1000)
+        total_seconds = int(self.speed * (self.NUM_POINTS - 2) / 1000)
 
         for i in range(7):
             x = i * (self.draw_width - self.rmargin - self.indent) / 6
@@ -432,20 +433,28 @@ class Plot(Gtk.Box):
     # decide number of horizontal bars
     def get_num_bars(self):
         k = int(self.draw_height / (self.fontsize + 14))
+
+        def get_nearest_divider(max_):
+            range_ = abs(self.max - self.min)
+            possible_dividers = list(range(max_, 0, -1))
+            for i in possible_dividers:
+                if range_ % i is 0:
+                    return i
+
         if k == 0 or k == 1:
             self.num_bars = 1
             self.line_width = 1
         elif k == 2 or k == 3:
-            self.num_bars = 2
+            self.num_bars = get_nearest_divider(3)
             self.line_width = 2
         elif k == 4:
-            self.num_bars = 4
+            self.num_bars = get_nearest_divider(4)
             self.line_width = 2
         elif k == 5 or k == 6:
-            self.num_bars = 5
+            self.num_bars = get_nearest_divider(5)
             self.line_width = 2
         else:
-            self.num_bars = 10
+            self.num_bars = get_nearest_divider(10)
             self.line_width = 2
 
     # new data was received

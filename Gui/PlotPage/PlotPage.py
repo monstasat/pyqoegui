@@ -233,25 +233,6 @@ class PlotPage(Gtk.Box):
             low_warn = err_store.get_failure_value(err_store.silence_warn)
             warn = err_store.get_failure_value(err_store.diff_warn)
 
-            first = abs(plot_range[1] - high_err)/abs(plot_range[1] - plot_range[0])
-            second = abs(high_err - high_warn)/abs(plot_range[1] - plot_range[0])
-            third = abs(high_warn - low_warn)/abs(plot_range[1] - plot_range[0])
-            fourth = abs(low_warn - low_err)/abs(plot_range[1] - plot_range[0])
-            fifth = abs(low_err - plot_range[0])/abs(plot_range[1] - plot_range[0])
-            print(abs(plot_range[1] - high_err))
-            print(abs(high_err - high_warn))
-            print(abs(high_warn - low_warn))
-            print(abs(low_warn - low_err))
-            print(abs(low_err - plot_range[0]))
-            print(low_err)
-            print(plot_range[0])
-            print(first)
-            print(second)
-            print(third)
-            print(fourth)
-            print(fifth)
-            print(first + second + third + fourth + fifth)
-
             plot.add_interval(abs(plot_range[1] - high_err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
