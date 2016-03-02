@@ -158,6 +158,9 @@ class Control():
                 # from current and received lists)
                 self.apply_prog_list_to_backend(compared_prog_list)
 
+                # apply analysis params to backend
+                self.send_analysis_params_to_backend()
+
                 # set drawing black background
                 # for corresponding renderers to False
                 self.gui.set_draw_mode_for_renderers(False,
@@ -241,8 +244,6 @@ class Control():
         # restart pipelines with selected ids
         for process_id in stream_ids:
             self.backend.restart_pipeline(process_id)
-            # apply analysis params to backend
-            self.send_analysis_params_to_backend()
 
         # save program list in config
         self.config.set_prog_list(selected_progs)

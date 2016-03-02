@@ -279,6 +279,9 @@ class MainWindow(Gtk.Window):
         if responce == Gtk.ResponseType.APPLY:
             # apply settings
             analysisSetDlg.apply_settings()
+            # apply changes to plots
+            for plot in self.plot_page.plots:
+                self.plot_page.add_plot_intervals(plot)
             # emit signal from gui to control about new analysis params
             self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 

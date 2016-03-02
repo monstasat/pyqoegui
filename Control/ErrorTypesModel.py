@@ -6,6 +6,22 @@ class ErrorTypesModel(Gtk.ListStore):
         # error name, type, failure, min, max, frames till error
         Gtk.ListStore.__init__(self, str, str, float, float, float, float)
 
+        # indexes of store
+        # video
+        self.black_err = 2
+        self.black_warn = 3
+        self.luma_warn = 4
+        self.freeze_err = 6
+        self.freeze_warn = 7
+        self.diff_warn = 8
+        self.block_err = 10
+        self.block_warn = 11
+        # audio
+        self.overload_err = 12
+        self.overload_warn = 13
+        self.silence_err = 14
+        self.silence_warn = 15
+
         self.default_values = (
             ['Пропадание видео, секунд',
              'error',   2.0,   0,  3600, 2],
@@ -16,15 +32,15 @@ class ErrorTypesModel(Gtk.ListStore):
             ['Количество чёрных пикселей, %',
              'warning', 95.0,  0,  100,  75],
             ['Уровень средней яркости',
-             'warning', 10.0,  0,  255,  75],
+             'warning', 10.0,  20,  235,  75],
             ['Уровень чёрного пиксела',
-             'parameter', 16,  0,  100,  0],
+             'parameter', 16,  16,  235,  0],
             ['Количество идентичных пикселей, %',
              'error',   99.5,  0,  100,  75],
             ['Количество идентичных пикселей, %',
              'warning', 95.0,  0,  100,  75],
             ['Уровень средней разности',
-             'warning', 0.20,  0,  255,  75],
+             'warning', 0.20,  0,  219,  75],
             ['Допустимая разность между пикселами',
              'parameter', 0,  0,  100,  0],
             ['Блочность',

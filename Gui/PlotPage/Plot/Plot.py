@@ -172,11 +172,11 @@ class Plot(Gtk.Box):
 
         # set color
         if type == GraphTypes.ERROR:
-            color = (1.0, 0.0, 0.0)
+            color = (1.0, 0.7, 0.7)
         elif type == GraphTypes.WARNING:
-            color = (1.0, 1.0, 0.0)
+            color = (1.0, 1.0, 0.7)
         else:
-            color = (0.0, 1.0, 0.0)
+            color = (0.7, 1.0, 0.7)
 
         # append interval to list
         self.intervals.append(Interval(height=height, color=color, type=type))
@@ -413,6 +413,10 @@ class Plot(Gtk.Box):
                 data = self.get_data(i)
                 if data is None:
                     data = self.data[i][0] * self.max
+                if data < self.min:
+                    data = self.min
+                elif data > self.max:
+                    data = self.max
                 self.data[i].rotate(self.NUM_POINTS-1)
                 self.data[i][0] = data / self.max
                 self.bottom_bar.set_value(data, i)

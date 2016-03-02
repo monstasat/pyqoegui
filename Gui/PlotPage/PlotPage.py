@@ -103,6 +103,9 @@ class PlotPage(Gtk.Box):
         if plot_unit is not '':
             plot_title += ", " + plot_unit
         plot.set_title(plot_title)
+
+        self.add_plot_intervals(plot)
+
         # plot.add_interval(0.25, GraphTypes.ERROR, True)
         # plot.add_interval(0.05, GraphTypes.WARNING)
         # plot.add_interval(0.4, GraphTypes.NORMAL)
@@ -156,6 +159,110 @@ class PlotPage(Gtk.Box):
 
         # emit message about plot num change to control
         self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
+
+    # add intervals to plot
+    def add_plot_intervals(self, plot):
+        # get current plot y axis range
+        plot_range = plot.plot_type[2]
+
+        # get error range store
+        err_store = self.mainWnd.errorSettingsStore
+        err_list = err_store.get_settings_list()
+
+        # get index of plot
+        index = PlotTypes.PLOT_TYPES.index(tuple(plot.plot_type))
+
+        # get plot full range
+        full_range = abs(plot_range[1] - plot_range[0])
+
+        # apply intervals
+        # freeze frame
+        if index is 0:
+            err = err_store.get_failure_value(err_store.freeze_err)
+            warn = err_store.get_failure_value(err_store.freeze_warn)
+            plot.add_interval((plot_range[1] - err)/full_range,
+                              GraphTypes.ERROR,
+                              clear_previous=True)
+            plot.add_interval((err - warn)/full_range,
+                              GraphTypes.WARNING)
+            plot.add_interval((warn - plot_range[0])/full_range,
+                              GraphTypes.NORMAL)
+        # black frame
+        elif index is 1:
+            err = err_store.get_failure_value(err_store.black_err)
+            warn = err_store.get_failure_value(err_store.black_warn)
+            plot.add_interval((plot_range[1] - err)/full_range,
+                              GraphTypes.ERROR,
+                              clear_previous=True)
+            plot.add_interval((err - warn)/full_range,
+                              GraphTypes.WARNING)
+            plot.add_interval((warn - plot_range[0])/full_range,
+                              GraphTypes.NORMAL)
+        # blockiness
+        elif index is 2:
+            err = err_store.get_failure_value(err_store.block_err)
+            warn = err_store.get_failure_value(err_store.block_warn)
+            plot.add_interval((plot_range[1] - err)/full_range,
+                              GraphTypes.ERROR,
+                              clear_previous=True)
+            plot.add_interval((err - warn)/full_range,
+                              GraphTypes.WARNING)
+            plot.add_interval((warn - plot_range[0])/full_range,
+                              GraphTypes.NORMAL)
+        # average frame luma
+        elif index is 3:
+            print(full_range)
+            warn = err_store.get_failure_value(err_store.luma_warn)
+            plot.add_interval((plot_range[1] - warn)/full_range,
+                              GraphTypes.NORMAL,
+                              clear_previous=True)
+            plot.add_interval((warn - plot_range[0])/full_range,
+                              GraphTypes.WARNING)
+        # average frame difference
+        elif index is 4:
+            warn = err_store.get_failure_value(err_store.diff_warn)
+            plot.add_interval((plot_range[1] - warn)/full_range,
+                              GraphTypes.NORMAL,
+                              clear_previous=True)
+            plot.add_interval((warn - plot_range[0])/full_range,
+                              GraphTypes.WARNING)
+        elif (index is 5) or (index is 6):
+            high_err = err_store.get_failure_value(err_store.overload_err)
+            high_warn = err_store.get_failure_value(err_store.overload_warn)
+            low_err = err_store.get_failure_value(err_store.silence_err)
+            low_warn = err_store.get_failure_value(err_store.silence_warn)
+            warn = err_store.get_failure_value(err_store.diff_warn)
+
+            first = abs(plot_range[1] - high_err)/abs(plot_range[1] - plot_range[0])
+            second = abs(high_err - high_warn)/abs(plot_range[1] - plot_range[0])
+            third = abs(high_warn - low_warn)/abs(plot_range[1] - plot_range[0])
+            fourth = abs(low_warn - low_err)/abs(plot_range[1] - plot_range[0])
+            fifth = abs(low_err - plot_range[0])/abs(plot_range[1] - plot_range[0])
+            print(abs(plot_range[1] - high_err))
+            print(abs(high_err - high_warn))
+            print(abs(high_warn - low_warn))
+            print(abs(low_warn - low_err))
+            print(abs(low_err - plot_range[0]))
+            print(low_err)
+            print(plot_range[0])
+            print(first)
+            print(second)
+            print(third)
+            print(fourth)
+            print(fifth)
+            print(first + second + third + fourth + fifth)
+
+            plot.add_interval(abs(plot_range[1] - high_err)/full_range,
+                              GraphTypes.ERROR,
+                              clear_previous=True)
+            plot.add_interval(abs(high_err - high_warn)/full_range,
+                              GraphTypes.WARNING)
+            plot.add_interval(abs(high_warn - low_warn)/full_range,
+                              GraphTypes.NORMAL)
+            plot.add_interval(abs(low_warn - low_err)/full_range,
+                              GraphTypes.WARNING)
+            plot.add_interval(abs(low_err - plot_range[0])/full_range,
+                              GraphTypes.ERROR)
 
     def on_plot_changed(self, wnd):
         self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)

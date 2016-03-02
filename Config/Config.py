@@ -25,6 +25,7 @@ class Config():
             self.config.write(configfile)
 
     def set_prog_list(self, progList):
+        print(progList)
         self.config['user']['prog_list'] = json.dumps(progList)
         self.write_ini()
 
