@@ -54,7 +54,6 @@ class Backend():
 
         # if stream with sent number exist and program num is not null
         if (self.is_pipeline(combined_list[0]) is True):
-            print("\napplying new prog list")
             # determine number of programs in this stream
             # to get necessary number of xids
             self.gs_pipelines[combined_list[0]].apply_new_program_list(combined_list)
