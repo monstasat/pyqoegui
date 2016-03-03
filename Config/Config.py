@@ -15,7 +15,8 @@ class Config():
                                       'table_revealer': 'False',
                                       'language': 'ru',
                                       'plot_info': '[]',
-                                      'analysis_settings': '[]'}
+                                      'analysis_settings': '[]',
+                                      'tuner_settings': '[]'}
 
             self.config['user'] = {}
             self.write_ini()

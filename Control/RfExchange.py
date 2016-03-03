@@ -40,9 +40,13 @@ class RfExchange():
         print("serial ports: ", self.serial_ports())
 
         # open com port
-        self.serial.open()
-
-        self.is_opened = True
+        try:
+            self.serial.open()
+        # couldn't open port
+        except serial.SerialException:
+            self.is_opened = False
+        else:
+            self.is_opened = True
 
         #buf = self.tuner_get_status()
         #print("tuner returned: ", buf, "len: ", len(buf))

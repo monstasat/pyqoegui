@@ -87,6 +87,9 @@ class Control():
         self.gui.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
                          self.on_analysis_settings_changed)
 
+        self.gui.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
+                         self.on_tuner_settings_changed)
+
 
         # connect to usb signals
         # --
@@ -227,7 +230,6 @@ class Control():
 
     def send_analysis_params_to_backend(self):
         analysis_settings = self.error_model.get_settings_list()
-        self.config.set_analysis_settings(analysis_settings)
         black_pixel_val = int(analysis_settings[5][2])
         pixel_diff = int(analysis_settings[9][2])
         self.backend.change_analysis_params(black_pixel_val, pixel_diff)
@@ -275,6 +277,12 @@ class Control():
 
     def on_analysis_settings_changed(self, wnd):
         self.send_analysis_params_to_backend()
+        analysis_settings = self.error_model.get_settings_list()
+        self.config.set_analysis_settings(analysis_settings)
+
+    def on_tuner_settings_changed(self, wnd):
+        tuner_settings = self.tuner_model.get_settings_list()
+        self.config.set_tuner_settings(tuner_settings)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

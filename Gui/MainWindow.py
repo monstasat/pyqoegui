@@ -32,6 +32,8 @@ class MainWindow(Gtk.Window):
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.ANALYSIS_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ()),
+        CustomMessages.TUNER_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, ())}
 
     def __init__(self,
@@ -278,9 +280,9 @@ class MainWindow(Gtk.Window):
         # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
             # apply settings
-            pass
+            tunerSetDlg.apply_settings()
             # emit signal from gui to control about new tuner params
-            pass
+            self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
 
         tunerSetDlg.destroy()
 

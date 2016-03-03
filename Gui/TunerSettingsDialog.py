@@ -184,16 +184,22 @@ class TvStandardSettingsBox(Gtk.Box):
 
     @property
     def frequency(self):
-        freq = self.frequency_box.combobox.get_active()
+        freq = 0
+        freq_idx = self.frequency_box.combobox.get_active()
         # if no active item,
         # choose 586 MHz by default
-        if freq == -1:
+        if freq_idx == -1:
             freq = 586000000
+        else:
+            iter_ = self.freq_model.get_iter(str(freq_idx))
+            freq = self.freq_model[iter_][2]
         return freq
 
     @frequency.setter
     def frequency(self, value):
-        pass
+        for i, row in enumerate(self.freq_model):
+            if row[2] == value:
+                self.frequency_box.combobox.set_active(i)
 
     @property
     def bandwidth(self):
@@ -210,7 +216,7 @@ class TvStandardSettingsBox(Gtk.Box):
 
     @property
     def plp_id(self):
-        return self.plp_box.spinBtn.get_value()
+        return int(self.plp_box.spinBtn.get_value())
 
     @plp_id.setter
     def plp_id(self, value):
@@ -235,8 +241,9 @@ class TunerSettingsDialog(BaseDialog):
         self.standard_box.set_spacing(Spacing.ROW_SPACING)
         self.standard_box.set_border_width(Spacing.BORDER)
         self.standard_box.set_orientation(Gtk.Orientation.VERTICAL)
-        self.standard_box.add(ComboBox("Выбор стандарта ТВ сигнала",
-                                       self.standard_model))
+        self.standard_combo = ComboBox("Выбор стандарта ТВ сигнала",
+                                       self.standard_model)
+        self.standard_box.add(self.standard_combo)
         self.standard_box.show_all()
 
         # standard settings pages
@@ -289,8 +296,39 @@ class TunerSettingsDialog(BaseDialog):
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
 
-        self.dvbt2_box.plp_id = 2
-        self.dvbt2_box.bandwidth = TunerSettingsModel.BW8
+        self.update_values()
 
         self.show_all()
+
+    # apply values from spin buttons to model
+    def apply_settings(self):
+        device_box = self.standard_box.get_children()[0]
+        device = device_box.combobox.get_active()
+
+        settings = [[device],
+                    [self.dvbt2_box.frequency],
+                    [self.dvbt2_box.bandwidth],
+                    [self.dvbt2_box.plp_id],
+                    [self.dvbt_box.frequency],
+                    [self.dvbt_box.bandwidth],
+                    [self.dvbc_box.frequency]]
+
+        self.store.set_settings(settings)
+
+    # update values in controls buttons
+    def update_values(self):
+        self.standard_combo.combobox.set_active(
+            self.store.get_value_by_index(self.store.device))
+        self.dvbt2_box.frequency = self.store.get_value_by_index(
+            self.store.dvbt2_freq)
+        self.dvbt2_box.bandwidth = self.store.get_value_by_index(
+            self.store.dvbt2_bw)
+        self.dvbt2_box.plp_id = self.store.get_value_by_index(
+            self.store.dvbt2_plpid)
+        self.dvbt_box.frequency = self.store.get_value_by_index(
+            self.store.dvbt_freq)
+        self.dvbt_box.bandwidth = self.store.get_value_by_index(
+            self.store.dvbt_bw)
+        self.dvbc_box.frequency = self.store.get_value_by_index(
+            self.store.dvbc_freq)
 

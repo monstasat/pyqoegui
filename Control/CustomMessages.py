@@ -14,3 +14,5 @@ PROG_TABLE_REVEALER = 'prog_table_visibility_changed'
 PLOT_PAGE_CHANGED = 'plot_page_changed'
 # analysis settings changed
 ANALYSIS_SETTINGS_CHANGED = 'analysis_settings_changed'
+# tuner settings changed
+TUNER_SETTINGS_CHANGED = 'tuner_settings_changed'
