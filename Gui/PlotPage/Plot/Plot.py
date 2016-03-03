@@ -159,7 +159,10 @@ class Plot(Gtk.Box):
         # data storage for analyzed programs
         self.data = []
         for i in range(self.prog_num):
-            self.data.append(deque([-(self.min)] * self.NUM_POINTS, self.NUM_POINTS))
+            self.data.append(deque([-1] * self.NUM_POINTS, self.NUM_POINTS))
+        self.prev_data = []
+        for i in range(self.prog_num):
+            self.prev_data.append(self.min)
 
     # set graph title
     def set_title(self, text):
@@ -413,13 +416,16 @@ class Plot(Gtk.Box):
             if self.render_counter == self.frames_per_unit - 1:
                 data = self.get_data(i)
                 if data is None:
-                    data = self.data[i][0] * self.max
-                #if data < self.min:
-                #    data = self.min
-                if data > self.max:
+                    data = self.prev_data[i]
+                if data < self.min:
+                    data = self.min
+                elif data > self.max:
                     data = self.max
                 self.data[i].rotate(self.NUM_POINTS-1)
-                self.data[i][0] = data / self.max
+                self.data[i][0] = (data - self.min) / abs(self.max - self.min)
+                self.prev_data[i] = data
+                #print(data - self.min / abs(self.max - self.min))
+                #print(self.data[i])
                 self.bottom_bar.set_value(data, i)
 
         if self.draw is True:

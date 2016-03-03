@@ -145,6 +145,7 @@ class PlotPage(Gtk.Box):
         # remove plot from list and from page
         self.plots.remove(plot)
         self.remove(plot)
+        plot.destroy()
 
         # if number of plots on page is 0,
         # show placeholder and move button to center of the page
