@@ -3,6 +3,7 @@ from gi.repository import Gtk
 from Gui.BaseDialog import BaseDialog
 from Gui.AnalysisSettingsDialog import SettingEntry
 from Gui import Spacing
+from Control import TunerSettingsModel
 
 
 class TerrestrialFrequencyModel(Gtk.ListStore):
@@ -32,7 +33,6 @@ class TerrestrialFrequencyModel(Gtk.ListStore):
                 freq = (ch*8 + 306) * 1000000
             ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
             self.append([ch_string, ch, freq])
-
 
 
 class CableFrequencyModel(Gtk.ListStore):
@@ -116,7 +116,6 @@ class ComboBox(Gtk.Box):
         self.combobox.pack_start(renderer_text, True)
         self.combobox.add_attribute(renderer_text, "text", 0)
         self.combobox.set_active(0)
-        #self.combobox.set_entry_text_column(0)
 
         # setting name
         self.label = Gtk.Label(label=label)
@@ -183,12 +182,48 @@ class TvStandardSettingsBox(Gtk.Box):
 
         self.show_all()
 
+    @property
+    def frequency(self):
+        freq = self.frequency_box.combobox.get_active()
+        # if no active item,
+        # choose 586 MHz by default
+        if freq == -1:
+            freq = 586000000
+        return freq
+
+    @frequency.setter
+    def frequency(self, value):
+        pass
+
+    @property
+    def bandwidth(self):
+        bw = self.bw_box.combobox.get_active()
+        # if no active item,
+        # choose 8 MHz by default
+        if bw == -1:
+            bw = TunerSettingsModel.BW8
+        return bw
+
+    @bandwidth.setter
+    def bandwidth(self, value):
+        self.bw_box.combobox.set_active(value)
+
+    @property
+    def plp_id(self):
+        return self.plp_box.spinBtn.get_value()
+
+    @plp_id.setter
+    def plp_id(self, value):
+        self.plp_box.spinBtn.set_value(value)
+
 
 class TunerSettingsDialog(BaseDialog):
     def __init__(self, parent):
         BaseDialog.__init__(self, "Настройки ТВ тюнера", parent)
 
         mainBox = self.get_content_area()
+
+        self.store = parent.tunerSettingsStore
 
         self.standard_model = Gtk.ListStore(str, int)
         self.standard_model.append(["DVB-T2", 3])
@@ -253,6 +288,9 @@ class TunerSettingsDialog(BaseDialog):
         separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
+
+        self.dvbt2_box.plp_id = 2
+        self.dvbt2_box.bandwidth = TunerSettingsModel.BW8
 
         self.show_all()
 

@@ -39,6 +39,7 @@ class MainWindow(Gtk.Window):
                  stream_progs_model,
                  analyzed_progs_model,
                  error_model,
+                 tuner_model,
                  color_theme,
                  table_revealed,
                  plot_info):
@@ -65,6 +66,8 @@ class MainWindow(Gtk.Window):
         self.analyzedStore = analyzed_progs_model
         # remember model for storing analysis settings
         self.errorSettingsStore = error_model
+        # remember model for storing tuner settings
+        self.tunerSettingsStore = tuner_model
 
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)

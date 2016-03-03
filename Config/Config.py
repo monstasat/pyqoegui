@@ -76,3 +76,13 @@ class Config():
         analysis_settings = self.config['user'].get('analysis_settings', '[]')
 
         return json.loads(analysis_settings)
+
+    def set_tuner_settings(self, tuner_settings):
+        self.config['user']['tuner_settings'] = json.dumps(tuner_settings)
+        self.write_ini()
+
+    def get_tuner_settings(self):
+        self.config.read('config.ini')
+        tuner_settings = self.config['user'].get('tuner_settings', '[]')
+
+        return json.loads(tuner_settings)

@@ -11,6 +11,7 @@ from Control.ErrorDetector import ErrorDetector
 from Control import CustomMessages
 from Control.ErrorTypesModel import ErrorTypesModel
 from Control.ProgramTreeModel import ProgramTreeModel
+from Control.TunerSettingsModel import TunerSettingsModel
 from Config.Config import Config
 from Log import Log
 from Control.RfExchange import RfExchange
@@ -43,6 +44,10 @@ class Control():
         self.error_model = ErrorTypesModel()
         # append list of analysis settings from config to model
         self.error_model.set_settings(self.config.get_analysis_settings())
+        # create tuner settings model
+        self.tuner_model = TunerSettingsModel()
+        # append list of analysis settings from config to model
+        self.tuner_model.set_settings(self.config.get_tuner_settings())
 
         # create backend
         self.backend = Backend(streams=1)
@@ -51,6 +56,7 @@ class Control():
                               self.stream_progs,
                               self.analyzed_progs,
                               self.error_model,
+                              self.tuner_model,
                               self.config.get_dark_theme(),
                               self.config.get_table_revealer(),
                               self.config.get_plot_info())
