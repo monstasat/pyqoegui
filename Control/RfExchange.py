@@ -44,16 +44,16 @@ class RfExchange():
 
         self.is_opened = True
 
-        buf = self.tuner_get_status()
-        print("tuner returned: ", buf, "len: ", len(buf))
-        buf = self.tuner_set_params()
-        print("tuner returned: ", buf, "len: ", len(buf))
-        buf = self.tuner_get_params()
-        print("tuner returned: ", buf, "len: ", len(buf))
-        buf = self.tuner_get_measured_info()
-        print("tuner returned: ", buf, "len: ", len(buf))
-        buf = self.tuner_get_version_info()
-        print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_get_status()
+        #print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_set_params()
+        #print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_get_params()
+        #print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_get_measured_info()
+        #print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_get_version_info()
+        #print("tuner returned: ", buf, "len: ", len(buf))
         #buf = self.tuner_reset()
         #print("tuner returned: ", buf, "len: ", len(buf))
 
