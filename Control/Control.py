@@ -45,7 +45,7 @@ class Control():
         self.error_model.set_settings(self.config.get_analysis_settings())
 
         # create backend
-        self.backend = Backend(streams=1)
+        self.backend = Backend(streams=0)
         # create gui
         self.gui = MainWindow(app,
                               self.stream_progs,
