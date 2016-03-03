@@ -7,8 +7,9 @@ from Gui.PlotPage.PlotPage import PlotPage
 from Gui.AllResultsPage.AllResultsPage import AllResultsPage
 from Gui.ProgramSelectDialog import ProgramSelectDialog
 from Gui.AnalysisSettingsDialog import AnalysisSettingsDialog
-from Gui.Icon import Icon
+from Gui.TunerSettingsDialog import TunerSettingsDialog
 from Gui.AboutDialog import AboutDialog
+from Gui.Icon import Icon
 from Gui import Spacing
 from Control import CustomMessages
 
@@ -267,7 +268,18 @@ class MainWindow(Gtk.Window):
 
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
-        pass
+        # create the dialog
+        tunerSetDlg = TunerSettingsDialog(self)
+        responce = tunerSetDlg.run()
+
+        # if new settings applied
+        if responce == Gtk.ResponseType.APPLY:
+            # apply settings
+            pass
+            # emit signal from gui to control about new tuner params
+            pass
+
+        tunerSetDlg.destroy()
 
     # analysis settings button was clicked
     def on_analysis_set_clicked(self, widget):
