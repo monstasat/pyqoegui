@@ -45,7 +45,7 @@ class Control():
         self.error_model.set_settings(self.config.get_analysis_settings())
 
         # create backend
-        self.backend = Backend(streams=0)
+        self.backend = Backend(streams=1)
         # create gui
         self.gui = MainWindow(app,
                               self.stream_progs,
@@ -274,4 +274,6 @@ class Control():
     def destroy(self):
         # terminate all gstreamer pipelines
         self.backend.terminate_all_pipelines()
+        # disconnect from tuner
+        self.rf_tuner.disconnect()
 

@@ -24,43 +24,66 @@ COD_COMAND_RESET = 5
 class RfExchange():
     def __init__(self):
         self.serial = serial.Serial()
+        self.is_opened = False
+
         self.connect()
 
     def connect(self):
+        # configure com port
         self.serial.baudrate = 115200
         self.serial.port = '/dev/ttyUSB0'
         self.serial.parity = serial.PARITY_NONE
         self.serial.bytesize = serial.EIGHTBITS
         self.serial.stopbits = serial.STOPBITS_ONE
         self.serial.timeout = 2
-        #self.serial.open()
+
         print("serial ports: ", self.serial_ports())
-        self.tuner_set_params()
-        #self.tuner_get_status()
+
+        # open com port
+        self.serial.open()
+
+        self.is_opened = True
+
+        buf = self.tuner_get_status()
+        print("tuner returned: ", buf, "len: ", len(buf))
+        buf = self.tuner_set_params()
+        print("tuner returned: ", buf, "len: ", len(buf))
+        buf = self.tuner_get_params()
+        print("tuner returned: ", buf, "len: ", len(buf))
+        buf = self.tuner_get_measured_info()
+        print("tuner returned: ", buf, "len: ", len(buf))
+        buf = self.tuner_get_version_info()
+        print("tuner returned: ", buf, "len: ", len(buf))
+        #buf = self.tuner_reset()
+        #print("tuner returned: ", buf, "len: ", len(buf))
+
+    def disconnect(self):
+        # close com port
+        self.serial.close()
 
     def tuner_get_status(self):
 
-        self.serial.open()
-
+        # construct message
         msg = struct.pack("=BBHB",
                           START_BYTE,
                           SOURCE,
                           2,
                           COD_COMAND_GET_STATUS)
 
+        # compute and append crc to message
         crc = self.compute_crc(msg[1:])
         msg += struct.pack('B', crc)
 
-        self.serial.write(msg)
+        # send message to tuner
+        print(self.serial.write(msg))
 
+        # read tuner answer
         buf = self.serial.read(size=20)
-        print("tuner returned: ", buf, "len: ", len(buf))
 
-        self.serial.close()
+        # return received data
+        return buf
 
     def tuner_set_params(self):
-        # open com port
-        self.serial.open()
 
         # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
         frequency = 586
@@ -93,6 +116,7 @@ class RfExchange():
         # 0 - 6 mhz, 1 - 7 mhz, 2 - 8 mhz
         width = 2
 
+        # construct message
         msg = struct.pack('=BBHBBHBHBBH',
                           START_BYTE,               # message start (byte)
                           SOURCE,                   # message source (byte)
@@ -106,16 +130,108 @@ class RfExchange():
                           width,                    # bandwidth (byte)
                           0)                        # reserved (word)
 
+        # compute and append crc to message
         crc = self.compute_crc(msg[1:])
         msg += struct.pack('B', crc)
 
+        # send message to tuner
         self.serial.write(msg)
 
+        # read tuner answer
         buf = self.serial.read(size=7)
-        print("tuner returned: ", buf, "len: ", len(buf))
 
-        # close com port
-        self.serial.close()
+        # return received data
+        return buf
+
+    def tuner_get_params(self):
+        # construct message
+        msg = struct.pack("=BBHB",
+                          START_BYTE,
+                          SOURCE,
+                          2,
+                          COD_COMAND_GET_PARAMS)
+
+        # compute and append crc to message
+        crc = self.compute_crc(msg[1:])
+        msg += struct.pack('B', crc)
+
+        # send message to tuner
+        self.serial.write(msg)
+
+        # read tuner answer
+        buf = self.serial.read(size=15)
+
+        # return received data
+        return buf
+
+    def tuner_get_measured_info(self):
+
+        # construct message
+        msg = struct.pack("=BBHB",
+                          START_BYTE,
+                          SOURCE,
+                          2,
+                          COD_COMAND_GET_MER_BER)
+
+        # compute and append crc to message
+        crc = self.compute_crc(msg[1:])
+        msg += struct.pack('B', crc)
+
+        # send message to tuner
+        self.serial.write(msg)
+
+        # read tuner answer
+        buf = self.serial.read(size=17)
+
+        # return received data
+        return buf
+
+    def tuner_get_version_info(self):
+
+        # construct message
+        msg = struct.pack("=BBHBI",
+                          START_BYTE,                   # start byte
+                          SOURCE,                       # message source
+                          6,                            # len
+                          COD_COMAND_GET_VERSION_INFO,  # message code
+                          0)                            # reserved
+
+        # compute and append crc to message
+        crc = self.compute_crc(msg[1:])
+        msg += struct.pack('B', crc)
+
+        # send message to tuner
+        self.serial.write(msg)
+
+        # read tuner answer
+        buf = self.serial.read(size=30)
+
+        # return received data
+        return buf
+
+    def tuner_reset(self):
+
+        # construct message
+        msg = struct.pack("=BBHBBH",
+                          START_BYTE,               # start byte
+                          SOURCE,                   # message source
+                          5,                        # len
+                          COD_COMAND_RESET,         # message code
+                          1,                        # load main prog / loader
+                          0)                        # reserved
+
+        # compute and append crc to message
+        crc = self.compute_crc(msg[1:])
+        msg += struct.pack('B', crc)
+
+        # send message to tuner
+        self.serial.write(msg)
+
+        # read tuner answer
+        buf = self.serial.read(size=7)
+
+        # return received data
+        return buf
 
     # computes message crc
     def compute_crc(self, msg):
