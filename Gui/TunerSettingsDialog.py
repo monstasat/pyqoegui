@@ -1,11 +1,13 @@
 from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
+from Gui.AnalysisSettingsDialog import SettingEntry
+from Gui import Spacing
 
 
 class TerrestrialFrequencyModel(Gtk.ListStore):
     def __init__(self):
-        Gtk.ListStore.__init__(self, int, int)
+        Gtk.ListStore.__init__(self, str, int, int)
 
         # fill the model with values
         self.fill_model()
@@ -28,12 +30,14 @@ class TerrestrialFrequencyModel(Gtk.ListStore):
             else:
                 ch = index + 13
                 freq = (ch*8 + 306) * 1000000
-            self.append([ch, freq])
+            ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
+            self.append([ch_string, ch, freq])
+
 
 
 class CableFrequencyModel(Gtk.ListStore):
     def __init__(self):
-        Gtk.ListStore.__init__(self, int, int, bool)
+        Gtk.ListStore.__init__(self, str, int, int, bool)
 
         # fill the model with values
         self.fill_model()
@@ -85,19 +89,144 @@ class CableFrequencyModel(Gtk.ListStore):
                 ch = index - 30
                 freq = (index*8 + 66) * 1000000
                 spec = False
+            if spec is True:
+                ch_string = 'СТВК %d (%g МГц)' % (ch, freq / 1000000)
+            else:
+                ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
+            self.append([ch_string, ch, freq, spec])
+
+
+class ComboBox(Gtk.Box):
+    def __init__(self, label, store):
+        Gtk.Box.__init__(self)
+
+        self.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.set_hexpand(True)
+        self.set_vexpand(False)
+        self.set_spacing(Spacing.COL_SPACING)
+
+        # value entry
+        self.combobox = Gtk.ComboBox.new_with_model(store)
+        self.combobox.set_hexpand(True)
+        self.combobox.set_vexpand(False)
+        self.combobox.set_halign(Gtk.Align.END)
+        self.combobox.set_valign(Gtk.Align.CENTER)
+        self.combobox.set_size_request(150, -1)
+        renderer_text = Gtk.CellRendererText()
+        self.combobox.pack_start(renderer_text, True)
+        self.combobox.add_attribute(renderer_text, "text", 0)
+        self.combobox.set_active(0)
+        #self.combobox.set_entry_text_column(0)
+
+        # setting name
+        self.label = Gtk.Label(label=label)
+        self.label.set_hexpand(True)
+        self.label.set_vexpand(False)
+        self.label.set_halign(Gtk.Align.START)
+        self.label.set_valign(Gtk.Align.CENTER)
+
+        self.add(self.label)
+        self.add(self.combobox)
+
+        self.show_all()
+
+
+class TvStandardSettingsBox(Gtk.Box):
+
+    def __init__(self, standard):
+        Gtk.Box.__init__(self)
+
+        # modify box view
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.set_spacing(Spacing.ROW_SPACING)
+        self.set_border_width(Spacing.BORDER)
+
+        # save tv standard
+        self.standard = standard
+
+        # bandwidth model: text, number
+        bw_model = Gtk.ListStore(str, int)
+        bw_model.append(["6 МГц", 0])
+        bw_model.append(["7 МГц", 1])
+        bw_model.append(["8 МГц", 2])
+
+        # frequency model: dependent on tv standard
+        if (standard == 'DVB-T2') or (standard == 'DVB-T'):
+            self.freq_model = TerrestrialFrequencyModel()
+        elif standard == 'DVB-C':
+            self.freq_model = CableFrequencyModel()
+
+        # create frequency combo box
+        self.frequency_box = ComboBox("Частота ТВ канала",
+                                      self.freq_model)
+        # set size
+        self.frequency_box.combobox.set_size_request(170, -1)
+
+        # create bandwidth combo box
+        self.bw_box = ComboBox("Ширина полосы", bw_model)
+        # set size
+        self.bw_box.combobox.set_size_request(170, -1)
+
+        # create plp id spin box
+        self.plp_box = SettingEntry(0, "PLP ID", 0, 255)
+        self.plp_box.spinBtn.set_increments(1, 10)
+        self.plp_box.spinBtn.set_digits(0)
+        # set size
+        self.plp_box.spinBtn.set_size_request(170, -1)
+
+        # add widgets depending on standard
+        self.add(self.frequency_box)
+        if (standard == 'DVB-T2') or (standard == 'DVB-T'):
+            self.add(self.bw_box)
+        if standard == 'DVB-T2':
+            self.add(self.plp_box)
+
+        self.show_all()
 
 
 class TunerSettingsDialog(BaseDialog):
     def __init__(self, parent):
-        BaseDialog.__init__(self, "Настройки тюнера", parent)
-
-        freq_terrestrial = TerrestrialFrequencyModel()
-        freq_cable = CableFrequencyModel()
+        BaseDialog.__init__(self, "Настройки ТВ тюнера", parent)
 
         mainBox = self.get_content_area()
 
+        self.standard_model = Gtk.ListStore(str, int)
+        self.standard_model.append(["DVB-T2", 3])
+        self.standard_model.append(["DVB-T", 6])
+        self.standard_model.append(["DVB-C", 9])
+
+        # standard selection page
+        self.standard_box = Gtk.Box()
+        self.standard_box.set_spacing(Spacing.ROW_SPACING)
+        self.standard_box.set_border_width(Spacing.BORDER)
+        self.standard_box.set_orientation(Gtk.Orientation.VERTICAL)
+        self.standard_box.add(ComboBox("Выбор стандарта ТВ сигнала",
+                                       self.standard_model))
+        self.standard_box.show_all()
+
+        # standard settings pages
+        self.dvbt2_box = TvStandardSettingsBox('DVB-T2')
+        self.dvbt_box = TvStandardSettingsBox('DVB-T')
+        self.dvbc_box = TvStandardSettingsBox('DVB-C')
+
         # fill page list with created pages
         self.pages = []
+        self.pages.append((
+            self.standard_box,
+            "standard",
+            "Выбор стандарта"))
+        self.pages.append((
+            self.dvbt2_box,
+            "dvbt2",
+            "Настройки DVB-T2"))
+        self.pages.append((
+            self.dvbt_box,
+            "dvbt",
+            "Настройки DVB-T"))
+        self.pages.append((
+            self.dvbc_box,
+            "dvbc",
+            "Настройки DVB-C"))
 
         # create stack
         self.stack = Gtk.Stack(halign=Gtk.Align.FILL, hexpand=True)
