@@ -1,7 +1,8 @@
 from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
-from Gui.AnalysisSettingsDialog import SettingEntry
+from Gui.BaseDialog import SettingEntry
+from Gui.BaseDialog import ComboBox
 from Gui import Spacing
 from Control import TunerSettingsModel
 
@@ -94,40 +95,6 @@ class CableFrequencyModel(Gtk.ListStore):
             else:
                 ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
             self.append([ch_string, ch, freq, spec])
-
-
-class ComboBox(Gtk.Box):
-    def __init__(self, label, store):
-        Gtk.Box.__init__(self)
-
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.set_hexpand(True)
-        self.set_vexpand(False)
-        self.set_spacing(Spacing.COL_SPACING)
-
-        # value entry
-        self.combobox = Gtk.ComboBox.new_with_model(store)
-        self.combobox.set_hexpand(True)
-        self.combobox.set_vexpand(False)
-        self.combobox.set_halign(Gtk.Align.END)
-        self.combobox.set_valign(Gtk.Align.CENTER)
-        self.combobox.set_size_request(150, -1)
-        renderer_text = Gtk.CellRendererText()
-        self.combobox.pack_start(renderer_text, True)
-        self.combobox.add_attribute(renderer_text, "text", 0)
-        self.combobox.set_active(0)
-
-        # setting name
-        self.label = Gtk.Label(label=label)
-        self.label.set_hexpand(True)
-        self.label.set_vexpand(False)
-        self.label.set_halign(Gtk.Align.START)
-        self.label.set_valign(Gtk.Align.CENTER)
-
-        self.add(self.label)
-        self.add(self.combobox)
-
-        self.show_all()
 
 
 class TvStandardSettingsBox(Gtk.Box):
@@ -296,9 +263,12 @@ class TunerSettingsDialog(BaseDialog):
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
 
-        self.update_values()
+        # connect to show signal
+        self.connect('show', self.on_shown)
 
-        self.show_all()
+    def on_shown(self, widget):
+        BaseDialog.on_shown(self, widget)
+        self.update_values()
 
     # apply values from spin buttons to model
     def apply_settings(self):

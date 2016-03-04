@@ -73,7 +73,10 @@ class MainWindow(Gtk.Window):
 
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
-        self.progDlg.hide()
+        # create tuner settings dialog
+        self.tunerDlg = TunerSettingsDialog(self)
+        # create analysis settings dialog
+        self.analysisSetDlg = AnalysisSettingsDialog(self)
 
         # add header bar to the window
         hb = Gtk.HeaderBar()
@@ -274,35 +277,33 @@ class MainWindow(Gtk.Window):
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
         # create the dialog
-        tunerSetDlg = TunerSettingsDialog(self)
-        responce = tunerSetDlg.run()
+        responce = self.tunerDlg.run()
 
         # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
             # apply settings
-            tunerSetDlg.apply_settings()
+            self.tunerDlg.apply_settings()
             # emit signal from gui to control about new tuner params
             self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
 
-        tunerSetDlg.destroy()
+        self.tunerDlg.hide()
 
     # analysis settings button was clicked
     def on_analysis_set_clicked(self, widget):
         # create the dialog
-        analysisSetDlg = AnalysisSettingsDialog(self)
-        responce = analysisSetDlg.run()
+        responce = self.analysisSetDlg.run()
 
         # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
             # apply settings
-            analysisSetDlg.apply_settings()
+            self.analysisSetDlg.apply_settings()
             # apply changes to plots
             for plot in self.plot_page.plots:
                 self.plot_page.add_plot_intervals(plot)
             # emit signal from gui to control about new analysis params
             self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
-        analysisSetDlg.destroy()
+        self.analysisSetDlg.hide()
 
     # dump button was clicked
     def on_dump_clicked(self, widget):

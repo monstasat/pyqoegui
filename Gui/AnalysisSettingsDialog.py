@@ -1,51 +1,9 @@
 from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
+from Gui.BaseDialog import SettingEntry
 from Gui.Icon import Icon
 from Gui import Spacing
-
-
-class SettingEntry(Gtk.Box):
-    def __init__(self, index, label, min_, max_):
-        Gtk.Box.__init__(self)
-
-        self.index = index
-
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.set_hexpand(True)
-        self.set_vexpand(False)
-        self.set_spacing(Spacing.COL_SPACING)
-
-        # value entry
-        self.spinBtn = Gtk.SpinButton()
-        self.spinBtn.set_numeric(True)
-        self.spinBtn.set_range(min_, max_)
-        self.spinBtn.set_digits(2)
-        self.spinBtn.set_increments(0.1, 1)
-        self.spinBtn.set_hexpand(True)
-        self.spinBtn.set_vexpand(False)
-        self.spinBtn.set_halign(Gtk.Align.END)
-        self.spinBtn.set_valign(Gtk.Align.CENTER)
-        self.spinBtn.set_size_request(150, -1)
-        self.spinBtn.set_property('climb-rate', 2)
-
-        # setting name
-        self.label = Gtk.Label(label=label)
-        self.label.set_hexpand(True)
-        self.label.set_vexpand(False)
-        self.label.set_halign(Gtk.Align.START)
-        self.label.set_valign(Gtk.Align.CENTER)
-
-        self.add(self.label)
-        self.add(self.spinBtn)
-
-        self.show_all()
-
-    def set_label(self, text):
-        self.label.set_text(text)
-
-    def set_value(self, value):
-        self.spinBtn.set_value(value)
 
 
 class BaseSettingsPage(Gtk.Box):
@@ -153,8 +111,6 @@ class AnalysisSettingsDialog(BaseDialog):
 
         # expertBtn = Gtk.ToggleButton(image=Icon('emblem-system-symbolic'))
         # self.header.pack_end(expertBtn)
-
-        self.show_all()
 
     # apply values from spin buttons to model
     def apply_settings(self):

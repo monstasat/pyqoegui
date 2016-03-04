@@ -49,13 +49,19 @@ class ProgramSelectDialog(BaseDialog):
         parent.store.connect('row-deleted', self.on_row_deleted)
         parent.store.connect('row-inserted', self.on_row_inserted)
 
+        # connect to show signal
+        self.connect('show', self.on_shown)
+
         scrollWnd.add(overlay)
 
         # add box container to mainBox
         mainBox.add(scrollWnd)
 
-        self.show_all()
         # to determine if we need to display placeholder initially
+        self.on_store_changed()
+
+    def on_shown(self, widget):
+        self.show_all()
         self.on_store_changed()
 
     def on_btn_clicked_apply(self, widget):
