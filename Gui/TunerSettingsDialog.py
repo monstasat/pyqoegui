@@ -7,6 +7,7 @@ from Gui import Spacing
 from Control import TunerSettingsModel
 
 
+# list store containing terrestrial frequencies
 class TerrestrialFrequencyModel(Gtk.ListStore):
     def __init__(self):
         Gtk.ListStore.__init__(self, str, int, int)
@@ -36,6 +37,7 @@ class TerrestrialFrequencyModel(Gtk.ListStore):
             self.append([ch_string, ch, freq])
 
 
+# list store containing cable frequencies
 class CableFrequencyModel(Gtk.ListStore):
     def __init__(self):
         Gtk.ListStore.__init__(self, str, int, int, bool)
@@ -97,6 +99,7 @@ class CableFrequencyModel(Gtk.ListStore):
             self.append([ch_string, ch, freq, spec])
 
 
+# dialog page with setting boxes
 class TvStandardSettingsBox(Gtk.Box):
 
     def __init__(self, standard):
@@ -149,6 +152,7 @@ class TvStandardSettingsBox(Gtk.Box):
 
         self.show_all()
 
+    # frequency getter
     @property
     def frequency(self):
         freq = 0
@@ -162,12 +166,14 @@ class TvStandardSettingsBox(Gtk.Box):
             freq = self.freq_model[iter_][2]
         return freq
 
+    # frequency setter
     @frequency.setter
     def frequency(self, value):
         for i, row in enumerate(self.freq_model):
             if row[2] == value:
                 self.frequency_box.combobox.set_active(i)
 
+    # bandwidth getter
     @property
     def bandwidth(self):
         bw = self.bw_box.combobox.get_active()
@@ -177,19 +183,23 @@ class TvStandardSettingsBox(Gtk.Box):
             bw = TunerSettingsModel.BW8
         return bw
 
+    # bandwidth setter
     @bandwidth.setter
     def bandwidth(self, value):
         self.bw_box.combobox.set_active(value)
 
+    # plp id getter
     @property
     def plp_id(self):
         return int(self.plp_box.spinBtn.get_value())
 
+    # plp id setter
     @plp_id.setter
     def plp_id(self, value):
         self.plp_box.spinBtn.set_value(value)
 
 
+# dialog for managing tuner settings
 class TunerSettingsDialog(BaseDialog):
     def __init__(self, parent):
         BaseDialog.__init__(self, "Настройки ТВ тюнера", parent)
@@ -266,6 +276,7 @@ class TunerSettingsDialog(BaseDialog):
         # connect to show signal
         self.connect('show', self.on_shown)
 
+    # when the dialog is shown
     def on_shown(self, widget):
         BaseDialog.on_shown(self, widget)
         self.update_values()

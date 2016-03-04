@@ -61,7 +61,7 @@ class ProgramSelectDialog(BaseDialog):
         self.on_store_changed()
 
     def on_shown(self, widget):
-        self.show_all()
+        BaseDialog.on_shown(self, widget)
         self.on_store_changed()
 
     def on_btn_clicked_apply(self, widget):

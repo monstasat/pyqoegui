@@ -2,6 +2,8 @@ import serial
 import sys
 import glob
 import struct
+import threading
+import time
 
 # msg start byte
 START_BYTE = 0x55
@@ -28,6 +30,20 @@ class RfExchange():
 
         self.connect()
 
+        self.thread_active = True
+        thread = threading.Thread(target=self.read_from_port, args=(self.serial,))
+        thread.start()
+
+    def read(self, size):
+        buf = b""
+        if self.is_opened is True:
+            buf = self.serial.read(size=size)
+        return buf
+
+    def write(self, msg):
+        if self.is_opened is True:
+            self.serial.write(msg)
+
     def connect(self):
         # configure com port
         self.serial.baudrate = 115200
@@ -35,7 +51,7 @@ class RfExchange():
         self.serial.parity = serial.PARITY_NONE
         self.serial.bytesize = serial.EIGHTBITS
         self.serial.stopbits = serial.STOPBITS_ONE
-        self.serial.timeout = 2
+        self.serial.timeout = 1
 
         print("serial ports: ", self.serial_ports())
 
@@ -48,22 +64,10 @@ class RfExchange():
         else:
             self.is_opened = True
 
-        #buf = self.tuner_get_status()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-        #buf = self.tuner_set_params()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-        #buf = self.tuner_get_params()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-        #buf = self.tuner_get_measured_info()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-        #buf = self.tuner_get_version_info()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-        #buf = self.tuner_reset()
-        #print("tuner returned: ", buf, "len: ", len(buf))
-
     def disconnect(self):
         # close com port
         self.serial.close()
+        self.is_opened = False
 
     def tuner_get_status(self):
 
@@ -79,7 +83,7 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        print(self.serial.write(msg))
+        self.serial.write(msg)
 
         # read tuner answer
         buf = self.serial.read(size=20)
@@ -87,7 +91,7 @@ class RfExchange():
         # return received data
         return buf
 
-    def tuner_set_params(self):
+    def tuner_set_params(self, tuner_settings):
 
         # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
         frequency = 586
@@ -139,10 +143,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=7)
+        buf = self.read(7)
 
         # return received data
         return buf
@@ -160,10 +164,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=15)
+        buf = self.read(15)
 
         # return received data
         return buf
@@ -182,10 +186,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=17)
+        buf = self.read(17)
 
         # return received data
         return buf
@@ -205,10 +209,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=30)
+        buf = self.read(30)
 
         # return received data
         return buf
@@ -229,10 +233,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=7)
+        buf = self.read(7)
 
         # return received data
         return buf
@@ -264,3 +268,22 @@ class RfExchange():
             except (OSError, serial.SerialException):
                 pass
         return result
+
+    def handle_data(self, data, msg):
+        print(msg, data)
+
+    def read_from_port(self, ser):
+        while self.thread_active:
+            # read status
+            status = self.tuner_get_status()
+            measured_data = self.tuner_get_measured_info()
+            params = self.tuner_get_params()
+
+            # handle data
+            self.handle_data(status, "status: ")
+            self.handle_data(measured_data, "measured data: ")
+            self.handle_data(params, "params: ")
+
+            # sleep for one second
+            time.sleep(1)
+

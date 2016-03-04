@@ -276,12 +276,28 @@ class Control():
         self.config.set_plot_info(plot_info)
 
     def on_analysis_settings_changed(self, wnd):
+        # apply settings to backend
         self.send_analysis_params_to_backend()
+
+        # get analysis settings from model
         analysis_settings = self.error_model.get_settings_list()
+
+        # if analysis settings dialog is visible - update values
+        if self.gui.analysisSetDlg.get_visible() is True:
+            self.gui.analysisSetDlg.update_values()
+
+        # save analysis settings to config
         self.config.set_analysis_settings(analysis_settings)
 
     def on_tuner_settings_changed(self, wnd):
+        # get tuner settings
         tuner_settings = self.tuner_model.get_settings_list()
+
+        # if tuner dialog is visible - update values
+        if self.gui.tunerDlg.get_visible() is True:
+            self.gui.tunerDlg.update_values()
+
+        # save settings to config
         self.config.set_tuner_settings(tuner_settings)
 
     # when app closes, we need to delete all gstreamer pipelines
@@ -290,4 +306,5 @@ class Control():
         self.backend.terminate_all_pipelines()
         # disconnect from tuner
         self.rf_tuner.disconnect()
+        self.rf_tuner.thread_active = False
 
