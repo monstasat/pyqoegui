@@ -5,6 +5,8 @@ import struct
 import threading
 import time
 
+from Control import TunerSettingsModel as tm
+
 # msg start byte
 START_BYTE = 0x55
 # msg address
@@ -24,36 +26,51 @@ COD_COMAND_RESET = 5
 
 # class for dvb-t2 tuner management via com-port
 class RfExchange():
-    def __init__(self):
+    def __init__(self, settings):
         self.serial = serial.Serial()
         self.is_opened = False
 
         self.connect()
 
+        #self.apply_settings(settings)
+
         self.thread_active = True
-        thread = threading.Thread(target=self.read_from_port, args=(self.serial,))
+        thread = threading.Thread(
+            target=self.read_from_port,
+            args=(self.serial,))
         thread.start()
 
     def read(self, size):
         buf = b""
         if self.is_opened is True:
-            buf = self.serial.read(size=size)
+            try:
+                buf = self.serial.read(size=size)
+            except:
+                #self.is_opened = False
+                buf = b''
+
         return buf
 
     def write(self, msg):
         if self.is_opened is True:
-            self.serial.write(msg)
+            try:
+                self.serial.write(msg)
+            except:
+                #self.is_opened = False
+                pass
 
     def connect(self):
         # configure com port
-        self.serial.baudrate = 115200
-        self.serial.port = '/dev/ttyUSB0'
-        self.serial.parity = serial.PARITY_NONE
-        self.serial.bytesize = serial.EIGHTBITS
-        self.serial.stopbits = serial.STOPBITS_ONE
-        self.serial.timeout = 1
-
-        print("serial ports: ", self.serial_ports())
+        try:
+            self.serial.baudrate = 115200
+            self.serial.port = '/dev/ttyUSB0'
+            self.serial.parity = serial.PARITY_NONE
+            self.serial.bytesize = serial.EIGHTBITS
+            self.serial.stopbits = serial.STOPBITS_ONE
+            self.serial.timeout = 1
+        except:
+            self.is_opened = False
+            return False
 
         # open com port
         try:
@@ -62,17 +79,25 @@ class RfExchange():
         except serial.SerialException:
             print("exception")
             self.is_opened = False
+            return False
         else:
             self.is_opened = True
+            return True
 
     def disconnect(self):
         # close com port
         self.serial.close()
         self.is_opened = False
 
+    def check_start_byte(self, byte):
+        if byte == START_BYTE:
+            return True
+        else:
+            return False
+
     def tuner_get_status(self):
 
-        # construct message
+        # construct message``
         msg = struct.pack("=BBHB",
                           START_BYTE,
                           SOURCE,
@@ -89,13 +114,66 @@ class RfExchange():
         # read tuner answer
         buf = self.read(20)
 
+        data = []
+        if len(buf) == 20:
+            # start byte, address, length, command
+            # status, num cur channel, ch count, hw errors, temperature,
+            # page num, page size, reserved, crc
+            buf_list = struct.unpack("=BBHBBBBHBHHIB", buf)
+            if self.check_start_byte(buf_list[0]) is True:
+                status = buf_list[4]
+                hw_errors = buf_list[7]
+                temperature = buf_list[8]
+                data = [status, hw_errors, temperature]
+
         # return received data
-        return buf
+        return data
 
     def tuner_set_params(self, tuner_settings):
 
+        # tuner settings format:
+        # device, t2 freq, t2 bw, t2 plp id, t freq, t bw, c freq
+
+        print("Set params")
+        print(tuner_settings)
+
+
+        # get settings from received settings list.
+        # check input settings list
+        # if list is not compatible, return empty array
+        if len(tuner_settings) != 7:
+            print("!= 7")
+            return []
+        else:
+            device = tuner_settings[0][0]
+            # if standard is DVB-T2
+            if device == tm.DVBT2:
+                frequency = tuner_settings[1][0]
+                modulation = 9
+                width = tuner_settings[2][0]
+                dvb_c_t_t2_params = tuner_settings[3][0]
+            # if standard is DVB-T
+            elif device == tm.DVBT:
+                frequency = tuner_settings[4][0]
+                modulation = 6
+                width = tuner_settings[5][0]
+                dvb_c_t_t2_params = 0
+            # if standard is DVB-C
+            elif device == tm.DVBC:
+                frequency = tuner_settings[6][0]
+                modulation = 3
+                width = 0
+                dvb_c_t_t2_params = 0
+            # if standard is unknown, return empty array
+            else:
+                print("unknown")
+                return []
+
         # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
-        frequency = 586
+        mhz = frequency // 1000000
+        khz = int(frequency % 1000000 / 1000) // 125
+        frequency = (khz << 10) | mhz
+        # modulation
         # 0 - unknown
         # 3 - DVB-C/QAM64
         # 4 - DVB-C/QAM128
@@ -104,10 +182,10 @@ class RfExchange():
         # 7 - DVB-T/QAM16
         # 8 - DVB-T/QAM64
         # 9 - DVB-T2
-        modulation = 9
-        #for dvb-c:
-        #dvb_c_t_t2_params[15..0]       sr: symbol rate in KSps (5000..7000)
-        #for dvb-t:
+        # dvb_c_t_t2_params
+        # for dvb-c:
+        # dvb_c_t_t2_params[15..0]       sr: symbol rate in KSps (5000..7000)
+        # for dvb-t:
         # dvb_c_t_t2_params[15..14]     fft: 0 - 2K, 1 - 8K
         # dvb_c_t_t2_params[13..12]     gui: 0 - 1/32, 1 - 1/16, 2 - 1/8, 3 - 1/4
         # dvb_c_t_t2_params[11..10]     hierarch: 0 - w/out, 1 - a = 1, 2 - a = 2, 3 - a = 4
@@ -121,9 +199,9 @@ class RfExchange():
         # dvb_c_t_t2_params[7:4]        qam_id: 0 - QPSK, 1 - QAM16, 2 - QAM64, 3 - QAM256
         # dvb_c_t_t2_params[3:2]        reserved
         # dvb_c_t_t2_params[1:0]        bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
-        dvb_c_t_t2_params = 2
+        # width
         # 0 - 6 mhz, 1 - 7 mhz, 2 - 8 mhz
-        width = 2
+
 
         # construct message
         msg = struct.pack('=BBHBBHBHBBH',
@@ -170,8 +248,20 @@ class RfExchange():
         # read tuner answer
         buf = self.read(15)
 
+        data = []
+        if len(buf) == 15:
+            # start byte, address, length, command
+            # status(1), reserved(1), modulation(1), dvb_c_t_t2_params(2)
+            # reserved(4), crc(1)
+            buf_list = struct.unpack("=BBHBBBBHIB", buf)
+            if self.check_start_byte(buf_list[0]) is True:
+                status = buf_list[4]
+                modulation = buf_list[6]
+                dvb_c_t_t2_params = buf_list[7]
+                data = [status, modulation, dvb_c_t_t2_params]
+
         # return received data
-        return buf
+        return data
 
     def tuner_get_measured_info(self):
 
@@ -192,8 +282,52 @@ class RfExchange():
         # read tuner answer
         buf = self.read(17)
 
-        # return received data
-        return buf
+        def get_mantissa(data):
+            return 1 + (data << 15)/(2**23)
+
+        data = []
+        if len(buf) == 17:
+            # start byte, address, length, command
+            # status, mer, ber1, ber2, ber3, reserved
+            buf_list = struct.unpack("=BBHBBHBBBBBBHB", buf)
+
+            # if first byte is start byte (little security check:)
+            if self.check_start_byte(buf_list[0]) is True:
+                status = buf_list[4]
+                level_ok = bool(status & 0x1)
+                lock_ok = bool(status & 0x2)
+
+                # default values
+                mer = 0
+                ber1 = 0
+                ber2 = 0
+                ber3 = 0
+
+                # if signal is locked
+                if (level_ok is True) and (lock_ok is True):
+                    # set mer
+                    mer = buf_list[5] / 10
+                    # set ber1 if ber1 is not 0
+                    ber1_updated = status & 16
+                    if buf_list[6] != 0 or buf_list[7] != 0:
+                        ber1 = float(
+                            get_mantissa(buf_list[6]) * 2**(buf_list[7]-127))
+                    # set ber2 if ber2 is not 0
+                    ber2_updated = status & 32
+                    if buf_list[8] != 0 or buf_list[9] != 0:
+                        ber2 = float(
+                            get_mantissa(buf_list[8]) * 2**(buf_list[9]-127))
+                    # set ber3 if ber3 is not 0
+                    ber3_updated = status & 64
+                    if buf_list[10] != 0 or buf_list[11] != 0:
+                        ber3 = float(
+                            get_mantissa(buf_list[10]) * 2**(buf_list[11]-127))
+
+                # fill data list
+                data = [mer, ber1, ber2, ber3]
+
+        # return received data list
+        return data
 
     def tuner_get_version_info(self):
 
@@ -249,14 +383,8 @@ class RfExchange():
             crc ^= byte;
         return crc
 
+    # return list of available com ports (lightened code from stackoverflow)
     def serial_ports(self):
-        """ Lists serial port names
-
-            :raises EnvironmentError:
-                On unsupported or unknown platforms
-            :returns:
-                A list of the serial ports available on the system
-        """
         # this excludes your current terminal "/dev/tty"
         ports = glob.glob('/dev/tty[A-Za-z]*')
 
@@ -273,17 +401,29 @@ class RfExchange():
     def handle_data(self, data, msg):
         print(msg, data)
 
+    def apply_settings(self, settings):
+        thread = threading.Thread(
+            target=self.tuner_set_params,
+            args=(settings,))
+        thread.start()
+
     def read_from_port(self, ser):
         while self.thread_active:
             # read status
-            status = self.tuner_get_status()
-            measured_data = self.tuner_get_measured_info()
-            params = self.tuner_get_params()
 
-            # handle data
-            self.handle_data(status, "status: ")
-            self.handle_data(measured_data, "measured data: ")
-            self.handle_data(params, "params: ")
+            if self.is_opened is False:
+                self.connect()
+
+            if self.is_opened is True:
+
+                status = self.tuner_get_status()
+                measured_data = self.tuner_get_measured_info()
+                params = self.tuner_get_params()
+
+                # handle data
+                self.handle_data(status, "status: ")
+                self.handle_data(measured_data, "measured data: ")
+                self.handle_data(params, "params: ")
 
             # sleep for one second
             time.sleep(1)

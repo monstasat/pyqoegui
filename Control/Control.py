@@ -29,10 +29,6 @@ class Control():
         self.msg_translator = TranslateMessages()
         # create error detector
         self.error_detector = ErrorDetector()
-        # create tv tuner control
-        self.rf_tuner = RfExchange()
-        # execute server for receiving messages from gstreamer pipeline
-        self.start_server(1600)
 
         # create program tree model for programs in stream
         self.stream_progs = ProgramTreeModel()
@@ -48,6 +44,11 @@ class Control():
         self.tuner_model = TunerSettingsModel()
         # append list of analysis settings from config to model
         self.tuner_model.set_settings(self.config.get_tuner_settings())
+
+        # create tv tuner control
+        self.rf_tuner = RfExchange(self.tuner_model.get_settings_list())
+        # execute server for receiving messages from gstreamer pipeline
+        self.start_server(1600)
 
         # create backend
         self.backend = Backend(streams=1)
@@ -296,6 +297,8 @@ class Control():
         # if tuner dialog is visible - update values
         if self.gui.tunerDlg.get_visible() is True:
             self.gui.tunerDlg.update_values()
+
+        self.rf_tuner.apply_settings(tuner_settings)
 
         # save settings to config
         self.config.set_tuner_settings(tuner_settings)
