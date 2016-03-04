@@ -60,6 +60,7 @@ class RfExchange():
             self.serial.open()
         # couldn't open port
         except serial.SerialException:
+            print("exception")
             self.is_opened = False
         else:
             self.is_opened = True
@@ -83,10 +84,10 @@ class RfExchange():
         msg += struct.pack('B', crc)
 
         # send message to tuner
-        self.serial.write(msg)
+        self.write(msg)
 
         # read tuner answer
-        buf = self.serial.read(size=20)
+        buf = self.read(20)
 
         # return received data
         return buf
