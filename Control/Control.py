@@ -91,6 +91,15 @@ class Control():
         self.gui.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
                          self.on_tuner_settings_changed)
 
+        # connect to tuner signals
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
+                              self.on_new_tuner_status)
+
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_MEASURED_DATA,
+                              self.on_new_tuner_measured_data)
+
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
+                              self.on_new_tuner_params)
 
         # connect to usb signals
         # --
@@ -302,6 +311,36 @@ class Control():
 
         # save settings to config
         self.config.set_tuner_settings(tuner_settings)
+
+    def on_new_tuner_status(self, src, status, hw_errors, temperature):
+        #print(status, hw_errors, temperature)
+        pass
+
+    def on_new_tuner_measured_data(self,
+                                   src,
+                                   mer,
+                                   mer_updated,
+                                   ber1,
+                                   ber1_updated,
+                                   ber2,
+                                   ber2_updated,
+                                   ber3,
+                                   ber3_updated):
+
+        measured_data = [mer,
+                         mer_updated,
+                         ber1,
+                         ber1_updated,
+                         ber2,
+                         ber2_updated,
+                         ber3,
+                         ber3_updated]
+
+        self.gui.on_new_tuner_measured_data(measured_data)
+
+    def on_new_tuner_params(self, src, status, modulation, params):
+        #print(status, modulation, params)
+        self.gui.on_new_tuner_params(status, modulation, params)
 
     # when app closes, we need to delete all gstreamer pipelines
     def destroy(self):

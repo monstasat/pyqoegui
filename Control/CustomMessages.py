@@ -16,5 +16,10 @@ PLOT_PAGE_CHANGED = 'plot_page_changed'
 ANALYSIS_SETTINGS_CHANGED = 'analysis_settings_changed'
 # tuner settings changed
 TUNER_SETTINGS_CHANGED = 'tuner_settings_changed'
-# tuner status received
-TUNER_STATUS_RECEIVED = 'tuner_status_received'
+# new tuner status received
+NEW_TUNER_STATUS = 'new_tuner_status'
+# new tuner measured data received
+NEW_TUNER_MEASURED_DATA = 'new_tuner_measured_data'
+# new tuner signal params
+NEW_TUNER_PARAMS = 'new_tuner_params'
+

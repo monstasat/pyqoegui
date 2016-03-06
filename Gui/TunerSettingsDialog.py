@@ -199,6 +199,193 @@ class TvStandardSettingsBox(Gtk.Box):
         self.plp_box.spinBtn.set_value(value)
 
 
+# status settings box
+class StatusBox(Gtk.Box):
+    def __init__(self):
+        Gtk.Box.__init__(self)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.set_spacing(Spacing.ROW_SPACING)
+        self.set_border_width(Spacing.BORDER)
+
+        # current tv standard
+        self.device = 0xff
+
+        # current tuner status
+        self.status_ok = False
+        self.level_ok = False
+        self.lock_ok = False
+
+        # current measured data
+        self.measured_data = [0, False, 0, False, 0, False, 0, False]
+
+        # status color bar
+        self.status_color_bar = Gtk.Label(label="Нет данных от тюнера")
+        self.status_color_bar.set_size_request(-1, 40)
+        self.status_color_bar.connect('draw', self.on_color_label_draw)
+
+        # signal parameters
+
+        self.signal_params = Gtk.Label(label="Параметры сигнала:\n -")
+        self.signal_params.set_halign(Gtk.Align.START)
+
+        # measured data
+
+        self.measured_data_label = Gtk.Label(label="Измеренные параметры:\n -")
+        self.measured_data_label.set_halign(Gtk.Align.START)
+
+        self.add(self.status_color_bar)
+        self.add(Gtk.HSeparator())
+        self.add(self.signal_params)
+        self.add(Gtk.HSeparator())
+        self.add(self.measured_data_label)
+
+    def set_signal_params_text(self, modulation, params):
+        print(modulation, params)
+
+        # DVB-C
+        if 3 <= modulation <= 3:
+            self.device = TunerSettingsModel.DVBC
+            if modulation == 3:
+                mod_txt = "64-QAM"
+            elif modulation == 4:
+                mod_txt = "128-QAM"
+            elif modulation == 5:
+                mod_txt = "256-QAM"
+            sr = str(params)
+            text = "Параметры сигнала: \n" + \
+                   "Стандарт сигнала: DVB-C\n" + \
+                   "Модуляция: " + mod_txt + "\n" + \
+                   "Символьная скорость канала: " + sr + \
+                   "\n"
+        # DVB-T
+        elif 4 <= modulation <= 8:
+            self.device = TunerSettingsModel.DVBT
+            if modulation == 6:
+                mod_txt = "QPSK"
+            elif modulation == 7:
+                mod_txt = "16-QAM"
+            elif modulation == 8:
+                mod_txt = "64-QAM"
+            text = "Параметры сигнала: \n" + \
+                   "Стандарт сигнала: DVB-T\n" + \
+                   "Модуляция: " + mod_txt + "\n" + \
+                   "\n"
+        # DVB-T2
+        elif modulation == 9:
+            self.device = TunerSettingsModel.DVBT2
+            plp_id = params & 0x00ff
+            qam_id = (params & 0x0f00) >> 8
+            bw = (params & 0xc000) >> 14
+            if qam_id == 0:
+                mod_txt = "QPSK"
+            elif qam_id == 1:
+                mod_txt = "16-QAM"
+            elif qam_id == 2:
+                mod_txt = "64-QAM"
+            elif qam_id == 3:
+                mod_txt = "256-QAM"
+            else:
+                mod_txt = "неизвестно"
+
+            if bw ==  0:
+                bw_txt = "6 МГц"
+            elif bw == 1:
+                bw_txt = "7 МГц"
+            elif bw == 2:
+                bw_txt = "8 МГц"
+            else:
+                bw_txt = "неизвестно"
+
+            text = "Параметры сигнала: \n" + \
+                   "Стандарт сигнала: DVB-T2\n" + \
+                   "Модуляция: " + mod_txt + "\n" + \
+                   "PLP ID: " + str(plp_id) + "\n" + \
+                   "Ширина полосы: " + bw_txt + "\n"
+        # unknown
+        else:
+            self.device = 0xff
+            text = "Параметры сигнала: \n" + \
+                    "Стандарт сигнала: неизвестно\n" \
+
+        self.signal_params.set_text(text)
+
+    def set_measured_params_text(self, data):
+
+        # if mer was updated
+        if data[1] is True:
+            self.measured_data[0] = data[0]
+        # if ber1 was updated
+        if data[3] is True:
+            self.measured_data[2] = data[2]
+        # if ber2 was updated
+        if data[5] is True:
+            self.measured_data[4] = data[4]
+        # if ber3 was updated
+        if data[7] is True:
+            self.measured_data[6] = data[6]
+
+        mer_txt = "MER: " + str(self.measured_data[0])
+        if self.device == TunerSettingsModel.DVBC:
+            ber1_txt = "BER до декодера Рида-Соломона: " + \
+                       ("%e" % self.measured_data[2])
+            ber2_txt = "BER после декодера Рида-Соломона: " + \
+                       ("%e" % self.measured_data[4])
+            text = "Измеренные параметры: \n" + \
+                   mer_txt + "\n" + ber1_txt + "\n" + ber2_txt + "\n"
+        elif self.device == TunerSettingsModel.DVBT:
+            ber1_txt = "BER до декодера Витерби: " + \
+                       ("%e" % self.measured_data[2])
+            ber2_txt = "BER до декодера Рида-Соломона: " + \
+                       ("%e" % self.measured_data[4])
+            ber3_txt = "BER после декодера Рида-Соломона: " + \
+                       ("%e" % self.measured_data[6])
+            text = "Измеренные параметры: \n" + \
+                   mer_txt + \
+                   "\n" + ber1_txt + \
+                   "\n" + ber2_txt + \
+                   "\n" + ber3_txt + "\n"
+        elif self.device == TunerSettingsModel.DVBT2:
+            ber1_txt = "BER до декодера LDPC: " + \
+                       ("%e" % self.measured_data[2])
+            ber2_txt = "BER до декодера BCH: " + \
+                       ("%e" % self.measured_data[4])
+            ber3_txt = "BER после декодера BCH: " + \
+                       ("%e" % self.measured_data[6])
+            text = "Измеренные параметры: \n" + \
+                   mer_txt + \
+                   "\n" + ber1_txt + \
+                   "\n" + ber2_txt + \
+                   "\n" + ber3_txt + "\n"
+        else:
+            text = "Измеренные параметры: \n" + \
+                   " -" + "\n"
+
+        self.measured_data_label.set_text(text)
+
+    def set_tuner_status_text_and_color(self, status):
+        self.status_ok = True
+        self.level_ok = bool(status & 0x1)
+        self.lock_ok = bool(status & 0x2)
+        if self.level_ok is False:
+            self.status_color_bar.set_text("Низкий уровень сигнала")
+        elif self.lock_ok is False:
+            self.status_color_bar.set_text("Сигнал не захвачен")
+        else:
+            self.status_color_bar.set_text("Настроено")
+        self.status_color_bar.queue_draw()
+
+    def on_color_label_draw(self, widget, cr):
+        rect = widget.get_allocation()
+        cr.rectangle(0, 0, rect.width, rect.height)
+        if self.status_ok is False:
+            cr.set_source_rgb(1.0, 0.7, 0.7)
+        elif (self.level_ok is False) or (self.lock_ok is False):
+            cr.set_source_rgb(1.0, 1.0, 0.7)
+        else:
+            cr.set_source_rgb(0.7, 1.0, 0.7)
+        cr.fill()
+
+
 # dialog for managing tuner settings
 class TunerSettingsDialog(BaseDialog):
     def __init__(self, parent):
@@ -227,6 +414,7 @@ class TunerSettingsDialog(BaseDialog):
         self.dvbt2_box = TvStandardSettingsBox('DVB-T2')
         self.dvbt_box = TvStandardSettingsBox('DVB-T')
         self.dvbc_box = TvStandardSettingsBox('DVB-C')
+        self.status_box = StatusBox()
 
         # fill page list with created pages
         self.pages = []
@@ -246,6 +434,10 @@ class TunerSettingsDialog(BaseDialog):
             self.dvbc_box,
             "dvbc",
             "Настройки DVB-C"))
+        self.pages.append((
+            self.status_box,
+            "status",
+            "Статус сигнала"))
 
         # create stack
         self.stack = Gtk.Stack(halign=Gtk.Align.FILL, hexpand=True)
@@ -312,4 +504,11 @@ class TunerSettingsDialog(BaseDialog):
             self.store.dvbt_bw)
         self.dvbc_box.frequency = self.store.get_value_by_index(
             self.store.dvbc_freq)
+
+    def set_new_tuner_params(self, status, modulation, params):
+        self.status_box.set_signal_params_text(modulation, params)
+        self.status_box.set_tuner_status_text_and_color(status)
+
+    def set_new_measured_data(self, measured_data):
+        self.status_box.set_measured_params_text(measured_data)
 

@@ -254,6 +254,14 @@ class MainWindow(Gtk.Window):
     def mute_all_renderers(self):
         self.cur_results_page.mute_all_renderers()
 
+    def on_new_tuner_params(self, status, modulation, params):
+        if self.tunerDlg.get_visible() is True:
+            self.tunerDlg.set_new_tuner_params(status, modulation, params)
+
+    def on_new_tuner_measured_data(self, measured_data):
+        if self.tunerDlg.get_visible() is True:
+            self.tunerDlg.set_new_measured_data(measured_data)
+
     # start button was clicked
     def on_start_clicked(self, widget):
         # send stop message if button label is stop and vice versa

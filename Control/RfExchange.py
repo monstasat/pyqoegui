@@ -5,7 +5,10 @@ import struct
 import threading
 import time
 
+from gi.repository import GObject
+
 from Control import TunerSettingsModel as tm
+from Control import CustomMessages
 
 # msg start byte
 START_BYTE = 0x55
@@ -25,12 +28,30 @@ COD_COMAND_RESET = 5
 
 
 # class for dvb-t2 tuner management via com-port
-class RfExchange():
+class RfExchange(GObject.GObject):
+
+    __gsignals__ = {
+        CustomMessages.NEW_TUNER_STATUS: (GObject.SIGNAL_RUN_FIRST,
+                                          None, (int, int, int)),
+        CustomMessages.NEW_TUNER_MEASURED_DATA: (GObject.SIGNAL_RUN_FIRST,
+                                                 None,
+                                                 (float,
+                                                  bool,
+                                                  float,
+                                                  bool,
+                                                  float,
+                                                  bool,
+                                                  float,
+                                                  bool)),
+        CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
+                                          None, (int, int, int))}
+
     def __init__(self, settings):
+        GObject.GObject.__init__(self)
         self.serial = serial.Serial()
         self.is_opened = False
 
-        self.connect()
+        self.connect_to_port()
 
         #self.apply_settings(settings)
 
@@ -46,7 +67,6 @@ class RfExchange():
             try:
                 buf = self.serial.read(size=size)
             except:
-                #self.is_opened = False
                 buf = b''
 
         return buf
@@ -56,10 +76,9 @@ class RfExchange():
             try:
                 self.serial.write(msg)
             except:
-                #self.is_opened = False
                 pass
 
-    def connect(self):
+    def connect_to_port(self):
         # configure com port
         try:
             self.serial.baudrate = 115200
@@ -137,7 +156,6 @@ class RfExchange():
         print("Set params")
         print(tuner_settings)
 
-
         # get settings from received settings list.
         # check input settings list
         # if list is not compatible, return empty array
@@ -173,6 +191,7 @@ class RfExchange():
         mhz = frequency // 1000000
         khz = int(frequency % 1000000 / 1000) // 125
         frequency = (khz << 10) | mhz
+
         # modulation
         # 0 - unknown
         # 3 - DVB-C/QAM64
@@ -182,26 +201,42 @@ class RfExchange():
         # 7 - DVB-T/QAM16
         # 8 - DVB-T/QAM64
         # 9 - DVB-T2
+
         # dvb_c_t_t2_params
         # for dvb-c:
-        # dvb_c_t_t2_params[15..0]       sr: symbol rate in KSps (5000..7000)
+        # dvb_c_t_t2_params[15..0]
+        # sr: symbol rate in KSps (5000..7000)
+
         # for dvb-t:
-        # dvb_c_t_t2_params[15..14]     fft: 0 - 2K, 1 - 8K
-        # dvb_c_t_t2_params[13..12]     gui: 0 - 1/32, 1 - 1/16, 2 - 1/8, 3 - 1/4
-        # dvb_c_t_t2_params[11..10]     hierarch: 0 - w/out, 1 - a = 1, 2 - a = 2, 3 - a = 4
-        # dvb_c_t_t2_params[9]          spectrum: 0 - straight, 1 - iverted
-        # dvb_c_t_t2_params[8:6]        fec_lp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
-        # dvb_c_t_t2_params[5:3]        fec_hp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
-        # dvb_c_t_t2_params[2:1]        bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
-        # dvb_c_t_t2_params[0]          reserved
+        # dvb_c_t_t2_params[15..14]
+        # fft: 0 - 2K, 1 - 8K
+        # dvb_c_t_t2_params[13..12]
+        # gui: 0 - 1/32, 1 - 1/16, 2 - 1/8, 3 - 1/4
+        # dvb_c_t_t2_params[11..10]
+        # hierarch: 0 - w/out, 1 - a = 1, 2 - a = 2, 3 - a = 4
+        # dvb_c_t_t2_params[9]
+        # spectrum: 0 - straight, 1 - iverted
+        # dvb_c_t_t2_params[8:6]
+        # fec_lp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
+        # dvb_c_t_t2_params[5:3]
+        # fec_hp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
+        # dvb_c_t_t2_params[2:1]
+        # bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
+        # dvb_c_t_t2_params[0]
+        # reserved
+
         # for dvb-t2
-        # dvb_c_t_t2_params[15:8]       plp_id
-        # dvb_c_t_t2_params[7:4]        qam_id: 0 - QPSK, 1 - QAM16, 2 - QAM64, 3 - QAM256
-        # dvb_c_t_t2_params[3:2]        reserved
-        # dvb_c_t_t2_params[1:0]        bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
+        # dvb_c_t_t2_params[15:8]
+        # plp_id
+        # dvb_c_t_t2_params[7:4]
+        # qam_id: 0 - QPSK, 1 - QAM16, 2 - QAM64, 3 - QAM256
+        # dvb_c_t_t2_params[3:2]
+        # reserved
+        # dvb_c_t_t2_params[1:0]
+        # bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
+
         # width
         # 0 - 6 mhz, 1 - 7 mhz, 2 - 8 mhz
-
 
         # construct message
         msg = struct.pack('=BBHBBHBHBBH',
@@ -299,32 +334,40 @@ class RfExchange():
 
                 # default values
                 mer = 0
+                mer_updated = False
                 ber1 = 0
+                ber1_updated = False
                 ber2 = 0
+                ber2_updated = False
                 ber3 = 0
+                ber3_updated = False
 
                 # if signal is locked
                 if (level_ok is True) and (lock_ok is True):
                     # set mer
+                    mer_updated = not bool(status & 8)
                     mer = buf_list[5] / 10
                     # set ber1 if ber1 is not 0
-                    ber1_updated = status & 16
+                    ber1_updated = not(status & 16)
                     if buf_list[6] != 0 or buf_list[7] != 0:
                         ber1 = float(
                             get_mantissa(buf_list[6]) * 2**(buf_list[7]-127))
                     # set ber2 if ber2 is not 0
-                    ber2_updated = status & 32
+                    ber2_updated = not(status & 32)
                     if buf_list[8] != 0 or buf_list[9] != 0:
                         ber2 = float(
                             get_mantissa(buf_list[8]) * 2**(buf_list[9]-127))
                     # set ber3 if ber3 is not 0
-                    ber3_updated = status & 64
+                    ber3_updated = not(status & 64)
                     if buf_list[10] != 0 or buf_list[11] != 0:
                         ber3 = float(
                             get_mantissa(buf_list[10]) * 2**(buf_list[11]-127))
 
                 # fill data list
-                data = [mer, ber1, ber2, ber3]
+                data = [mer, mer_updated,
+                        ber1, ber1_updated,
+                        ber2, ber2_updated,
+                        ber3, ber3_updated]
 
         # return received data list
         return data
@@ -378,9 +421,9 @@ class RfExchange():
 
     # computes message crc
     def compute_crc(self, msg):
-        crc = 0;
+        crc = 0
         for byte in msg:
-            crc ^= byte;
+            crc ^= byte
         return crc
 
     # return list of available com ports (lightened code from stackoverflow)
@@ -398,21 +441,21 @@ class RfExchange():
                 pass
         return result
 
-    def handle_data(self, data, msg):
-        print(msg, data)
-
     def apply_settings(self, settings):
         thread = threading.Thread(
             target=self.tuner_set_params,
             args=(settings,))
         thread.start()
 
+    def handle_data(self, data, msg):
+        print(msg, data)
+
     def read_from_port(self, ser):
         while self.thread_active:
             # read status
 
             if self.is_opened is False:
-                self.connect()
+                self.connect_to_port()
 
             if self.is_opened is True:
 
@@ -421,9 +464,33 @@ class RfExchange():
                 params = self.tuner_get_params()
 
                 # handle data
-                self.handle_data(status, "status: ")
-                self.handle_data(measured_data, "measured data: ")
-                self.handle_data(params, "params: ")
+                #self.handle_data(status, "status: ")
+                #self.handle_data(measured_data, "measured data: ")
+                #self.handle_data(params, "params: ")
+
+                if len(status) != 0:
+                    self.emit(CustomMessages.NEW_TUNER_STATUS,
+                              status[0],
+                              status[1],
+                              status[2])
+
+                if len(measured_data) != 0:
+                    self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
+                              measured_data[0],
+                              measured_data[1],
+                              measured_data[2],
+                              measured_data[3],
+                              measured_data[4],
+                              measured_data[5],
+                              measured_data[6],
+                              measured_data[7],)
+
+                if len(params) != 0:
+                    self.emit(CustomMessages.NEW_TUNER_PARAMS,
+                              params[0],
+                              params[1],
+                              params[2])
+
 
             # sleep for one second
             time.sleep(1)
