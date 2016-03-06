@@ -260,6 +260,75 @@ class StatusBox(Gtk.Box):
         # DVB-T
         elif 4 <= modulation <= 8:
             self.device = TunerSettingsModel.DVBT
+            fft = (params & 0xC000) >> 14
+            if fft == 0:
+                fft_txt = "2K"
+            elif fft == 1:
+                fft_txt = "8K"
+            else:
+                fft_txt = "неизвестно"
+            gi = (params & 0x3000) >> 12
+            if gi == 0:
+                gi_txt = "1/32"
+            elif gi == 1:
+                gi_txt = "1/16"
+            elif gi == 2:
+                gi_txt = "1/8"
+            elif gi == 3:
+                gi_txt = "1/4"
+            else:
+                gi_txt = "неизвестно"
+            hierarchy = (params & 0xC00) >> 10
+            if hierarchy == 0:
+                hierarchy_txt = "без иерархии"
+            elif hierarchy == 1:
+                hierarchy_txt = "a = 1"
+            elif hierarchy == 2:
+                hierarchy_txt = "a = 2"
+            elif hierarchy == 3:
+                hierarchy_txt = "a = 4"
+            spectrum = (params & 0x200) >> 9
+            if spectrum == 0:
+                spectrum_txt = "прямой"
+            elif spectrum == 1:
+                spectrum_txt = "инверсный"
+            else:
+                spectrum_txt = "неизвестно"
+            fec_lp = (params & 0x1C0) >> 6
+            if fec_lp == 0:
+                fec_lp_txt = "1/2"
+            elif fec_lp == 1:
+                fec_lp_txt = "2/3"
+            elif fec_lp == 2:
+                fec_lp_txt = "3/4"
+            elif fec_lp == 3:
+                fec_lp_txt = "5/6"
+            elif fec_lp == 4:
+                fec_lp_txt = "7/8"
+            else:
+                fec_lp_txt = "неизвестно"
+            fec_hp = (params & 0x38) >> 3
+            if fec_hp == 0:
+                fec_hp_txt = "1/2"
+            elif fec_hp == 1:
+                fec_hp_txt = "2/3"
+            elif fec_hp == 2:
+                fec_hp_txt = "3/4"
+            elif fec_hp == 3:
+                fec_hp_txt = "5/6"
+            elif fec_hp == 4:
+                fec_hp_txt = "7/8"
+            else:
+                fec_hp_txt = "неизвестно"
+            bw = (params & 0x6) >> 1
+            if bw ==  0:
+                bw_txt = "6 МГц"
+            elif bw == 1:
+                bw_txt = "7 МГц"
+            elif bw == 2:
+                bw_txt = "8 МГц"
+            else:
+                bw_txt = "неизвестно"
             if modulation == 6:
                 mod_txt = "QPSK"
             elif modulation == 7:
@@ -269,6 +338,13 @@ class StatusBox(Gtk.Box):
             text = "Параметры сигнала: \n" + \
                    "Стандарт сигнала: DVB-T\n" + \
                    "Модуляция: " + mod_txt + "\n" + \
+                   "Число поднесущих: " + fft_txt + "\n" + \
+                   "Защитный интервал: " + gi_txt + "\n" + \
+                   "Режим иерархии: " + hierarchy_txt + "\n" + \
+                   "Спектр: " + spectrum_txt + "\n" + \
+                   "Скорость кода LP: " + fec_lp_txt + "\n" + \
+                   "Скорость кода HP: " + fec_hp_txt + "\n" + \
+                   "Ширина канала: " + bw_txt + "\n" + \
                    "\n"
         # DVB-T2
         elif modulation == 9:
@@ -300,7 +376,7 @@ class StatusBox(Gtk.Box):
                    "Стандарт сигнала: DVB-T2\n" + \
                    "Модуляция: " + mod_txt + "\n" + \
                    "PLP ID: " + str(plp_id) + "\n" + \
-                   "Ширина полосы: " + bw_txt + "\n"
+                   "Ширина канала: " + bw_txt + "\n"
         # unknown
         else:
             self.device = 0xff
