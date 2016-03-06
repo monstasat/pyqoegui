@@ -454,11 +454,11 @@ class StatusBox(Gtk.Box):
         rect = widget.get_allocation()
         cr.rectangle(0, 0, rect.width, rect.height)
         if self.status_ok is False:
-            cr.set_source_rgb(1.0, 0.7, 0.7)
+            cr.set_source_rgba(1.0, 0.4, 0.4, 0.6)
         elif (self.level_ok is False) or (self.lock_ok is False):
-            cr.set_source_rgb(1.0, 1.0, 0.7)
+            cr.set_source_rgba(1.0, 1.0, 0.4, 0.6)
         else:
-            cr.set_source_rgb(0.7, 1.0, 0.7)
+            cr.set_source_rgba(0.4, 1.0, 0.4, 0.6)
         cr.fill()
 
 
