@@ -4,7 +4,7 @@ from Gui.BaseDialog import BaseDialog
 from Gui.BaseDialog import SettingEntry
 from Gui.BaseDialog import ComboBox
 from Gui import Spacing
-from Control import TunerSettingsModel
+from Control import TunerSettingsModel as tm
 
 
 # list store containing terrestrial frequencies
@@ -180,7 +180,7 @@ class TvStandardSettingsBox(Gtk.Box):
         # if no active item,
         # choose 8 MHz by default
         if bw == -1:
-            bw = TunerSettingsModel.BW8
+            bw = tm.BW8
         return bw
 
     # bandwidth setter
@@ -215,228 +215,22 @@ class StatusBox(Gtk.Box):
         self.level_ok = False
         self.lock_ok = False
 
-        # current measured data
-        self.measured_data = [0, False, 0, False, 0, False, 0, False]
-
         # status color bar
         self.status_color_bar = Gtk.Label(label="Нет данных от тюнера")
         self.status_color_bar.set_size_request(-1, 40)
         self.status_color_bar.connect('draw', self.on_color_label_draw)
 
         # signal parameters
-
-        self.signal_params = Gtk.Label(label="Параметры сигнала:\n -")
-        self.signal_params.set_halign(Gtk.Align.START)
+        self.signal_params_view = TunerStatusTreeView(self)
 
         # measured data
-
-        self.measured_data_label = Gtk.Label(label="Измеренные параметры:\n -")
-        self.measured_data_label.set_halign(Gtk.Align.START)
+        self.measured_data_view = TunerMeasuredDataTreeView(self)
 
         self.add(self.status_color_bar)
         self.add(Gtk.HSeparator())
-        self.add(self.signal_params)
+        self.add(self.signal_params_view)
         self.add(Gtk.HSeparator())
-        self.add(self.measured_data_label)
-
-    def set_signal_params_text(self, modulation, params):
-        print(modulation, params)
-
-        # DVB-C
-        if 3 <= modulation <= 3:
-            self.device = TunerSettingsModel.DVBC
-            if modulation == 3:
-                mod_txt = "64-QAM"
-            elif modulation == 4:
-                mod_txt = "128-QAM"
-            elif modulation == 5:
-                mod_txt = "256-QAM"
-            sr = str(params)
-            text = "Параметры сигнала: \n" + \
-                   "Стандарт сигнала: DVB-C\n" + \
-                   "Модуляция: " + mod_txt + "\n" + \
-                   "Символьная скорость канала: " + sr + \
-                   "\n"
-        # DVB-T
-        elif 4 <= modulation <= 8:
-            self.device = TunerSettingsModel.DVBT
-            fft = (params & 0xC000) >> 14
-            if fft == 0:
-                fft_txt = "2K"
-            elif fft == 1:
-                fft_txt = "8K"
-            else:
-                fft_txt = "неизвестно"
-            gi = (params & 0x3000) >> 12
-            if gi == 0:
-                gi_txt = "1/32"
-            elif gi == 1:
-                gi_txt = "1/16"
-            elif gi == 2:
-                gi_txt = "1/8"
-            elif gi == 3:
-                gi_txt = "1/4"
-            else:
-                gi_txt = "неизвестно"
-            hierarchy = (params & 0xC00) >> 10
-            if hierarchy == 0:
-                hierarchy_txt = "без иерархии"
-            elif hierarchy == 1:
-                hierarchy_txt = "a = 1"
-            elif hierarchy == 2:
-                hierarchy_txt = "a = 2"
-            elif hierarchy == 3:
-                hierarchy_txt = "a = 4"
-            spectrum = (params & 0x200) >> 9
-            if spectrum == 0:
-                spectrum_txt = "прямой"
-            elif spectrum == 1:
-                spectrum_txt = "инверсный"
-            else:
-                spectrum_txt = "неизвестно"
-            fec_lp = (params & 0x1C0) >> 6
-            if fec_lp == 0:
-                fec_lp_txt = "1/2"
-            elif fec_lp == 1:
-                fec_lp_txt = "2/3"
-            elif fec_lp == 2:
-                fec_lp_txt = "3/4"
-            elif fec_lp == 3:
-                fec_lp_txt = "5/6"
-            elif fec_lp == 4:
-                fec_lp_txt = "7/8"
-            else:
-                fec_lp_txt = "неизвестно"
-            fec_hp = (params & 0x38) >> 3
-            if fec_hp == 0:
-                fec_hp_txt = "1/2"
-            elif fec_hp == 1:
-                fec_hp_txt = "2/3"
-            elif fec_hp == 2:
-                fec_hp_txt = "3/4"
-            elif fec_hp == 3:
-                fec_hp_txt = "5/6"
-            elif fec_hp == 4:
-                fec_hp_txt = "7/8"
-            else:
-                fec_hp_txt = "неизвестно"
-            bw = (params & 0x6) >> 1
-            if bw ==  0:
-                bw_txt = "6 МГц"
-            elif bw == 1:
-                bw_txt = "7 МГц"
-            elif bw == 2:
-                bw_txt = "8 МГц"
-            else:
-                bw_txt = "неизвестно"
-            if modulation == 6:
-                mod_txt = "QPSK"
-            elif modulation == 7:
-                mod_txt = "16-QAM"
-            elif modulation == 8:
-                mod_txt = "64-QAM"
-            text = "Параметры сигнала: \n" + \
-                   "Стандарт сигнала: DVB-T\n" + \
-                   "Модуляция: " + mod_txt + "\n" + \
-                   "Число поднесущих: " + fft_txt + "\n" + \
-                   "Защитный интервал: " + gi_txt + "\n" + \
-                   "Режим иерархии: " + hierarchy_txt + "\n" + \
-                   "Спектр: " + spectrum_txt + "\n" + \
-                   "Скорость кода LP: " + fec_lp_txt + "\n" + \
-                   "Скорость кода HP: " + fec_hp_txt + "\n" + \
-                   "Ширина канала: " + bw_txt + "\n" + \
-                   "\n"
-        # DVB-T2
-        elif modulation == 9:
-            self.device = TunerSettingsModel.DVBT2
-            plp_id = params & 0x00ff
-            qam_id = (params & 0x0f00) >> 8
-            bw = (params & 0xc000) >> 14
-            if qam_id == 0:
-                mod_txt = "QPSK"
-            elif qam_id == 1:
-                mod_txt = "16-QAM"
-            elif qam_id == 2:
-                mod_txt = "64-QAM"
-            elif qam_id == 3:
-                mod_txt = "256-QAM"
-            else:
-                mod_txt = "неизвестно"
-
-            if bw ==  0:
-                bw_txt = "6 МГц"
-            elif bw == 1:
-                bw_txt = "7 МГц"
-            elif bw == 2:
-                bw_txt = "8 МГц"
-            else:
-                bw_txt = "неизвестно"
-
-            text = "Параметры сигнала: \n" + \
-                   "Стандарт сигнала: DVB-T2\n" + \
-                   "Модуляция: " + mod_txt + "\n" + \
-                   "PLP ID: " + str(plp_id) + "\n" + \
-                   "Ширина канала: " + bw_txt + "\n"
-        # unknown
-        else:
-            self.device = 0xff
-            text = "Параметры сигнала: \n" + \
-                    "Стандарт сигнала: неизвестно\n" \
-
-        self.signal_params.set_text(text)
-
-    def set_measured_params_text(self, data):
-
-        # if mer was updated
-        if data[1] is True:
-            self.measured_data[0] = data[0]
-        # if ber1 was updated
-        if data[3] is True:
-            self.measured_data[2] = data[2]
-        # if ber2 was updated
-        if data[5] is True:
-            self.measured_data[4] = data[4]
-        # if ber3 was updated
-        if data[7] is True:
-            self.measured_data[6] = data[6]
-
-        mer_txt = "MER: " + str(self.measured_data[0])
-        if self.device == TunerSettingsModel.DVBC:
-            ber1_txt = "BER до декодера Рида-Соломона: " + \
-                       ("%e" % self.measured_data[2])
-            ber2_txt = "BER после декодера Рида-Соломона: " + \
-                       ("%e" % self.measured_data[4])
-            text = "Измеренные параметры: \n" + \
-                   mer_txt + "\n" + ber1_txt + "\n" + ber2_txt + "\n"
-        elif self.device == TunerSettingsModel.DVBT:
-            ber1_txt = "BER до декодера Витерби: " + \
-                       ("%e" % self.measured_data[2])
-            ber2_txt = "BER до декодера Рида-Соломона: " + \
-                       ("%e" % self.measured_data[4])
-            ber3_txt = "BER после декодера Рида-Соломона: " + \
-                       ("%e" % self.measured_data[6])
-            text = "Измеренные параметры: \n" + \
-                   mer_txt + \
-                   "\n" + ber1_txt + \
-                   "\n" + ber2_txt + \
-                   "\n" + ber3_txt + "\n"
-        elif self.device == TunerSettingsModel.DVBT2:
-            ber1_txt = "BER до декодера LDPC: " + \
-                       ("%e" % self.measured_data[2])
-            ber2_txt = "BER до декодера BCH: " + \
-                       ("%e" % self.measured_data[4])
-            ber3_txt = "BER после декодера BCH: " + \
-                       ("%e" % self.measured_data[6])
-            text = "Измеренные параметры: \n" + \
-                   mer_txt + \
-                   "\n" + ber1_txt + \
-                   "\n" + ber2_txt + \
-                   "\n" + ber3_txt + "\n"
-        else:
-            text = "Измеренные параметры: \n" + \
-                   " -" + "\n"
-
-        self.measured_data_label.set_text(text)
+        self.add(self.measured_data_view)
 
     def set_tuner_status_text_and_color(self, status):
         self.status_ok = True
@@ -459,7 +253,425 @@ class StatusBox(Gtk.Box):
             cr.set_source_rgba(1.0, 1.0, 0.4, 0.6)
         else:
             cr.set_source_rgba(0.4, 1.0, 0.4, 0.6)
+
         cr.fill()
+
+
+class TunerStatusTreeView(Gtk.TreeView):
+    def __init__(self, parent):
+        Gtk.TreeView.__init__(self)
+
+        self.set_hexpand(True)
+        self.set_vexpand(False)
+        self.set_halign(Gtk.Align.FILL)
+        self.set_valign(Gtk.Align.FILL)
+        self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
+        self.set_show_expanders(True)
+        self.set_enable_tree_lines(False)
+        sel = self.get_selection()
+        sel.set_mode(Gtk.SelectionMode.NONE)
+
+        self.store = Gtk.ListStore(str, str, int)
+
+        self.main_wnd = parent
+
+        self.unknown = "неизвестно"
+
+        # append values
+        self.store.append(["Стандарт сигнала",
+                           self.unknown,
+                           0xff])
+        self.store.append(["Модуляция",
+                           self.unknown,
+                           0xff])
+        self.store.append(["Символьная скорость канала",
+                           self.unknown,
+                           tm.DVBC])
+        self.store.append(["Число поднесущих канала",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Защитный интервал",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Режим иерархии",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Спектр",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Скорость кода LP",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Скорость кода HP",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["Ширина канала",
+                           self.unknown,
+                           tm.DVBT])
+        self.store.append(["PLP ID",
+                           self.unknown,
+                           tm.DVBT2])
+        self.store.append(["Ширина канала",
+                           self.unknown,
+                           tm.DVBT2])
+
+        # creating store filter
+        self.store_filter = self.store.filter_new()
+        # setting the filter function
+        self.store_filter.set_visible_func(self.param_filter_func)
+        self.set_model(self.store_filter)
+
+        # the cellrenderer for the first column - text
+        self.parameter_name = Gtk.CellRendererText()
+        # the cellrenderer for the second column - text
+        self.parameter_value = Gtk.CellRendererText()
+
+        # create first column
+        self.column_name = Gtk.TreeViewColumn("Параметр")
+        self.column_name.set_alignment(0.5)
+        self.column_name.set_expand(True)
+        self.column_name.pack_start(self.parameter_name, True)
+        self.column_name.add_attribute(self.parameter_name, "text", 0)
+
+        # append first column
+        self.append_column(self.column_name)
+
+        # create second column
+        self.column_value = Gtk.TreeViewColumn("Значение")
+        self.column_value.set_alignment(0.5)
+        self.column_value.set_expand(True)
+        self.column_value.pack_start(self.parameter_value, True)
+        self.column_value.add_attribute(self.parameter_value, "text", 1)
+
+        # append second column
+        self.append_column(self.column_value)
+
+    def param_filter_func(self, model, iter_, data):
+        if (model[iter_][2] == 0xff) or \
+           (model[iter_][2] == self.main_wnd.device):
+            return True
+        else:
+            return False
+
+    def set_signal_params(self, modulation, params):
+
+        # DVB-C
+        if 3 <= modulation <= 3:
+            # set device
+            self.main_wnd.device = tm.DVBC
+            iter_ = self.store.get_iter_from_string('0')
+            self.store[iter_][1] = "DVB-C"
+
+            # set modulation
+            iter_ = self.store.get_iter_from_string('1')
+            if modulation == 3:
+                self.store[iter_][1] = "64-QAM"
+            elif modulation == 4:
+                self.store[iter_][1] = "128-QAM"
+            elif modulation == 5:
+                self.store[iter_][1] = "256-QAM"
+
+            # set symbol rate
+            iter_ = self.store.get_iter_from_string('2')
+            self.store[iter_][1] = str(params)
+
+        # DVB-T
+        elif 4 <= modulation <= 8:
+            # set device
+            self.main_wnd.device = tm.DVBT
+            iter_ = self.store.get_iter_from_string('0')
+            self.store[iter_][1] = "DVB-T"
+
+            # set modulation
+            iter_ = self.store.get_iter_from_string('1')
+            if modulation == 6:
+                self.store[iter_][1] = "QPSK"
+            elif modulation == 7:
+                self.store[iter_][1] = "16-QAM"
+            elif modulation == 8:
+                self.store[iter_][1] = "64-QAM"
+
+            # set fft
+            fft = (params & 0xC000) >> 14
+            iter_ = self.store.get_iter_from_string('3')
+            if fft == 0:
+                self.store[iter_][1] = "2K"
+            elif fft == 1:
+                self.store[iter_][1] = "8K"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set gi
+            gi = (params & 0x3000) >> 12
+            iter_ = self.store.get_iter_from_string('4')
+            if gi == 0:
+                self.store[iter_][1] = "1/32"
+            elif gi == 1:
+                self.store[iter_][1] = "1/16"
+            elif gi == 2:
+                self.store[iter_][1] = "1/8"
+            elif gi == 3:
+                self.store[iter_][1] = "1/4"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set hierarchy
+            hierarchy = (params & 0xC00) >> 10
+            iter_ = self.store.get_iter_from_string('5')
+            if hierarchy == 0:
+                self.store[iter_][1] = "без иерархии"
+            elif hierarchy == 1:
+                self.store[iter_][1] = "a = 1"
+            elif hierarchy == 2:
+                self.store[iter_][1] = "a = 2"
+            elif hierarchy == 3:
+                self.store[iter_][1] = "a = 4"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set spectrum
+            spectrum = (params & 0x200) >> 9
+            iter_ = self.store.get_iter_from_string('6')
+            if spectrum == 0:
+                self.store[iter_][1] = "прямой"
+            elif spectrum == 1:
+                self.store[iter_][1] = "инверсный"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set fec lp
+            fec_lp = (params & 0x1C0) >> 6
+            iter_ = self.store.get_iter_from_string('7')
+            if fec_lp == 0:
+                self.store[iter_][1] = "1/2"
+            elif fec_lp == 1:
+                self.store[iter_][1] = "2/3"
+            elif fec_lp == 2:
+                self.store[iter_][1] = "3/4"
+            elif fec_lp == 3:
+                self.store[iter_][1] = "5/6"
+            elif fec_lp == 4:
+                self.store[iter_][1] = "7/8"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set fec hp
+            fec_hp = (params & 0x38) >> 3
+            iter_ = self.store.get_iter_from_string('8')
+            if fec_hp == 0:
+                self.store[iter_][1] = "1/2"
+            elif fec_hp == 1:
+                self.store[iter_][1] = "2/3"
+            elif fec_hp == 2:
+                self.store[iter_][1] = "3/4"
+            elif fec_hp == 3:
+                self.store[iter_][1] = "5/6"
+            elif fec_hp == 4:
+                self.store[iter_][1] = "7/8"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set bw
+            bw = (params & 0x6) >> 1
+            iter_ = self.store.get_iter_from_string('9')
+            if bw ==  0:
+                self.store[iter_][1] = "6 МГц"
+            elif bw == 1:
+                self.store[iter_][1] = "7 МГц"
+            elif bw == 2:
+                self.store[iter_][1] = "8 МГц"
+            else:
+                self.store[iter_][1] = self.unknown
+
+        # DVB-T2
+        elif modulation == 9:
+            # set device
+            self.main_wnd.device = tm.DVBT2
+            iter_ = self.store.get_iter_from_string('0')
+            self.store[iter_][1] = "DVB-T2"
+
+            # set modulation
+            qam_id = (params & 0x0f00) >> 8
+            iter_ = self.store.get_iter_from_string('1')
+            if qam_id == 0:
+                self.store[iter_][1] = "QPSK"
+            elif qam_id == 1:
+                self.store[iter_][1] = "16-QAM"
+            elif qam_id == 2:
+                self.store[iter_][1] = "64-QAM"
+            elif qam_id == 3:
+                self.store[iter_][1] = "256-QAM"
+            else:
+                self.store[iter_][1] = self.unknown
+
+            # set plp id
+            plp_id = params & 0x00ff
+            iter_ = self.store.get_iter_from_string('10')
+            self.store[iter_][1] = str(plp_id)
+
+            # set bandwidth
+            bw = (params & 0xc000) >> 14
+            iter_ = self.store.get_iter_from_string('11')
+            if bw ==  0:
+                self.store[iter_][1] = "6 МГц"
+            elif bw == 1:
+                self.store[iter_][1] = "7 МГц"
+            elif bw == 2:
+                self.store[iter_][1] = "8 МГц"
+            else:
+                self.store[iter_][1] = self.unknown
+
+        # unknown
+        else:
+            print("unknown standard")
+            # set device
+            self.main_wnd.device = 0xff
+
+            # set modulation
+            iter_ = self.store.get_iter_from_string('1')
+            self.store[iter_][1] = self.unknown
+
+            self.store_filter.refilter()
+
+
+class TunerMeasuredDataTreeView(Gtk.TreeView):
+    def __init__(self, parent):
+        Gtk.TreeView.__init__(self)
+
+        self.set_hexpand(True)
+        self.set_vexpand(False)
+        self.set_halign(Gtk.Align.FILL)
+        self.set_valign(Gtk.Align.FILL)
+        self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
+        self.set_show_expanders(True)
+        self.set_enable_tree_lines(False)
+        sel = self.get_selection()
+        sel.set_mode(Gtk.SelectionMode.NONE)
+
+        # current measured data
+        self.measured_data = [0, False, 0, False, 0, False, 0, False]
+
+        self.main_wnd = parent
+
+        self.store = Gtk.ListStore(str, str)
+
+        self.unknown = "неизвестно"
+
+        # append values
+        self.store.append(["MER",
+                           self.unknown])
+        self.store.append(["BER",
+                           self.unknown])
+        self.store.append(["BER",
+                           self.unknown])
+        self.store.append(["BER",
+                           self.unknown])
+
+        # creating store filter
+        self.store_filter = self.store.filter_new()
+        # setting the filter function
+        self.store_filter.set_visible_func(self.param_filter_func)
+        self.set_model(self.store_filter)
+
+        # the cellrenderer for the first column - text
+        self.parameter_name = Gtk.CellRendererText()
+        # the cellrenderer for the second column - text
+        self.parameter_value = Gtk.CellRendererText()
+
+        # create first column
+        self.column_name = Gtk.TreeViewColumn("Параметр")
+        self.column_name.set_alignment(0.5)
+        self.column_name.set_expand(True)
+        self.column_name.pack_start(self.parameter_name, True)
+        self.column_name.add_attribute(self.parameter_name, "text", 0)
+
+        # append first column
+        self.append_column(self.column_name)
+
+        # create second column
+        self.column_value = Gtk.TreeViewColumn("Значение")
+        self.column_value.set_alignment(0.5)
+        self.column_value.set_expand(True)
+        self.column_value.pack_start(self.parameter_value, True)
+        self.column_value.add_attribute(self.parameter_value, "text", 1)
+
+        # append second column
+        self.append_column(self.column_value)
+
+    def param_filter_func(self, model, iter_, data):
+        if self.main_wnd.device == 0xff:
+            return False
+        elif self.main_wnd.device == tm.DVBC and \
+             str(model.get_path(iter_)) == '3':
+            return False
+        else:
+            return True
+
+    def set_measured_params(self, data):
+
+        # if mer was updated
+        if data[1] is True:
+            self.measured_data[0] = data[0]
+        # if ber1 was updated
+        if data[3] is True:
+            self.measured_data[2] = data[2]
+        # if ber2 was updated
+        if data[5] is True:
+            self.measured_data[4] = data[4]
+        # if ber3 was updated
+        if data[7] is True:
+            self.measured_data[6] = data[6]
+
+        # set mer
+        iter_ = self.store.get_iter_from_string('0')
+        self.store[iter_][1] = str(self.measured_data[0])
+
+        # set ber
+        if self.main_wnd.device == tm.DVBC:
+            # set ber1
+            iter_ = self.store.get_iter_from_string('1')
+            self.store[iter_][0] = "BER до декодера Рида-Соломона"
+            self.store[iter_][1] = "%e" % self.measured_data[2]
+
+            # set ber2
+            iter_ = self.store.get_iter_from_string('2')
+            self.store[iter_][0] = "BER после декодера Рида-Соломона"
+            self.store[iter_][1] = "%e" % self.measured_data[4]
+
+        elif self.main_wnd.device == tm.DVBT:
+            # set ber1
+            iter_ = self.store.get_iter_from_string('1')
+            self.store[iter_][0] = "BER до декодера Витерби"
+            self.store[iter_][1] = "%e" % self.measured_data[2]
+
+            # set ber2
+            iter_ = self.store.get_iter_from_string('2')
+            self.store[iter_][0] = "BER до декодера Рида-Соломона"
+            self.store[iter_][1] = "%e" % self.measured_data[4]
+
+            # set ber3
+            iter_ = self.store.get_iter_from_string('3')
+            self.store[iter_][0] = "BER после декодера Рида-Соломона"
+            self.store[iter_][1] = "%e" % self.measured_data[6]
+
+        elif self.main_wnd.device == tm.DVBT2:
+            # set ber1
+            iter_ = self.store.get_iter_from_string('1')
+            self.store[iter_][0] = "BER до декодера LDPC"
+            self.store[iter_][1] = "%e" % self.measured_data[2]
+
+            # set ber2
+            iter_ = self.store.get_iter_from_string('2')
+            self.store[iter_][0] = "BER до декодера BCH"
+            self.store[iter_][1] = "%e" % self.measured_data[4]
+
+            # set ber3
+            iter_ = self.store.get_iter_from_string('3')
+            self.store[iter_][0] = "BER после декодера BCH"
+            self.store[iter_][1] = "%e" % self.measured_data[6]
+
+        else:
+            self.store_filter.refilter()
 
 
 # dialog for managing tuner settings
@@ -582,9 +794,14 @@ class TunerSettingsDialog(BaseDialog):
             self.store.dvbc_freq)
 
     def set_new_tuner_params(self, status, modulation, params):
-        self.status_box.set_signal_params_text(modulation, params)
+        self.status_box.signal_params_view.set_signal_params(modulation,
+                                                             params)
         self.status_box.set_tuner_status_text_and_color(status)
+        print("status: ", status,
+              ", modulation: ", modulation,
+              ", params: ", params)
 
     def set_new_measured_data(self, measured_data):
-        self.status_box.set_measured_params_text(measured_data)
+        self.status_box.measured_data_view.set_measured_params(measured_data)
+        print("measured data: ", measured_data)
 

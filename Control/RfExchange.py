@@ -4,6 +4,7 @@ import glob
 import struct
 import threading
 import time
+from concurrent import futures
 
 from gi.repository import GObject
 
@@ -55,11 +56,43 @@ class RfExchange(GObject.GObject):
 
         #self.apply_settings(settings)
 
-        self.thread_active = True
-        thread = threading.Thread(
-            target=self.read_from_port,
-            args=(self.serial,))
-        thread.start()
+        GObject.timeout_add(1000, self.on_read_tuner)
+
+    def on_read_tuner(self):
+        executor = futures.ProcessPoolExecutor()
+        future = executor.submit(read_from_port, self)
+        future.add_done_callback(self.done_callback)
+
+        return True
+
+    def done_callback(self, future):
+        results = future.result()
+        status = results[0]
+        measured_data = results[1]
+        params = results[2]
+
+        if len(status) != 0:
+            self.emit(CustomMessages.NEW_TUNER_STATUS,
+                      status[0],            # status
+                      status[1],            # hw errors
+                      status[2])            # temperature
+
+        if len(measured_data) != 0:
+            self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
+                      measured_data[0],     # mer
+                      measured_data[1],     # mer updated
+                      measured_data[2],     # ber1
+                      measured_data[3],     # ber1 updated
+                      measured_data[4],     # ber2
+                      measured_data[5],     # ber2 updated
+                      measured_data[6],     # ber3
+                      measured_data[7],)    # ber3 updated
+
+        if len(params) != 0:
+            self.emit(CustomMessages.NEW_TUNER_PARAMS,
+                      params[0],            # status
+                      params[1],            # modulation
+                      params[2])            # params
 
     def read(self, size):
         buf = b""
@@ -153,14 +186,10 @@ class RfExchange(GObject.GObject):
         # tuner settings format:
         # device, t2 freq, t2 bw, t2 plp id, t freq, t bw, c freq
 
-        print("Set params")
-        print(tuner_settings)
-
         # get settings from received settings list.
         # check input settings list
         # if list is not compatible, return empty array
         if len(tuner_settings) != 7:
-            print("!= 7")
             return []
         else:
             device = tuner_settings[0][0]
@@ -447,51 +476,17 @@ class RfExchange(GObject.GObject):
             args=(settings,))
         thread.start()
 
-    def handle_data(self, data, msg):
-        print(msg, data)
 
-    def read_from_port(self, ser):
-        while self.thread_active:
-            # read status
+def read_from_port(rf_tuner):
+    # read status
+    if rf_tuner.is_opened is False:
+        rf_tuner.connect_to_port()
 
-            if self.is_opened is False:
-                self.connect_to_port()
+    if rf_tuner.is_opened is True:
 
-            if self.is_opened is True:
+        status = rf_tuner.tuner_get_status()
+        measured_data = rf_tuner.tuner_get_measured_info()
+        params = rf_tuner.tuner_get_params()
 
-                status = self.tuner_get_status()
-                measured_data = self.tuner_get_measured_info()
-                params = self.tuner_get_params()
-
-                # handle data
-                #self.handle_data(status, "status: ")
-                #self.handle_data(measured_data, "measured data: ")
-                #self.handle_data(params, "params: ")
-
-                if len(status) != 0:
-                    self.emit(CustomMessages.NEW_TUNER_STATUS,
-                              status[0],
-                              status[1],
-                              status[2])
-
-                if len(measured_data) != 0:
-                    self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
-                              measured_data[0],
-                              measured_data[1],
-                              measured_data[2],
-                              measured_data[3],
-                              measured_data[4],
-                              measured_data[5],
-                              measured_data[6],
-                              measured_data[7],)
-
-                if len(params) != 0:
-                    self.emit(CustomMessages.NEW_TUNER_PARAMS,
-                              params[0],
-                              params[1],
-                              params[2])
-
-
-            # sleep for one second
-            time.sleep(1)
+    return [status, measured_data, params]
 
