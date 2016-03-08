@@ -12,7 +12,7 @@ from gi.repository import Gtk
 
 from Gui.Placeholder import Placeholder
 from Gui.BaseDialog import BaseDialog
-from Gui.ProgramTreeView import ProgramTreeView
+from Gui.ProgramSelectDialog.ProgramTreeView import ProgramTreeView
 from Gui import Spacing
 
 

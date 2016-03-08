@@ -5,9 +5,9 @@ from Gui.ButtonToolbar import ButtonToolbar
 from Gui.CurrentResultsPage.CurrentResultsPage import CurrentResultsPage
 from Gui.PlotPage.PlotPage import PlotPage
 from Gui.AllResultsPage.AllResultsPage import AllResultsPage
-from Gui.ProgramSelectDialog import ProgramSelectDialog
+from Gui.ProgramSelectDialog.ProgramSelectDialog import ProgramSelectDialog
 from Gui.AnalysisSettingsDialog import AnalysisSettingsDialog
-from Gui.TunerSettingsDialog import TunerSettingsDialog
+from Gui.TunerSettingsDialog.TunerSettingsDialog import TunerSettingsDialog
 from Gui.AboutDialog import AboutDialog
 from Gui.Icon import Icon
 from Gui import Spacing

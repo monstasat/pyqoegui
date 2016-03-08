@@ -339,7 +339,6 @@ class Control():
         self.gui.on_new_tuner_measured_data(measured_data)
 
     def on_new_tuner_params(self, src, status, modulation, params):
-        print(status, modulation, params)
         self.gui.on_new_tuner_params(status, modulation, params)
 
     # when app closes, we need to delete all gstreamer pipelines

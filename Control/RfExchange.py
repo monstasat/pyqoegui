@@ -4,7 +4,6 @@ import glob
 import struct
 import threading
 import time
-from concurrent import futures
 
 from gi.repository import GObject
 
@@ -50,66 +49,71 @@ class RfExchange(GObject.GObject):
     def __init__(self, settings):
         GObject.GObject.__init__(self)
         self.serial = serial.Serial()
-        self.is_opened = False
 
-        self.connect_to_port()
+        # remember user settings
+        self.settings = settings
 
+        self.status = []
+        self.measured_data = []
+        self.params = []
+
+        #self.connect_to_port()
+
+        #print(settings)
         #self.apply_settings(settings)
 
-        GObject.timeout_add(1000, self.on_read_tuner)
+        self.thread_active = True
+        thread = threading.Thread(
+            target=self.read_from_port,
+            args=())
+        thread.start()
 
-    def on_read_tuner(self):
-        executor = futures.ProcessPoolExecutor()
-        future = executor.submit(read_from_port, self)
-        future.add_done_callback(self.done_callback)
+        GObject.timeout_add(1000, self.on_pass_data)
+
+    def on_pass_data(self):
+        if len(self.status) != 0:
+            self.emit(CustomMessages.NEW_TUNER_STATUS,
+                      self.status[0],            # status
+                      self.status[1],            # hw errors
+                      self.status[2])            # temperature
+
+        if len(self.measured_data) != 0:
+            self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
+                      self.measured_data[0],     # mer
+                      self.measured_data[1],     # mer updated
+                      self.measured_data[2],     # ber1
+                      self.measured_data[3],     # ber1 updated
+                      self.measured_data[4],     # ber2
+                      self.measured_data[5],     # ber2 updated
+                      self.measured_data[6],     # ber3
+                      self.measured_data[7],)    # ber3 updated
+
+        if len(self.params) != 0:
+            self.emit(CustomMessages.NEW_TUNER_PARAMS,
+                      self.params[0],            # status
+                      self.params[1],            # modulation
+                      self.params[2])            # params
 
         return True
 
-    def done_callback(self, future):
-        results = future.result()
-        status = results[0]
-        measured_data = results[1]
-        params = results[2]
-
-        if len(status) != 0:
-            self.emit(CustomMessages.NEW_TUNER_STATUS,
-                      status[0],            # status
-                      status[1],            # hw errors
-                      status[2])            # temperature
-
-        if len(measured_data) != 0:
-            self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
-                      measured_data[0],     # mer
-                      measured_data[1],     # mer updated
-                      measured_data[2],     # ber1
-                      measured_data[3],     # ber1 updated
-                      measured_data[4],     # ber2
-                      measured_data[5],     # ber2 updated
-                      measured_data[6],     # ber3
-                      measured_data[7],)    # ber3 updated
-
-        if len(params) != 0:
-            self.emit(CustomMessages.NEW_TUNER_PARAMS,
-                      params[0],            # status
-                      params[1],            # modulation
-                      params[2])            # params
-
     def read(self, size):
         buf = b""
-        if self.is_opened is True:
+        if self.serial.isOpen() is True:
             try:
                 buf = self.serial.read(size=size)
             except:
                 buf = b''
+                self.serial.close()
 
         return buf
 
     def write(self, msg):
-        if self.is_opened is True:
+        if self.serial.isOpen() is True:
             try:
                 self.serial.write(msg)
             except:
-                pass
+                print("write failed")
+                self.serial.close()
 
     def connect_to_port(self):
         # configure com port
@@ -120,8 +124,10 @@ class RfExchange(GObject.GObject):
             self.serial.bytesize = serial.EIGHTBITS
             self.serial.stopbits = serial.STOPBITS_ONE
             self.serial.timeout = 1
+            print("port configured")
         except:
-            self.is_opened = False
+            print("port not configured")
+            self.serial.close()
             return False
 
         # open com port
@@ -129,17 +135,16 @@ class RfExchange(GObject.GObject):
             self.serial.open()
         # couldn't open port
         except serial.SerialException:
-            print("exception")
-            self.is_opened = False
+            print("port opening failed")
+            self.serial.close()
             return False
         else:
-            self.is_opened = True
+            print("port opening ok")
             return True
 
     def disconnect(self):
         # close com port
         self.serial.close()
-        self.is_opened = False
 
     def check_start_byte(self, byte):
         if byte == START_BYTE:
@@ -471,22 +476,44 @@ class RfExchange(GObject.GObject):
         return result
 
     def apply_settings(self, settings):
+        self.settings = settings
+
         thread = threading.Thread(
             target=self.tuner_set_params,
             args=(settings,))
         thread.start()
 
+    def read_from_port(self):
+        while True:
+            # read status
+            if self.serial.isOpen() is False:
+                self.connect_to_port()
 
-def read_from_port(rf_tuner):
-    # read status
-    if rf_tuner.is_opened is False:
-        rf_tuner.connect_to_port()
+                # if opening port succeeded
+                if self.serial.isOpen() is True:
+                    time.sleep(1)
 
-    if rf_tuner.is_opened is True:
+                    # apply tuners settings
+                    set_answ = self.tuner_set_params(self.settings)
+                    # if failed applying settings, try apply again in a loop
+                    while len(set_answ) == 0:
+                        set_answ = self.tuner_set_params(self.settings)
+                        time.sleep(0.5)
 
-        status = rf_tuner.tuner_get_status()
-        measured_data = rf_tuner.tuner_get_measured_info()
-        params = rf_tuner.tuner_get_params()
+            # read tuner status and params
+            if self.serial.isOpen() is True:
 
-    return [status, measured_data, params]
+                self.status = self.tuner_get_status()
+                self.measured_data = self.tuner_get_measured_info()
+                self.params = self.tuner_get_params()
+
+            else:
+                self.params = [0x8000, 0, 0]
+
+            # sleep for a second
+            time.sleep(1)
+
+            # if thread is no more needed, close
+            if self.thread_active is False:
+                return True
 
