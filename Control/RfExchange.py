@@ -57,11 +57,6 @@ class RfExchange(GObject.GObject):
         self.measured_data = []
         self.params = []
 
-        #self.connect_to_port()
-
-        #print(settings)
-        #self.apply_settings(settings)
-
         self.thread_active = True
         thread = threading.Thread(
             target=self.read_from_port,
@@ -112,7 +107,6 @@ class RfExchange(GObject.GObject):
             try:
                 self.serial.write(msg)
             except:
-                print("write failed")
                 self.serial.close()
 
     def connect_to_port(self):
@@ -124,9 +118,7 @@ class RfExchange(GObject.GObject):
             self.serial.bytesize = serial.EIGHTBITS
             self.serial.stopbits = serial.STOPBITS_ONE
             self.serial.timeout = 1
-            print("port configured")
         except:
-            print("port not configured")
             self.serial.close()
             return False
 
@@ -135,11 +127,9 @@ class RfExchange(GObject.GObject):
             self.serial.open()
         # couldn't open port
         except serial.SerialException:
-            print("port opening failed")
             self.serial.close()
             return False
         else:
-            print("port opening ok")
             return True
 
     def disconnect(self):
@@ -218,7 +208,6 @@ class RfExchange(GObject.GObject):
                 dvb_c_t_t2_params = 0
             # if standard is unknown, return empty array
             else:
-                print("unknown")
                 return []
 
         # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
