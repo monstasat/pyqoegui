@@ -53,19 +53,18 @@ class MainWindow(Gtk.Window):
         # applied programs info
         self.guiProgInfo = []
 
-        # main window border width
-        #self.set_border_width(Spacing.BORDER)
-        #self.set_resizable(False)
-        # can't resize window by double click on header bar
         settings = Gtk.Settings.get_default()
+        # can't resize window by double click on header bar
         settings.set_property("gtk-titlebar-double-click", 'none')
+        # set default font
         settings.set_property("gtk-font-name", "Cantarell 11")
+        # don't show menu on mouse right-click
         settings.set_property("gtk-titlebar-right-click", 'none')
+        # don't show title bar and resizing cursors
         self.set_decorated(False)
 
         # set size
         self.set_default_size(width, height)
-        #self.set_size_request(width, height)
 
         # get models from control
         # remember model for storing streaming programs lists
