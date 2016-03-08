@@ -1,4 +1,5 @@
-import time
+import sys
+import getopt
 
 from gi.repository import Gtk, Gio
 
@@ -54,6 +55,8 @@ class Control():
         self.backend = Backend(streams=1)
         # create gui
         self.gui = MainWindow(app,
+                              app.args.width,
+                              app.args.height,
                               self.stream_progs,
                               self.analyzed_progs,
                               self.error_model,
@@ -61,6 +64,7 @@ class Control():
                               self.config.get_dark_theme(),
                               self.config.get_table_revealer(),
                               self.config.get_plot_info())
+
         # self.usb = Usb()
 
         # connect to gui signals
@@ -348,4 +352,9 @@ class Control():
         # disconnect from tuner
         self.rf_tuner.disconnect()
         self.rf_tuner.thread_active = False
+
+    def usage(self):
+        print("-h, --help: show list of possible options\n"
+              "--width: set window width\n"
+              "--height: set window height\n")
 

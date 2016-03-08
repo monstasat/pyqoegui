@@ -38,6 +38,8 @@ class MainWindow(Gtk.Window):
 
     def __init__(self,
                  app,
+                 width,
+                 height,
                  stream_progs_model,
                  analyzed_progs_model,
                  error_model,
@@ -52,12 +54,18 @@ class MainWindow(Gtk.Window):
         self.guiProgInfo = []
 
         # main window border width
-        self.set_border_width(Spacing.BORDER)
-        #self.maximize()
-        # self.set_resizable(False)
+        #self.set_border_width(Spacing.BORDER)
+        #self.set_resizable(False)
         # can't resize window by double click on header bar
         settings = Gtk.Settings.get_default()
-        # settings.set_property("gtk-titlebar-double-click", 'none')
+        settings.set_property("gtk-titlebar-double-click", 'none')
+        settings.set_property("gtk-font-name", "Cantarell 11")
+        settings.set_property("gtk-titlebar-right-click", 'none')
+        self.set_decorated(False)
+
+        # set size
+        self.set_default_size(width, height)
+        #self.set_size_request(width, height)
 
         # get models from control
         # remember model for storing streaming programs lists
@@ -132,17 +140,23 @@ class MainWindow(Gtk.Window):
         # creating left side bar with buttons
         self.toolbar = ButtonToolbar()
 
-        # main window grid
-        mainGrid = Gtk.Grid(row_spacing=Spacing.ROW_SPACING,
-                            column_spacing=Spacing.COL_SPACING,
-                            halign=Gtk.Align.FILL,
-                            valign=Gtk.Align.FILL
-                            )
-        mainGrid.attach(self.toolbar, 0, 0, 1, 1)
-        mainGrid.attach(self.myStack, 1, 0, 1, 1)
+        # main window box (with vertical orientation)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # add header bar at the top
+        vbox.add(hb)
 
-        # top window can have only one widget - this is Gtk.Stack in our case
-        self.add(mainGrid)
+        # box that includes left-side button bar and page stack
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        hbox.add(self.toolbar)
+        hbox.add(self.myStack)
+        hbox.set_border_width(Spacing.BORDER)
+        hbox.set_spacing(Spacing.COL_SPACING)
+
+        # add hbox to main box
+        vbox.add(hbox)
+
+        # add main box to window
+        self.add(vbox)
 
         # add prgtbl button to header bar
         self.showTableBtn = Gtk.ToggleButton(always_show_image=True,
@@ -150,6 +164,7 @@ class MainWindow(Gtk.Window):
                                              active=False,
                                              has_tooltip=True,
                                              image=Icon("pan-down-symbolic"))
+
         # connect to the callback function of the tooltip
         self.showTableBtn.connect("query-tooltip", self.tooltip_callback)
         self.showTableBtn.connect("clicked",
@@ -157,8 +172,6 @@ class MainWindow(Gtk.Window):
                                   self.cur_results_page.get_table_revealer()
                                   )
         hb.pack_end(self.showTableBtn)
-
-        self.set_titlebar(hb)
 
         self.show_all()
 
