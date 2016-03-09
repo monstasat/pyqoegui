@@ -67,7 +67,6 @@ class AtsApp(Gtk.Application):
                             help="show main window in fullscreen mode")
         # parse the command line stored in args, but skip the first element (the filename)
         self.args = parser.parse_args(args.get_arguments()[1:])
-        print(self.args)
         # call the main program do_activate() to start up the app
         self.do_activate()
         return 0
