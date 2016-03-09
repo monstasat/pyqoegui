@@ -18,6 +18,11 @@ class VideoErrorDetector(GObject.GObject):
         self.valid_video_headers = []
         self.storage_list = []
 
+        self.is_black_flag = types.UNKNOWN
+        self.is_freeze_flag = types.UNKNOWN
+        self.is_blocky_flag = types.UNKNOWN
+        self.is_loss_flag = types.UNKNOWN
+
         self.video_loss = 0
 
         self.black_err = 0
@@ -81,11 +86,15 @@ class VideoErrorDetector(GObject.GObject):
             storage.loss_cnt += 1
             if storage.loss_cnt >= self.video_loss:
                 return types.ERR
+            else:
+                if self.is_loss_flag == types.UNKNOWN:
+                    return types.UNKNOWN
+                # else return that there is no video loss
+                else:
+                    return types.NO_ERR
         else:
             storage.loss_cnt = 0
-
-        # else return that there is no video loss
-        return types.NO_ERR
+            return types.NO_ERR
 
     def is_blocky(self, blocky_level):
         if blocky_level is None:
@@ -143,19 +152,19 @@ class VideoErrorDetector(GObject.GObject):
             av_luma = storage.luma_average
             av_diff = storage.diff_average
 
-            is_black = self.is_black(av_black, av_luma)
-            is_freeze = self.is_freeze(av_freeze, av_diff)
-            is_blocky = self.is_blocky(av_block)
-            is_loss = self.is_loss(is_black,
-                                   is_freeze,
-                                   is_blocky,
-                                   storage)
+            self.is_black_flag = self.is_black(av_black, av_luma)
+            self.is_freeze_flag = self.is_freeze(av_freeze, av_diff)
+            self.is_blocky_flag = self.is_blocky(av_block)
+            self.is_loss_flag = self.is_loss(self.is_black_flag,
+                                             self.is_freeze_flag,
+                                             self.is_blocky_flag,
+                                             storage)
 
             results.append([storage.prog_info,
-                            [is_loss,           # video loss
-                             is_black,          # black frame
-                             is_freeze,         # freeze
-                             is_blocky]])       # blockiness
+                            [self.is_loss_flag,           # video loss
+                             self.is_black_flag,          # black frame
+                             self.is_freeze_flag,         # freeze
+                             self.is_blocky_flag]])       # blockiness
 
         self.gui.show_video_status(results)
 
