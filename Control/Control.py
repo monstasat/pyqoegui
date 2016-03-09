@@ -52,11 +52,13 @@ class Control():
         self.start_server(1600)
 
         # create backend
-        self.backend = Backend(streams=1)
+        self.backend = Backend(streams=0)
         # create gui
+        fullscreen = app.args.fullscreen
         self.gui = MainWindow(app,
                               app.args.width,
                               app.args.height,
+                              fullscreen,
                               self.stream_progs,
                               self.analyzed_progs,
                               self.error_model,

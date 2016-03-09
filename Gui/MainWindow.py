@@ -40,6 +40,7 @@ class MainWindow(Gtk.Window):
                  app,
                  width,
                  height,
+                 fullscreen,
                  stream_progs_model,
                  analyzed_progs_model,
                  error_model,
@@ -65,6 +66,10 @@ class MainWindow(Gtk.Window):
 
         # set size
         self.set_default_size(width, height)
+
+        # show in fullscreen if necessary
+        if fullscreen is True:
+            self.fullscreen()
 
         # get models from control
         # remember model for storing streaming programs lists
