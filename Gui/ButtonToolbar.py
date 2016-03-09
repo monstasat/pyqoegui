@@ -29,7 +29,7 @@ class ButtonToolbar(Gtk.Toolbar):
     ico_arr = ["media-playback-start-symbolic",
                "tv-symbolic",
                "network-wireless-symbolic",
-               "gnome-tweak-tool-symbolic",
+               "emblem-system-symbolic",
                "drive-harddisk-symbolic",
                "help-about-symbolic"
                ]
