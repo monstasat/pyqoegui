@@ -12,7 +12,7 @@ class BaseDialog(Gtk.Dialog):
                             Gtk.DialogFlags.USE_HEADER_BAR)
 
         self.set_modal(True)
-        self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.set_default_size(500, 500)
 
         # custom header bar

@@ -6,8 +6,10 @@ from Gui.CurrentResultsPage.CurrentResultsPage import CurrentResultsPage
 from Gui.PlotPage.PlotPage import PlotPage
 from Gui.AllResultsPage.AllResultsPage import AllResultsPage
 from Gui.ProgramSelectDialog.ProgramSelectDialog import ProgramSelectDialog
-from Gui.AnalysisSettingsDialog import AnalysisSettingsDialog
+from Gui.AnalysisSettingsDialog.AnalysisSettingsDialog import \
+                                AnalysisSettingsDialog
 from Gui.TunerSettingsDialog.TunerSettingsDialog import TunerSettingsDialog
+from Gui.DumpSettingsDialog import DumpSettingsDialog
 from Gui.AboutDialog import AboutDialog
 from Gui.Icon import Icon
 from Gui import Spacing
@@ -91,6 +93,8 @@ class MainWindow(Gtk.Window):
         self.tunerDlg = TunerSettingsDialog(self)
         # create analysis settings dialog
         self.analysisSetDlg = AnalysisSettingsDialog(self)
+        # create dump settings dialog
+        self.dumpSetDlg = DumpSettingsDialog(self)
 
         # add header bar to the window
         hb = Gtk.HeaderBar()
@@ -303,7 +307,7 @@ class MainWindow(Gtk.Window):
 
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
-        # create the dialog
+        # run the dialog
         responce = self.tunerDlg.run()
 
         # if new settings applied
@@ -317,7 +321,7 @@ class MainWindow(Gtk.Window):
 
     # analysis settings button was clicked
     def on_analysis_set_clicked(self, widget):
-        # create the dialog
+        # run the dialog
         responce = self.analysisSetDlg.run()
 
         # if new settings applied
@@ -334,7 +338,14 @@ class MainWindow(Gtk.Window):
 
     # dump button was clicked
     def on_dump_clicked(self, widget):
-        pass
+        # run the dialog
+        responce = self.dumpSetDlg.run()
+
+        # if new settings applied
+        if responce == Gtk.ResponseType.APPLY:
+            pass
+
+        self.dumpSetDlg.hide()
 
     # about button was clicked
     def on_about_clicked(self, widget):

@@ -1,49 +1,10 @@
 from gi.repository import Gtk
 
 from Gui.BaseDialog import BaseDialog
-from Gui.BaseDialog import SettingEntry
+from Gui.AnalysisSettingsDialog.AnalysisSettingsPage import \
+                                AnalysisSettingsPage
 from Gui.Icon import Icon
 from Gui import Spacing
-
-
-class BaseSettingsPage(Gtk.Box):
-    def __init__(self, store, indexes):
-        Gtk.Box.__init__(self)
-
-        # box must be with vertical orientation
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-
-        # set border width and child spacing
-        self.set_spacing(Spacing.ROW_SPACING)
-        self.set_border_width(Spacing.BORDER)
-
-        # remember store
-        self.store = store
-
-        # remember indexes
-        self.indexes = indexes
-
-        for i in indexes:
-            iter_ = self.store.get_iter(str(i))
-            name = self.store[iter_][0]
-            if self.store[iter_][1] == 'error':
-                name += " (ошибка)"
-            elif self.store[iter_][1] == 'warning':
-                name += " (предупреждение)"
-            min_ = self.store[iter_][3]
-            max_ = self.store[iter_][4]
-            entry = SettingEntry(i, name, min_, max_)
-            entry.set_value(self.store[iter_][2])
-
-            # if parameter has attribute 'parameter'
-            if self.store[iter_][1] == 'parameter':
-                entry.spinBtn.set_digits(0)
-                entry.spinBtn.set_increments(1, 10)
-
-            # if parameter is video loss or audio loss
-            if i == 0 or i == 1:
-                entry.spinBtn.set_digits(1)
-            self.add(entry)
 
 
 class AnalysisSettingsDialog(BaseDialog):
@@ -55,31 +16,31 @@ class AnalysisSettingsDialog(BaseDialog):
         # fill page list with created pages
         self.pages = []
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [0]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [0]),
             "video_loss",
             "Пропадание видео"))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [1]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [1]),
             "audio_loss",
             "Пропадание аудио"))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [2, 3, 4, 5]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [2, 3, 4, 5]),
             "black_frame",
             "Чёрный кадр"))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [6, 7, 8, 9]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [6, 7, 8, 9]),
             "freeze",
             '"Заморозка" видео"'))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [10, 11]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [10, 11]),
             "blockiness",
             "Блочность"))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [12, 13]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [12, 13]),
             "overload",
             '"Перегрузка" звука'))
         self.pages.append((
-            BaseSettingsPage(parent.errorSettingsStore, [14, 15]),
+            AnalysisSettingsPage(parent.errorSettingsStore, [14, 15]),
             "silence",
             "Тишина"))
 
