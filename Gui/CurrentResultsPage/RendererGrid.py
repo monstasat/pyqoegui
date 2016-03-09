@@ -50,6 +50,8 @@ class RendererGrid(Gtk.FlowBox):
 
         # first of all delete all previous renderers
         self.remove_renderers()
+        for rend in self.rend_arr:
+            rend.destroy
         self.rend_arr.clear()
 
         # add number of renderers
@@ -63,6 +65,9 @@ class RendererGrid(Gtk.FlowBox):
             af.add(self.rend_arr[i])
             # insert renderer to flow box
             self.insert(af, -1)
+
+        # set filter function
+        self.set_filter_func((lambda x, y: True), None)
 
         # show all renderers
         self.show_all()
