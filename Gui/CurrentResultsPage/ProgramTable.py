@@ -40,11 +40,16 @@ class ProgramTable(Gtk.TreeView):
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
 
         # attaching list store to tree view widget
-        # list sore : n; name; lufs;  vl;   bf; frz; blck; al; sil; loud
-        self.store = Gtk.ListStore(int, str, str, str, str, str,
-                                   str, str, str, str, str, str,
-                                   str, str, str, str, str, str,
-                                   str, str)
+        self.store = Gtk.ListStore(int, str,        # n
+                                   str, str,        # prog name
+                                   str, str,        # lufs
+                                   str, str,        # video loss
+                                   str, str,        # black frame
+                                   str, str,        # freeze
+                                   str, str,        # blockiness
+                                   str, str,        # audio loss
+                                   str, str,        # silence
+                                   str, str)        # loudness
 
         self.set_model(self.store)
 
@@ -111,4 +116,29 @@ class ProgramTable(Gtk.TreeView):
                          self.stattxt["1"], self.clrs['0'],     # audio loss
                          self.stattxt["1"], self.clrs['0'],     # silence
                          self.stattxt["1"], self.clrs['0']])    # loudness
+
+    def update(self, results):
+        for i, row in enumerate(self.get_model()):
+            # video loss
+            row[6] = self.stattxt[str(results[i][1][0])]
+            row[7] = self.clrs[str(results[i][1][0])]
+            # black frame
+            row[8] = self.stattxt[str(results[i][1][1])]
+            row[9] = self.clrs[str(results[i][1][1])]
+            # freeze
+            row[10] = self.stattxt[str(results[i][1][2])]
+            row[11] = self.clrs[str(results[i][1][2])]
+            # blockiness
+            row[12] = self.stattxt[str(results[i][1][3])]
+            row[13] = self.clrs[str(results[i][1][3])]
+            # audio loss
+            row[14] = self.stattxt[str(results[i][1][4])]
+            row[15] = self.clrs[str(results[i][1][4])]
+            # audio silence
+            row[16] = self.stattxt[str(results[i][1][5])]
+            row[17] = self.clrs[str(results[i][1][5])]
+            # audio loudness
+            row[18] = self.stattxt[str(results[i][1][6])]
+            row[19] = self.clrs[str(results[i][1][6])]
+
 

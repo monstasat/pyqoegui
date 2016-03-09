@@ -7,6 +7,7 @@ from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 from Gui.PlotPage import PlotTypes
 from Gui import Spacing
+from Control import ErrorTypesModel as em
 from Control import CustomMessages
 
 
@@ -179,8 +180,8 @@ class PlotPage(Gtk.Box):
         # apply intervals
         # freeze frame
         if index is 0:
-            err = err_store.get_failure_value(err_store.freeze_err)
-            warn = err_store.get_failure_value(err_store.freeze_warn)
+            err = err_store.get_failure_value(em.FREEZE_ERR)
+            warn = err_store.get_failure_value(em.FREEZE_WARN)
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -190,8 +191,8 @@ class PlotPage(Gtk.Box):
                               GraphTypes.NORMAL)
         # black frame
         elif index is 1:
-            err = err_store.get_failure_value(err_store.black_err)
-            warn = err_store.get_failure_value(err_store.black_warn)
+            err = err_store.get_failure_value(em.BLACK_ERR)
+            warn = err_store.get_failure_value(em.BLACK_WARN)
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -201,8 +202,8 @@ class PlotPage(Gtk.Box):
                               GraphTypes.NORMAL)
         # blockiness
         elif index is 2:
-            err = err_store.get_failure_value(err_store.block_err)
-            warn = err_store.get_failure_value(err_store.block_warn)
+            err = err_store.get_failure_value(em.BLOCK_ERR)
+            warn = err_store.get_failure_value(em.BLOCK_WARN)
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -213,7 +214,7 @@ class PlotPage(Gtk.Box):
         # average frame luma
         elif index is 3:
             print(full_range)
-            warn = err_store.get_failure_value(err_store.luma_warn)
+            warn = err_store.get_failure_value(em.LUMA_WARN)
             plot.add_interval((plot_range[1] - warn)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
@@ -221,18 +222,17 @@ class PlotPage(Gtk.Box):
                               GraphTypes.WARNING)
         # average frame difference
         elif index is 4:
-            warn = err_store.get_failure_value(err_store.diff_warn)
+            warn = err_store.get_failure_value(em.DIFF_WARN)
             plot.add_interval((plot_range[1] - warn)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
             plot.add_interval((warn - plot_range[0])/full_range,
                               GraphTypes.WARNING)
         elif (index is 5) or (index is 6):
-            high_err = err_store.get_failure_value(err_store.overload_err)
-            high_warn = err_store.get_failure_value(err_store.overload_warn)
-            low_err = err_store.get_failure_value(err_store.silence_err)
-            low_warn = err_store.get_failure_value(err_store.silence_warn)
-            warn = err_store.get_failure_value(err_store.diff_warn)
+            high_err = err_store.get_failure_value(em.OVERLOAD_ERR)
+            high_warn = err_store.get_failure_value(em.OVERLOAD_WARN)
+            low_err = err_store.get_failure_value(em.SILENCE_ERR)
+            low_warn = err_store.get_failure_value(em.SILENCE_WARN)
 
             plot.add_interval(abs(plot_range[1] - high_err)/full_range,
                               GraphTypes.ERROR,

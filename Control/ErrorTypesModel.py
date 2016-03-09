@@ -1,26 +1,26 @@
 from gi.repository import Gtk
 
+# indexes of store
+# video
+BLACK_ERR = 2
+BLACK_WARN = 3
+LUMA_WARN = 4
+FREEZE_ERR = 6
+FREEZE_WARN = 7
+DIFF_WARN = 8
+BLOCK_ERR = 10
+BLOCK_WARN = 11
+# audio
+OVERLOAD_ERR = 12
+OVERLOAD_WARN = 13
+SILENCE_ERR = 14
+SILENCE_WARN = 15
+
 
 class ErrorTypesModel(Gtk.ListStore):
     def __init__(self):
         # error name, type, failure, min, max, frames till error
         Gtk.ListStore.__init__(self, str, str, float, float, float, float)
-
-        # indexes of store
-        # video
-        self.black_err = 2
-        self.black_warn = 3
-        self.luma_warn = 4
-        self.freeze_err = 6
-        self.freeze_warn = 7
-        self.diff_warn = 8
-        self.block_err = 10
-        self.block_warn = 11
-        # audio
-        self.overload_err = 12
-        self.overload_warn = 13
-        self.silence_err = 14
-        self.silence_warn = 15
 
         self.default_values = (
             ['Пропадание видео, секунд',
@@ -32,7 +32,7 @@ class ErrorTypesModel(Gtk.ListStore):
             ['Количество чёрных пикселей, %',
              'warning', 95.0,  0,  100,  75],
             ['Уровень средней яркости',
-             'warning', 10.0,  20,  235,  75],
+             'warning', 20.0,  16,  235,  75],
             ['Уровень чёрного пиксела',
              'parameter', 16,  16,  235,  0],
             ['Количество идентичных пикселей, %',

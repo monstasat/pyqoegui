@@ -1,5 +1,4 @@
 import sys
-import getopt
 
 from gi.repository import Gtk, Gio
 
@@ -8,7 +7,7 @@ from Backend import State
 from Gui.MainWindow import MainWindow
 # from Usb.Usb import Usb
 from Control.TranslateMessages import TranslateMessages
-from Control.ErrorDetector import ErrorDetector
+from Control.ErrorDetector.ErrorDetector import ErrorDetector
 from Control import CustomMessages
 from Control.ErrorTypesModel import ErrorTypesModel
 from Control.ProgramTreeModel import ProgramTreeModel
@@ -28,8 +27,6 @@ class Control():
         self.config = Config()
         # create message translator
         self.msg_translator = TranslateMessages()
-        # create error detector
-        self.error_detector = ErrorDetector()
 
         # create program tree model for programs in stream
         self.stream_progs = ProgramTreeModel()
@@ -68,6 +65,12 @@ class Control():
                               self.config.get_plot_info())
 
         # self.usb = Usb()
+
+        # create error detector
+        self.error_detector = ErrorDetector(
+                                        self.config.get_prog_list(),
+                                        self.error_model.get_settings_list(),
+                                        self.gui)
 
         # connect to gui signals
         self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
@@ -269,6 +272,9 @@ class Control():
         for process_id in stream_ids:
             self.backend.restart_pipeline(process_id)
 
+        # pass new prog list to error detector
+        self.error_detector.set_programs_list(selected_progs)
+
         # save program list in config
         self.config.set_prog_list(selected_progs)
 
@@ -302,6 +308,9 @@ class Control():
         if self.gui.analysisSetDlg.get_visible() is True:
             self.gui.analysisSetDlg.update_values()
 
+        # set new settings to error detector
+        self.error_detector.set_analysis_settings(analysis_settings)
+
         # save analysis settings to config
         self.config.set_analysis_settings(analysis_settings)
 
@@ -317,6 +326,9 @@ class Control():
 
         # save settings to config
         self.config.set_tuner_settings(tuner_settings)
+
+        # restart all pipelines because of the tuner settings change
+        self.backend.start_all_pipelines()
 
     def on_new_tuner_status(self, src, status, hw_errors, temperature):
         #print(status, hw_errors, temperature)
