@@ -1,7 +1,8 @@
 from gi import require_version
 require_version('GdkX11', '3.0')
-from gi.repository import Gtk, Gdk, GdkX11, GObject
+from gi.repository import Gtk, Gdk, GdkX11, GObject, GdkPixbuf
 
+from Gui.Icon import Icon
 from Control import CustomMessages
 
 
@@ -24,6 +25,8 @@ class Renderer(Gtk.Grid):
         self.progID = guiProgInfo[1]
         # program name from SDT
         self.progName = guiProgInfo[2]
+        # prog type
+        self.prog_type = int(guiProgInfo[3])
         # video pid
         self.video_pid = None
         # audio pid
@@ -88,14 +91,55 @@ class Renderer(Gtk.Grid):
                   int(self.progID),
                   int(self.audio_pid),
                   int(value * 100))
+        # TODO: change 1 to VIDEO
+        # redraw if renderer corresponds to radio program
+        if (self.prog_type & 1) == 0:
+            self.drawarea.queue_draw()
 
     # return xid for the drawing area
     def get_drawing_area_xid(self):
         return self.drawarea.get_window().get_xid()
 
     def on_drawingarea_draw(self, widget, cr):
-        # if it is the first time we are drawing
-        if self.draw is True:
+
+        # TODO: change 1 to VIDEO
+        # if renderer corresponds to radio program
+        if (self.prog_type & 1) == 0:
+
+            # get volume button icons
+            icons = self.volbtn.get_property("icons")
+
+            # choose icon to draw
+            volume = self.volbtn.get_value()
+            if volume == 0.0:
+                icon = icons[0]
+            elif volume == 1.0:
+                icon = icons[1]
+            elif 0 < volume < 0.5:
+                icon = icons[2]
+            else:
+                icon = icons[3]
+
+            # get dimensions of drawing area
+            w = self.drawarea.get_allocated_width()
+            h = self.drawarea.get_allocated_height()
+
+            # create pixbuf from icon with size height/2
+            icon_theme = Gtk.IconTheme.get_default()
+            pixbuf = icon_theme.load_icon(icon,
+                                          h/2,
+                                          0)
+
+            # fill renderer background
+            cr.set_source_rgb(0.0, 0.0, 0.0)
+            cr.rectangle(0, 0, w, h)
+            cr.fill()
+
+            Gdk.cairo_set_source_pixbuf(cr, pixbuf, (w - pixbuf.get_width())/2, (h - pixbuf.get_height())/2)
+            cr.paint()
+
+        # if draw flag was set
+        elif self.draw is True:
             cr.set_source_rgb(0, 0, 0)
             w = self.drawarea.get_allocated_width()
             h = self.drawarea.get_allocated_height()
