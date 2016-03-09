@@ -1,15 +1,11 @@
 from gi.repository import GObject
 
-from Control.ErrorDetector.DataStorage import DataStorage
+from Control.ErrorDetector.VideoDataStorage import VideoDataStorage
 from Control import ErrorTypesModel as em
-
-NO_ERR = 1
-WARN = 2
-ERR = 3
-UNKNOWN = 0
+from Control.ErrorDetector import StatusTypes as types
 
 
-class ErrorDetector(GObject.GObject):
+class VideoErrorDetector(GObject.GObject):
     def __init__(self,
                  prog_list,
                  analysis_settings,
@@ -21,6 +17,8 @@ class ErrorDetector(GObject.GObject):
         # list of measured data headers
         self.valid_video_headers = []
         self.storage_list = []
+
+        self.video_loss = 0
 
         self.black_err = 0
         self.black_warn = 0
@@ -36,7 +34,7 @@ class ErrorDetector(GObject.GObject):
         self.set_programs_list(prog_list)
         self.set_analysis_settings(analysis_settings)
 
-        GObject.timeout_add(1000, self.on_get_average)
+        GObject.timeout_add(1000, self.on_parse_video_data)
 
     def set_programs_list(self, prog_list):
 
@@ -58,9 +56,11 @@ class ErrorDetector(GObject.GObject):
                         self.valid_video_headers.append(data_header)
 
         for prog in self.valid_video_headers:
-            self.storage_list.append(DataStorage(prog))
+            self.storage_list.append(VideoDataStorage(prog))
 
     def set_analysis_settings(self, analysis_settings):
+
+        self.video_loss = analysis_settings[em.VIDEO_LOSS][2]
 
         self.black_err = analysis_settings[em.BLACK_ERR][2]
         self.black_warn = analysis_settings[em.BLACK_WARN][2]
@@ -73,33 +73,53 @@ class ErrorDetector(GObject.GObject):
         self.block_err = analysis_settings[em.BLOCK_ERR][2]
         self.block_warn = analysis_settings[em.BLOCK_WARN][2]
 
-    def is_blocky(self, blocky_level):
-        if blocky_level > self.block_err:
-            return ERR
-        elif blocky_level > self.block_warn:
-            return WARN
+    def is_loss(self, is_black, is_freeze, is_blocky, storage):
+        if is_black is types.UNKNOWN or \
+                    is_freeze is types.UNKNOWN or \
+                    is_blocky is types.UNKNOWN:
+            # TODO: see if this value should ever overflow and become 0
+            storage.loss_cnt += 1
+            if storage.loss_cnt >= self.video_loss:
+                return types.ERR
         else:
-            return NO_ERR
+            storage.loss_cnt = 0
+
+        # else return that there is no video loss
+        return types.NO_ERR
+
+    def is_blocky(self, blocky_level):
+        if blocky_level is None:
+            return types.UNKNOWN
+        elif blocky_level > self.block_err:
+            return types.ERR
+        elif blocky_level > self.block_warn:
+            return types.WARN
+        else:
+            return types.NO_ERR
 
     def is_black(self, black_pix_num, av_luma):
-        if black_pix_num > self.black_err:
-            return ERR
+        if black_pix_num is None or av_luma is None:
+            return types.UNKNOWN
+        elif black_pix_num > self.black_err:
+            return types.ERR
         elif black_pix_num > self.black_warn:
-            return WARN
+            return types.WARN
         elif av_luma < self.black_luma_warn:
-            return WARN
+            return types.WARN
         else:
-            return NO_ERR
+            return types.NO_ERR
 
     def is_freeze(self, freeze_pix_num, av_diff):
-        if freeze_pix_num > self.freeze_err:
+        if freeze_pix_num is None or av_diff is None:
+            return types.UNKNOWN
+        elif freeze_pix_num > self.freeze_err:
             return ERR
         elif freeze_pix_num > self.freeze_warn:
-            return WARN
+            return types.WARN
         elif av_diff < self.freeze_diff_warn:
-            return WARN
+            return types.WARN
         else:
-            return NO_ERR
+            return types.NO_ERR
 
     def set_video_data(self, vparams):
         try:
@@ -114,7 +134,7 @@ class ErrorDetector(GObject.GObject):
             storage.av_luma.extend(vparams[1][3])
             storage.av_diff.extend(vparams[1][4])
 
-    def on_get_average(self):
+    def on_parse_video_data(self):
         results = []
         for storage in self.storage_list:
             av_black = storage.black_average
@@ -126,17 +146,18 @@ class ErrorDetector(GObject.GObject):
             is_black = self.is_black(av_black, av_luma)
             is_freeze = self.is_freeze(av_freeze, av_diff)
             is_blocky = self.is_blocky(av_block)
+            is_loss = self.is_loss(is_black,
+                                   is_freeze,
+                                   is_blocky,
+                                   storage)
 
             results.append([storage.prog_info,
-                            [NO_ERR,        # video loss
-                             is_black,      # black frame
-                             is_freeze,     # freeze
-                             is_blocky,     # blockiness
-                             NO_ERR,        # audio loss
-                             NO_ERR,        # silence
-                             NO_ERR]])      # loudness
+                            [is_loss,           # video loss
+                             is_black,          # black frame
+                             is_freeze,         # freeze
+                             is_blocky]])       # blockiness
 
-        self.gui.on_data_from_error_detector(results)
+        self.gui.show_video_status(results)
 
         return True
 

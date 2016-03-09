@@ -1,7 +1,7 @@
 from collections import deque
 
 
-class DataStorage():
+class VideoDataStorage():
     def __init__(self, prog_info):
         self.prog_info = prog_info
         self.black_num = deque()
@@ -10,12 +10,14 @@ class DataStorage():
         self.av_luma = deque()
         self.av_diff = deque()
 
+        self.loss_cnt = 0
+
     def get_average(self, value_deque):
         if len(value_deque) > 0:
             av = sum(value_deque) / len(value_deque)
             value_deque.clear()
         else:
-            av = 0.0
+            av = None
 
         return av
 

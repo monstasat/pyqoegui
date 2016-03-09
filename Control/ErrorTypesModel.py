@@ -2,6 +2,7 @@ from gi.repository import Gtk
 
 # indexes of store
 # video
+VIDEO_LOSS = 0
 BLACK_ERR = 2
 BLACK_WARN = 3
 LUMA_WARN = 4
@@ -11,6 +12,7 @@ DIFF_WARN = 8
 BLOCK_ERR = 10
 BLOCK_WARN = 11
 # audio
+AUDIO_LOSS = 1
 OVERLOAD_ERR = 12
 OVERLOAD_WARN = 13
 SILENCE_ERR = 14

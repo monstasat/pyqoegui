@@ -210,9 +210,13 @@ class MainWindow(Gtk.Window):
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
 
-    # data from error detector received
-    def on_data_from_error_detector(self, results):
-        self.cur_results_page.prgtbl.update(results)
+    # video data from error detector received
+    def show_video_status(self, results):
+        self.cur_results_page.prgtbl.update_video(results)
+
+    # audio data from error detector received
+    def show_audio_status(self, results):
+        self.cur_results_page.prgtbl.update_audio(results)
 
     # on reveal table button (in header bar) clicked
     def reveal_child(self, button, revealer):

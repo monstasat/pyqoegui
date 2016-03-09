@@ -7,7 +7,7 @@ from Backend import State
 from Gui.MainWindow import MainWindow
 # from Usb.Usb import Usb
 from Control.TranslateMessages import TranslateMessages
-from Control.ErrorDetector.ErrorDetector import ErrorDetector
+from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
 from Control import CustomMessages
 from Control.ErrorTypesModel import ErrorTypesModel
 from Control.ProgramTreeModel import ProgramTreeModel
@@ -67,7 +67,7 @@ class Control():
         # self.usb = Usb()
 
         # create error detector
-        self.error_detector = ErrorDetector(
+        self.video_error_detector = VideoErrorDetector(
                                         self.config.get_prog_list(),
                                         self.error_model.get_settings_list(),
                                         self.gui)
@@ -199,7 +199,7 @@ class Control():
                 # freeze black blockiness av_luma av_diff
                 vparams = self.msg_translator.translate_vparams_string_to_list(
                     wstr[1:])
-                self.error_detector.set_video_data(vparams)
+                self.video_error_detector.set_video_data(vparams)
                 self.gui.on_video_measured_data(vparams)
 
             elif wstr[0] == 'e':
@@ -273,7 +273,7 @@ class Control():
             self.backend.restart_pipeline(process_id)
 
         # pass new prog list to error detector
-        self.error_detector.set_programs_list(selected_progs)
+        self.video_error_detector.set_programs_list(selected_progs)
 
         # save program list in config
         self.config.set_prog_list(selected_progs)
@@ -309,7 +309,7 @@ class Control():
             self.gui.analysisSetDlg.update_values()
 
         # set new settings to error detector
-        self.error_detector.set_analysis_settings(analysis_settings)
+        self.video_error_detector.set_analysis_settings(analysis_settings)
 
         # save analysis settings to config
         self.config.set_analysis_settings(analysis_settings)

@@ -40,6 +40,7 @@ class AnalysisSettingsPage(Gtk.Box):
 
             # if parameter is video loss or audio loss
             if i == 0 or i == 1:
-                entry.spinBtn.set_digits(1)
+                entry.spinBtn.set_increments(1, 10)
+                entry.spinBtn.set_digits(0)
             self.add(entry)
 
