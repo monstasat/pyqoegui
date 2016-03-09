@@ -63,6 +63,8 @@ class MainWindow(Gtk.Window):
         settings.set_property("gtk-titlebar-right-click", 'none')
         # don't show title bar and resizing cursors
         self.set_decorated(False)
+        # place window at the center of the screen
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         # set size
         self.set_default_size(width, height)
