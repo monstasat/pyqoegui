@@ -3,44 +3,48 @@ from gi.repository import Gtk
 from Gui.BaseDialog import BaseDialog
 from Gui.AnalysisSettingsDialog.AnalysisSettingsPage import \
                                 AnalysisSettingsPage
+from Gui.AnalysisSettingsDialog.AnalysisSettingsModel import \
+                                AnalysisSettingsModel
 from Gui.Icon import Icon
 from Gui import Spacing
 
 
 class AnalysisSettingsDialog(BaseDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, analysis_settings):
         BaseDialog.__init__(self, "Настройки анализа", parent)
 
         mainBox = self.get_content_area()
 
+        self.analysis_settings_store = AnalysisSettingsModel(analysis_settings)
+
         # fill page list with created pages
         self.pages = []
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [0]),
+            AnalysisSettingsPage(self.analysis_settings_store, [0]),
             "video_loss",
             "Пропадание видео"))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [1]),
+            AnalysisSettingsPage(self.analysis_settings_store, [1]),
             "audio_loss",
             "Пропадание аудио"))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [2, 3, 4, 5]),
+            AnalysisSettingsPage(self.analysis_settings_store, [2, 3, 4, 5]),
             "black_frame",
             "Чёрный кадр"))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [6, 7, 8, 9]),
+            AnalysisSettingsPage(self.analysis_settings_store, [6, 7, 8, 9]),
             "freeze",
             '"Заморозка" видео"'))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [10, 11]),
+            AnalysisSettingsPage(self.analysis_settings_store, [10, 11]),
             "blockiness",
             "Блочность"))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [12, 13]),
+            AnalysisSettingsPage(self.analysis_settings_store, [12, 13]),
             "overload",
             '"Перегрузка" звука'))
         self.pages.append((
-            AnalysisSettingsPage(parent.errorSettingsStore, [14, 15]),
+            AnalysisSettingsPage(self.analysis_settings_store, [14, 15]),
             "silence",
             "Тишина"))
 

@@ -109,23 +109,28 @@ class ProgramTable(Gtk.TreeView):
             # adding column to treeview
             self.append_column(column)
 
-    def add_rows(self, progNum, guiProgInfo):
+    def add_rows(self, prog_list):
         store = self.get_model()
         store.clear()
 
-        for i in range(progNum):
-            prog_name = guiProgInfo[i][2]
-            prog_type = int(guiProgInfo[i][3])
-            stream_id = int(guiProgInfo[i][0])
-            prog_id = int(guiProgInfo[i][1])
+        for stream in prog_list:
+            stream_id = stream[0]
+            for prog in stream[1]:
+                prog_name = prog[1]
+                prog_type = 0
+                prog_id = int(prog[0])
 
-            video_pid = 0
-            audio_pid = 0
-            for pid in guiProgInfo[i][4]:
-                if pid[1].split('-')[0] == 'video':
-                    video_pid = int(pid[0])
-                elif pid[1].split('-')[0] == 'audio':
-                    audio_pid = int(pid[0])
+                video_pid = 0
+                audio_pid = 0
+                for pid in prog[5]:
+                    if pid[2].split('-')[0] == 'video':
+                        video_pid = int(pid[0])
+                        # FIXME: & VIDEO
+                        prog_type = prog_type | 0x01
+                    elif pid[2].split('-')[0] == 'audio':
+                        audio_pid = int(pid[0])
+                        # FIXME: & AUDIO
+                        prog_type = prog_type | 0x02
 
             treeiter = store.append(
                 # start of visible part

@@ -14,23 +14,30 @@ class Renderer(Gtk.Grid):
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, (int, int, int, int,))}
 
-    def __init__(self, guiProgInfo):
+    def __init__(self,
+                 stream_id,
+                 prog_id,
+                 prog_name,
+                 prog_type,
+                 video_pid,
+                 audio_pid):
+
         Gtk.Grid.__init__(self)
 
         # is renderer enlarged by user?
         self.is_enlarged = False
 
-        self.stream_id = guiProgInfo[0]
+        self.stream_id = stream_id
         # program id from PMT
-        self.progID = guiProgInfo[1]
+        self.prog_id = prog_id
         # program name from SDT
-        self.progName = guiProgInfo[2]
+        self.progName = prog_name
         # prog type
-        self.prog_type = int(guiProgInfo[3])
+        self.prog_type = prog_type
         # video pid
-        self.video_pid = None
+        self.video_pid = video_pid
         # audio pid
-        self.audio_pid = None
+        self.audio_pid = audio_pid
 
         for pid in guiProgInfo[4]:
             pid_type = pid[1].split('-')[0]
@@ -88,7 +95,7 @@ class Renderer(Gtk.Grid):
     def volume_changed(self, widget, value):
         self.emit(CustomMessages.VOLUME_CHANGED,
                   int(self.stream_id),
-                  int(self.progID),
+                  int(self.prog_id),
                   int(self.audio_pid),
                   int(value * 100))
         # TODO: change 1 to VIDEO

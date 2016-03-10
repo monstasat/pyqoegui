@@ -2,7 +2,6 @@ from gi.repository import GObject
 
 from Control.ErrorDetector.VideoDataStorage import VideoDataStorage
 from Control.ErrorDetector.AudioDataStorage import AudioDataStorage
-from Control import ErrorTypesModel as em
 from Control.ErrorDetector import StatusTypes as types
 
 

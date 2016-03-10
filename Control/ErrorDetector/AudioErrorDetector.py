@@ -1,6 +1,6 @@
 from gi.repository import GObject
 
-from Control import ErrorTypesModel as em
+from Gui.AnalysisSettingsDialog import AnalysisSettingsModel as em
 from Control.ErrorDetector import StatusTypes as types
 from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 

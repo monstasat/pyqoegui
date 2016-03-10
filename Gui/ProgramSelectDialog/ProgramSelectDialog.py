@@ -33,7 +33,7 @@ class ProgramSelectDialog(BaseDialog):
                                        valign=Gtk.Align.FILL,
                                        hscrollbar_policy=2)
         scrollWnd.set_size_request(400, 400)
-        self.progTree = ProgramTreeView(parent.store)
+        self.progTree = ProgramTreeView(parent.stream_progs_model)
 
         # creating prog list overlay
         overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
@@ -46,8 +46,8 @@ class ProgramSelectDialog(BaseDialog):
         overlay.add_overlay(self.holder)
 
         # connect to store signals
-        parent.store.connect('row-deleted', self.on_row_deleted)
-        parent.store.connect('row-inserted', self.on_row_inserted)
+        parent.stream_progs_model.connect('row-deleted', self.on_row_deleted)
+        parent.stream_progs_model.connect('row-inserted', self.on_row_inserted)
 
         # connect to show signal
         self.connect('show', self.on_shown)

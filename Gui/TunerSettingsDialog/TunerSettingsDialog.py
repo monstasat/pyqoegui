@@ -4,18 +4,20 @@ from Gui.BaseDialog import BaseDialog
 from Gui.BaseDialog import ComboBox
 from Gui.TunerSettingsDialog.TunerStatusBox import TunerStatusBox
 from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
+from Gui.TunerSettingsDialog.TunerSettingsModel import TunerSettingsModel
 from Gui import Spacing
-from Control import TunerSettingsModel as tm
 
 
 # dialog for managing tuner settings
 class TunerSettingsDialog(BaseDialog):
-    def __init__(self, parent):
+    def __init__(self,
+                 parent,
+                 tuner_settings):
         BaseDialog.__init__(self, "Настройки ТВ тюнера", parent)
 
         mainBox = self.get_content_area()
 
-        self.store = parent.tunerSettingsStore
+        self.store = TunerSettingsModel(tuner_settings)
 
         self.standard_model = Gtk.ListStore(str, int)
         self.standard_model.append(["DVB-T2", 3])

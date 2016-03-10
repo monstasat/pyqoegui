@@ -7,7 +7,7 @@ from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 from Gui.PlotPage import PlotTypes
 from Gui import Spacing
-from Control import ErrorTypesModel as em
+from Gui.AnalysisSettingsDialog import AnalysisSettingsModel as em
 from Control import CustomMessages
 
 

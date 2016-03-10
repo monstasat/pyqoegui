@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 
-from Control import TunerSettingsModel as tm
+from Gui.TunerSettingsDialog.TunerSettingsModel import TunerSettingsModel as tm
 
 
 # tree view that displays tuner measured data

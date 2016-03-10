@@ -46,7 +46,7 @@ class RendererGrid(Gtk.FlowBox):
         self.connect('child-activated', self.on_child_activated)
 
     # draw necessary number of renderers
-    def draw_renderers(self, progNum, guiProgInfo):
+    def draw_renderers(self, prog_list):
 
         # first of all delete all previous renderers
         self.remove_renderers()
@@ -54,17 +54,41 @@ class RendererGrid(Gtk.FlowBox):
             rend.destroy
         self.rend_arr.clear()
 
-        # add number of renderers
-        for i in range(progNum):
-            self.rend_arr.append(Renderer(guiProgInfo[i]))
-            # connect renderer to volume changed signal
-            self.rend_arr[i].connect(CustomMessages.VOLUME_CHANGED,
-                                     self.on_volume_changed)
-            af = Gtk.AspectFrame(hexpand=True, vexpand=True)
-            af.set(0.5, 0.5, 4.0/3.0, False)
-            af.add(self.rend_arr[i])
-            # insert renderer to flow box
-            self.insert(af, -1)
+        # add renderers to grid
+        for stream in prog_list:
+            stream_id = stream[0]
+            for prog in stream[1]:
+                prog_name = prog[1]
+                prog_type = 0
+                prog_id = int(prog[0])
+
+                video_pid = None
+                audio_pid = None
+                for pid in prog[5]:
+                    if pid[2].split('-')[0] == 'video':
+                        video_pid = int(pid[0])
+                        # FIXME: & VIDEO
+                        prog_type = prog_type | 0x01
+                    elif pid[2].split('-')[0] == 'audio':
+                        audio_pid = int(pid[0])
+                        # FIXME: & AUDIO
+                        prog_type = prog_type | 0x02
+
+                self.rend_arr.append(Renderer(stream_id,
+                                              prog_id,
+                                              prog_name,
+                                              prog_type,
+                                              video_pid,
+                                              audio_pid))
+
+                # connect renderer to volume changed signal
+                self.rend_arr[i].connect(CustomMessages.VOLUME_CHANGED,
+                                         self.on_volume_changed)
+                af = Gtk.AspectFrame(hexpand=True, vexpand=True)
+                af.set(0.5, 0.5, 4.0/3.0, False)
+                af.add(self.rend_arr[i])
+                # insert renderer to flow box
+                self.insert(af, -1)
 
         # set filter function
         self.set_filter_func((lambda x, y: True), None)

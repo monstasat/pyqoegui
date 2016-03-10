@@ -7,7 +7,7 @@ import time
 
 from gi.repository import GObject
 
-from Control import TunerSettingsModel as tm
+from Gui.TunerSettingsDialog import TunerSettingsModel as tm
 from Control import CustomMessages
 
 # msg start byte
