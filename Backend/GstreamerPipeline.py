@@ -55,6 +55,7 @@ class GstreamerPipeline():
     def terminate(self):
         if self.proc is not None:
             self.proc.terminate()
+            self.proc.communicate()
             self.proc = None
             self.state = State.TERMINATED
         print("terminating pipeline")

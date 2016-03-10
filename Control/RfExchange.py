@@ -485,7 +485,8 @@ class RfExchange(GObject.GObject):
                     # apply tuners settings
                     set_answ = self.tuner_set_params(self.settings)
                     # if failed applying settings, try apply again in a loop
-                    while len(set_answ) == 0:
+                    while (len(set_answ) == 0) and \
+                          (self.thread_active is True):
                         set_answ = self.tuner_set_params(self.settings)
                         time.sleep(0.5)
 
@@ -499,10 +500,10 @@ class RfExchange(GObject.GObject):
             else:
                 self.params = [0x8000, 0, 0]
 
-            # sleep for a second
-            time.sleep(1)
-
             # if thread is no more needed, close
             if self.thread_active is False:
                 return True
+
+            # sleep for a second
+            time.sleep(1)
 
