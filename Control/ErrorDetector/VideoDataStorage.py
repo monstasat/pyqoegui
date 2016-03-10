@@ -12,6 +12,14 @@ class VideoDataStorage():
 
         self.loss_cnt = 0
 
+    # extend deques with new data
+    def push_new_data(self, data):
+        self.black_num.extend(data[0])
+        self.freeze_num.extend(data[1])
+        self.blocky_level.extend(data[2])
+        self.av_luma.extend(data[3])
+        self.av_diff.extend(data[4])
+
     def get_average(self, value_deque):
         if len(value_deque) > 0:
             av = sum(value_deque) / len(value_deque)

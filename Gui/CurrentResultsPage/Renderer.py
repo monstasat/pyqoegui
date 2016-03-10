@@ -135,7 +135,10 @@ class Renderer(Gtk.Grid):
             cr.rectangle(0, 0, w, h)
             cr.fill()
 
-            Gdk.cairo_set_source_pixbuf(cr, pixbuf, (w - pixbuf.get_width())/2, (h - pixbuf.get_height())/2)
+            Gdk.cairo_set_source_pixbuf(cr,
+                                        pixbuf,
+                                        (w - pixbuf.get_width())/2,
+                                        (h - pixbuf.get_height())/2)
             cr.paint()
 
         # if draw flag was set

@@ -9,6 +9,7 @@ from Gui.MainWindow import MainWindow
 # from Usb.Usb import Usb
 from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
+from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
 from Control import CustomMessages
 from Control.ErrorTypesModel import ErrorTypesModel
 from Control.ProgramTreeModel import ProgramTreeModel
@@ -67,8 +68,13 @@ class Control(GObject.GObject):
 
         # self.usb = Usb()
 
-        # create error detector
+        # create video error detector
         self.video_error_detector = VideoErrorDetector(
+                                        self.config.get_prog_list(),
+                                        self.error_model.get_settings_list(),
+                                        self.gui)
+        # create audio error detector
+        self.audio_error_detector = AudioErrorDetector(
                                         self.config.get_prog_list(),
                                         self.error_model.get_settings_list(),
                                         self.gui)
@@ -207,7 +213,7 @@ class Control(GObject.GObject):
                 # freeze black blockiness av_luma av_diff
                 vparams = self.msg_translator.translate_vparams_string_to_list(
                     wstr[1:])
-                self.video_error_detector.set_video_data(vparams)
+                self.video_error_detector.set_data(vparams)
                 self.gui.on_video_measured_data(vparams)
 
             elif wstr[0] == 'e':
@@ -280,8 +286,9 @@ class Control(GObject.GObject):
         for process_id in stream_ids:
             self.backend.restart_pipeline(process_id)
 
-        # pass new prog list to error detector
+        # pass new prog list to error detectors
         self.video_error_detector.set_programs_list(selected_progs)
+        self.audio_error_detector.set_programs_list(selected_progs)
 
         # save program list in config
         self.config.set_prog_list(selected_progs)
@@ -318,6 +325,7 @@ class Control(GObject.GObject):
 
         # set new settings to error detector
         self.video_error_detector.set_analysis_settings(analysis_settings)
+        self.audio_error_detector.set_analysis_settings(analysis_settings)
 
         # save analysis settings to config
         self.config.set_analysis_settings(analysis_settings)

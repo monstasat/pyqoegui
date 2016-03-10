@@ -1,22 +1,20 @@
 from gi.repository import GObject
 
-from Control.ErrorDetector.VideoDataStorage import VideoDataStorage
 from Control import ErrorTypesModel as em
 from Control.ErrorDetector import StatusTypes as types
+from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 
 
-class VideoErrorDetector(GObject.GObject):
+class VideoErrorDetector(BaseErrorDetector):
     def __init__(self,
                  prog_list,
                  analysis_settings,
                  gui):
 
+        BaseErrorDetector.__init__(self, prog_list, 'video')
+
         # main gui window
         self.gui = gui
-
-        # list of measured data headers
-        self.valid_video_headers = []
-        self.storage_list = []
 
         self.is_black_flag = types.UNKNOWN
         self.is_freeze_flag = types.UNKNOWN
@@ -36,32 +34,9 @@ class VideoErrorDetector(GObject.GObject):
         self.block_err = 0
         self.block_warn = 0
 
-        self.set_programs_list(prog_list)
         self.set_analysis_settings(analysis_settings)
 
         GObject.timeout_add(1000, self.on_parse_video_data)
-
-    def set_programs_list(self, prog_list):
-
-        self.valid_video_headers.clear()
-        self.storage_list.clear()
-
-        # get list of measured data headers for video
-        for stream in prog_list:
-            stream_id = stream[0]
-            for prog in stream[1]:
-                data_header = []
-                prog_id = prog[0]
-                data_header.append(int(stream_id))
-                data_header.append(int(prog_id))
-                for pid in prog[4]:
-                    pid_type = pid[2].split('-')[0]
-                    if pid_type == 'video':
-                        data_header.append(int(pid[0]))
-                        self.valid_video_headers.append(data_header)
-
-        for prog in self.valid_video_headers:
-            self.storage_list.append(VideoDataStorage(prog))
 
     def set_analysis_settings(self, analysis_settings):
 
@@ -129,19 +104,6 @@ class VideoErrorDetector(GObject.GObject):
             return types.WARN
         else:
             return types.NO_ERR
-
-    def set_video_data(self, vparams):
-        try:
-            index = self.valid_video_headers.index(vparams[0])
-        except:
-            print("no such prog")
-        else:
-            storage = self.storage_list[index]
-            storage.black_num.extend(vparams[1][0])
-            storage.freeze_num.extend(vparams[1][1])
-            storage.blocky_level.extend(vparams[1][2])
-            storage.av_luma.extend(vparams[1][3])
-            storage.av_diff.extend(vparams[1][4])
 
     def on_parse_video_data(self):
         results = []
