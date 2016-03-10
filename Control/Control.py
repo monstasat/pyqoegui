@@ -1,6 +1,7 @@
 import sys
+import psutil
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GObject
 
 from Backend.Backend import Backend
 from Backend import State
@@ -17,7 +18,7 @@ from Log import Log
 from Control.RfExchange import RfExchange
 
 
-class Control():
+class Control(GObject.GObject):
 
     def __init__(self, app):
 
@@ -126,6 +127,8 @@ class Control():
 
         self.gui.queue_draw()
 
+        GObject.timeout_add(1000, self.on_get_cpu_load)
+
     def start_analysis(self):
         # execute all gstreamer pipelines
         self.backend.start_all_pipelines()
@@ -148,6 +151,11 @@ class Control():
             self.gui.set_draw_mode_for_renderers(True, stream[0])
         # force redrawing of gui
         self.gui.queue_draw()
+
+    def on_get_cpu_load(self):
+        load = psutil.cpu_percent(interval=0)
+        self.gui.show_cpu_load(load)
+        return True
 
     # start server
     def start_server(self, port):

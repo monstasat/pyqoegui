@@ -107,11 +107,22 @@ class MainWindow(Gtk.Window):
                                  image=Icon("open-menu-symbolic"))
 
         popover = Gtk.Popover(border_width=Spacing.BORDER)
-        popBox = Gtk.HBox(spacing=Spacing.COL_SPACING)
+        popBox = Gtk.HBox(spacing=Spacing.COL_SPACING,
+                          orientation=Gtk.Orientation.VERTICAL)
         darkThemeCheck = Gtk.Switch()
         darkThemeCheck.connect('state-set', self.on_dark_theme_check)
-        popBox.add(darkThemeCheck)
-        popBox.add(Gtk.Label(label='Использовать тёмное оформление'))
+        dark_theme_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                 spacing=Spacing.COL_SPACING)
+        dark_theme_box.add(darkThemeCheck)
+        dark_theme_box.add(Gtk.Label(label='Использовать тёмное оформление'))
+        popBox.add(dark_theme_box)
+        popBox.add(Gtk.HSeparator())
+        cpu_load_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        cpu_load_box.add(Gtk.Label(label="Загрузка процессора: "))
+        self.cpu_load_val = Gtk.Label(label="")
+        cpu_load_box.add(self.cpu_load_val)
+        cpu_load_box.set_halign(Gtk.Align.END)
+        popBox.add(cpu_load_box)
         popBox.show_all()
         popover.add(popBox)
         menuBtn.set_popover(popover)
@@ -209,6 +220,10 @@ class MainWindow(Gtk.Window):
         btns = self.toolbar.get_children()
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
+
+    # show cpu load
+    def show_cpu_load(self, load):
+        self.cpu_load_val.set_text(str(load) + "%")
 
     # video data from error detector received
     def show_video_status(self, results):
