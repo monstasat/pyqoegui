@@ -104,7 +104,6 @@ class RendererGrid(Gtk.FlowBox):
             if self.rend_arr[i].stream_id == stream_id:
                 self.rend_arr[i].draw = draw
                 self.rend_arr[i].drawarea.set_double_buffered(draw)
-                print(draw)
 
     # when flowbox needs redrawing
     def on_draw(self, widget, cr):

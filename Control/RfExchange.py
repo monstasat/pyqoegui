@@ -113,7 +113,7 @@ class RfExchange(GObject.GObject):
         # configure com port
         try:
             self.serial.baudrate = 115200
-            self.serial.port = '/dev/ttyUSB0'
+            self.serial.port = '/dev/ttyS2'
             self.serial.parity = serial.PARITY_NONE
             self.serial.bytesize = serial.EIGHTBITS
             self.serial.stopbits = serial.STOPBITS_ONE
