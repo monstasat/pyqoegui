@@ -15,26 +15,24 @@ class AnalysisSettingsPage(Gtk.Box):
         self.set_spacing(Spacing.ROW_SPACING)
         self.set_border_width(Spacing.BORDER)
 
-        # remember store
-        self.store = main_dlg.store
-
         # remember indexes
         self.indexes = indexes
 
+        settings = main_dlg.analysis_settings
+
         for i in indexes:
-            iter_ = self.store.get_iter(str(i))
-            name = self.store[iter_][0]
-            if self.store[iter_][1] == 'error':
+            name = settings[i][0]
+            if settings[i][1] == 'error':
                 name += " (ошибка)"
-            elif self.store[iter_][1] == 'warning':
+            elif settings[i][1] == 'warning':
                 name += " (предупреждение)"
-            min_ = self.store[iter_][3]
-            max_ = self.store[iter_][4]
+            min_ = settings[i][3]
+            max_ = settings[i][4]
             entry = SettingEntry(i, name, min_, max_)
-            entry.set_value(self.store[iter_][2])
+            entry.set_value(settings[i][2])
 
             # if parameter has attribute 'parameter'
-            if self.store[iter_][1] == 'parameter':
+            if settings[i][1] == 'parameter':
                 entry.spinBtn.set_digits(0)
                 entry.spinBtn.set_increments(1, 10)
 

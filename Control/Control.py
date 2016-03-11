@@ -262,7 +262,7 @@ class Control(GObject.GObject):
         self.backend.start_all_pipelines()
 
         # Save tuner settings in Config
-        self.config.set_tuner_settings(tuner_settings)
+        self.config.set_tuner_settings(self.tuner_settings)
 
     # Interaction with Gui and Usb
     # Methods specific for Gui

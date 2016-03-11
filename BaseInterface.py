@@ -54,8 +54,6 @@ class BaseInterface(GObject.GObject):
     def update_tuner_settings(self, tuner_settings):
         # save settings
         self.tuner_settings = tuner_settings
-        # update tuner dialog
-        self.tunerDlg.update_values(self.tuner_settings)
 
     # called by Control to update tuner parameters
     def update_tuner_params(self, status, modulation, params):

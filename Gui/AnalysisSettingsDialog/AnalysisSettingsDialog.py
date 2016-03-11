@@ -3,8 +3,6 @@ from gi.repository import Gtk
 from Gui.BaseDialog import BaseDialog
 from Gui.AnalysisSettingsDialog.AnalysisSettingsPage import \
                                 AnalysisSettingsPage
-from Gui.AnalysisSettingsDialog.AnalysisSettingsModel import \
-                                AnalysisSettingsModel
 from Gui.Icon import Icon
 from Gui import Spacing
 
@@ -15,7 +13,7 @@ class AnalysisSettingsDialog(BaseDialog):
 
         mainBox = self.get_content_area()
 
-        self.store = AnalysisSettingsModel(analysis_settings)
+        self.analysis_settings  = analysis_settings
 
         # fill page list with created pages
         self.pages = []
@@ -74,24 +72,29 @@ class AnalysisSettingsDialog(BaseDialog):
         mainBox.pack_start(separator, False, False, 0)
         mainBox.pack_start(self.stack, True, True, 0)
 
+        # update values in controls
+        self.update_values(analysis_settings)
+
         # expertBtn = Gtk.ToggleButton(image=Icon('emblem-system-symbolic'))
         # self.header.pack_end(expertBtn)
 
-    # apply values from spin buttons to model
-    def apply_settings(self):
+    # return analysis settings
+    def get_analysis_settings(self):
+        # update analysis settings list
+        analysis_settings = self.analysis_settings
         for page in self.pages:
             for entry in page[0].get_children():
                 value = entry.spinBtn.get_value()
                 i = entry.index
-                iter_ = page[0].store.get_iter(str(i))
-                page[0].store[iter_][2] = value
+                analysis_settings[i][2] = value
+
+        return analysis_settings
 
     # update values in spin buttons
     def update_values(self, analysis_settings):
+        self.analysis_settings = analysis_settings
         for page in self.pages:
             for entry in page[0].get_children():
                 i = entry.index
-                iter_ = page[0].store.get_iter(str(i))
-                value = page[0].store[iter_][2]
-                entry.spinBtn.set_value(value)
+                entry.spinBtn.set_value(analysis_settings[i][2])
 
