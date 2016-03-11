@@ -26,7 +26,8 @@ class AboutDialog(Gtk.AboutDialog):
         self.set_property("copyright", '© 2016 АО "НИИ телевидения"')
 
         try:
-            logo = GdkPixbuf.Pixbuf.new_from_file('./Gui/logo_square.png')
+            logo = GdkPixbuf.Pixbuf.new_from_file(
+                './Gui/AboutDialog/logo_square.png')
             logo = logo.scale_simple(128, 128, GdkPixbuf.InterpType.BILINEAR)
             self.set_property("logo", logo)
         except:

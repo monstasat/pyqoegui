@@ -11,7 +11,7 @@ from Gui.AnalysisSettingsDialog.AnalysisSettingsDialog import \
                                 AnalysisSettingsDialog
 from Gui.TunerSettingsDialog.TunerSettingsDialog import TunerSettingsDialog
 from Gui.DumpSettingsDialog import DumpSettingsDialog
-from Gui.AboutDialog import AboutDialog
+from Gui.AboutDialog.AboutDialog import AboutDialog
 from Gui.Icon import Icon
 from Gui import Spacing
 from Control import CustomMessages
