@@ -15,13 +15,13 @@ from Gui.AboutDialog import AboutDialog
 from Gui.Icon import Icon
 from Gui import Spacing
 from Control import CustomMessages
+from BaseInterface import BaseInterface
 
 
-class Gui(Gtk.Window):
+class Gui(BaseInterface, Gtk.Window):
 
+    # specific Gui signals
     __gsignals__ = {
-        CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
         CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
@@ -33,10 +33,6 @@ class Gui(Gtk.Window):
         CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int,)),
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
-        CustomMessages.ANALYSIS_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
-        CustomMessages.TUNER_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, ())}
 
     def __init__(self,
@@ -51,10 +47,19 @@ class Gui(Gtk.Window):
                  table_revealed,
                  plot_info):
 
+        BaseInterface.__init__(self,
+                               analyzed_progs_list,
+                               analysis_settings_list,
+                               tuner_settings_list)
+
         Gtk.Window.__init__(self, application=app)
 
-        # applied programs info
-        self.guiProgInfo = []
+        # set size
+        self.set_default_size(width, height)
+
+        # show in fullscreen if necessary
+        if fullscreen is True:
+            self.fullscreen()
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
@@ -68,22 +73,10 @@ class Gui(Gtk.Window):
         # place window at the center of the screen
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
-        # set size
-        self.set_default_size(width, height)
-
-        # show in fullscreen if necessary
-        if fullscreen is True:
-            self.fullscreen()
-
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
         # create program tree model for analyzed programs
         self.analyzed_progs_model = ProgramTreeModel(analyzed_progs_list)
-
-        # create analysis settings list
-        self.analysis_settings = analysis_settings_list
-        # create tuner settings list
-        self.tuner_settings = tuner_settings_list
 
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
