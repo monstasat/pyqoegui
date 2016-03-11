@@ -7,7 +7,7 @@ from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 from Gui.PlotPage import PlotTypes
 from Gui import Spacing
-from Gui.AnalysisSettingsDialog import AnalysisSettingsModel as em
+from Control import AnalysisSettingsIndexes as ai
 from Control import CustomMessages
 
 
@@ -105,7 +105,7 @@ class PlotPage(Gtk.Box):
             plot_title += ", " + plot_unit
         plot.set_title(plot_title)
 
-        self.add_plot_intervals(plot)
+        self.add_plot_intervals(plot, self.mainWnd.analysis_settings)
 
         # plot.add_interval(0.25, GraphTypes.ERROR, True)
         # plot.add_interval(0.05, GraphTypes.WARNING)
@@ -126,7 +126,7 @@ class PlotPage(Gtk.Box):
         self.plots.append(plot)
 
         # unselect all programs in model
-        self.mainWnd.analyzedStore.unselect_all()
+        self.mainWnd.analyzed_progs_model.unselect_all()
 
         # hide placeholder and move add button to right edge of the page
         self.placeholder.hide()
@@ -163,13 +163,9 @@ class PlotPage(Gtk.Box):
         self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
     # add intervals to plot
-    def add_plot_intervals(self, plot):
+    def add_plot_intervals(self, plot, analysis_settings):
         # get current plot y axis range
         plot_range = plot.plot_type[2]
-
-        # get error range store
-        err_store = self.mainWnd.errorSettingsStore
-        err_list = err_store.get_settings_list()
 
         # get index of plot
         index = PlotTypes.PLOT_TYPES.index(tuple(plot.plot_type))
@@ -180,8 +176,8 @@ class PlotPage(Gtk.Box):
         # apply intervals
         # freeze frame
         if index is 0:
-            err = err_store.get_failure_value(em.FREEZE_ERR)
-            warn = err_store.get_failure_value(em.FREEZE_WARN)
+            err = analysis_settings[ai.FREEZE_ERR][2]
+            warn = analysis_settings[ai.FREEZE_WARN][2]
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -191,8 +187,8 @@ class PlotPage(Gtk.Box):
                               GraphTypes.NORMAL)
         # black frame
         elif index is 1:
-            err = err_store.get_failure_value(em.BLACK_ERR)
-            warn = err_store.get_failure_value(em.BLACK_WARN)
+            err = analysis_settings[ai.BLACK_ERR][2]
+            warn = analysis_settings[ai.BLACK_WARN][2]
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -202,8 +198,8 @@ class PlotPage(Gtk.Box):
                               GraphTypes.NORMAL)
         # blockiness
         elif index is 2:
-            err = err_store.get_failure_value(em.BLOCK_ERR)
-            warn = err_store.get_failure_value(em.BLOCK_WARN)
+            err = analysis_settings[ai.BLOCK_ERR][2]
+            warn = analysis_settings[ai.BLOCK_WARN][2]
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
@@ -213,8 +209,7 @@ class PlotPage(Gtk.Box):
                               GraphTypes.NORMAL)
         # average frame luma
         elif index is 3:
-            print(full_range)
-            warn = err_store.get_failure_value(em.LUMA_WARN)
+            warn = analysis_settings[ai.LUMA_WARN][2]
             plot.add_interval((plot_range[1] - warn)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
@@ -222,17 +217,17 @@ class PlotPage(Gtk.Box):
                               GraphTypes.WARNING)
         # average frame difference
         elif index is 4:
-            warn = err_store.get_failure_value(em.DIFF_WARN)
+            warn = analysis_settings[ai.DIFF_WARN][2]
             plot.add_interval((plot_range[1] - warn)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
             plot.add_interval((warn - plot_range[0])/full_range,
                               GraphTypes.WARNING)
         elif (index is 5) or (index is 6):
-            high_err = err_store.get_failure_value(em.OVERLOAD_ERR)
-            high_warn = err_store.get_failure_value(em.OVERLOAD_WARN)
-            low_err = err_store.get_failure_value(em.SILENCE_ERR)
-            low_warn = err_store.get_failure_value(em.SILENCE_WARN)
+            high_err = analysis_settings[ai.OVERLOAD_ERR][2]
+            high_warn = analysis_settings[ai.OVERLOAD_WARN][2]
+            low_err = analysis_settings[ai.SILENCE_ERR][2]
+            low_warn = analysis_settings[ai.SILENCE_WARN][2]
 
             plot.add_interval(abs(plot_range[1] - high_err)/full_range,
                               GraphTypes.ERROR,

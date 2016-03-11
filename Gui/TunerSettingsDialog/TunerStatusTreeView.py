@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 
-from Gui.TunerSettingsDialog import TunerSettingsModel as tm
+from Control import TunerSettingsIndexes as ti
 
 
 # tree view that displays tuner status
@@ -33,34 +33,34 @@ class TunerStatusTreeView(Gtk.TreeView):
                            0xff])
         self.store.append(["Символьная скорость канала",
                            self.unknown,
-                           tm.DVBC])
+                           ti.DVBC])
         self.store.append(["Число поднесущих канала",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Защитный интервал",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Режим иерархии",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Спектр",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Скорость кода LP",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Скорость кода HP",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["Ширина канала",
                            self.unknown,
-                           tm.DVBT])
+                           ti.DVBT])
         self.store.append(["PLP ID",
                            self.unknown,
-                           tm.DVBT2])
+                           ti.DVBT2])
         self.store.append(["Ширина канала",
                            self.unknown,
-                           tm.DVBT2])
+                           ti.DVBT2])
 
         # creating store filter
         self.store_filter = self.store.filter_new()
@@ -105,7 +105,7 @@ class TunerStatusTreeView(Gtk.TreeView):
         # DVB-C
         if 3 <= modulation <= 3:
             # set device
-            self.main_wnd.device = tm.DVBC
+            self.main_wnd.device = ti.DVBC
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-C"
 
@@ -125,7 +125,7 @@ class TunerStatusTreeView(Gtk.TreeView):
         # DVB-T
         elif 4 <= modulation <= 8:
             # set device
-            self.main_wnd.device = tm.DVBT
+            self.main_wnd.device = ti.DVBT
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-T"
 
@@ -233,7 +233,7 @@ class TunerStatusTreeView(Gtk.TreeView):
         # DVB-T2
         elif modulation == 9:
             # set device
-            self.main_wnd.device = tm.DVBT2
+            self.main_wnd.device = ti.DVBT2
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-T2"
 

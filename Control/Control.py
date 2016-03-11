@@ -10,10 +10,13 @@ from Gui.Gui import Gui
 from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
 from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
+from Control.ProgramListControl import ProgramListControl
 from Control import CustomMessages
 from Config.Config import Config
 from Log import Log
-from Control.RfExchange import RfExchange
+from Control.DVBTunerControl import DVBTunerControl
+from Control import AnalysisSettingsIndexes as ai
+from Control import TunerSettingsIndexes as ti
 
 
 class Control(GObject.GObject):
@@ -28,16 +31,20 @@ class Control(GObject.GObject):
         self.msg_translator = TranslateMessages()
 
         # create program list from current streams
-        self.stream_progs = []
+        self.sprogs_control = ProgramListControl([])
         # create program list currently selected by user
-        self.analyzed_progs = self.config.get_prog_list()
+        self.aprogs_control = ProgramListControl(self.config.get_prog_list())
         # create list with analysis settings
         self.analysis_settings = self.config.get_analysis_settings()
+        if len(self.analysis_settings) < len(ai.DEFAULT_VALUES):
+            self.analysis_settings  = ai.DEFAULT_VALUES
         # create tuner settings list
         self.tuner_settings = self.config.get_tuner_settings()
+        if len(self.tuner_settings) < len(ti.DEFAULT_VALUES):
+            self.tuner_settings  = ti.DEFAULT_VALUES
 
         # create tv tuner control
-        self.rf_tuner = RfExchange(self.tuner_settings)
+        self.rf_tuner = DVBTunerControl(self.tuner_settings)
         # execute server for receiving messages from gstreamer pipeline
         self.start_server(1600)
 
@@ -71,59 +78,67 @@ class Control(GObject.GObject):
 
         # connect to gui signals
         self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
-                         self.on_new_prog_settings_from_gui
-                         )
+                         self.on_new_analyzed_prog_list)
+        self.gui.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
+                         self.on_new_analysis_settings)
+        self.gui.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
+                         self.on_new_tuner_settings)
         self.gui.connect(CustomMessages.ACTION_START_ANALYSIS,
-                         self.on_start_from_gui
-                         )
+                         self.on_start)
         self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS,
-                         self.on_stop_from_gui
-                         )
+                         self.on_stop)
         self.gui.connect(CustomMessages.VOLUME_CHANGED,
-                         self.on_volume_changed
-                         )
+                         self.on_volume_changed)
         self.gui.connect(CustomMessages.COLOR_THEME,
                          self.on_gui_color_theme_changed)
-
         self.gui.connect(CustomMessages.PROG_TABLE_REVEALER,
                          self.on_gui_table_revealer)
-
         self.gui.connect(CustomMessages.PLOT_PAGE_CHANGED,
                          self.on_gui_plot_page_changed)
 
-        self.gui.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
-                         self.on_analysis_settings_changed)
-
-        self.gui.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
-                         self.on_tuner_settings_changed)
+        # connect to usb signals
+        # --
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
                               self.on_new_tuner_status)
-
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_MEASURED_DATA,
                               self.on_new_tuner_measured_data)
-
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
-
-        # connect to usb signals
-        # --
 
         # start analysis on app startup
         self.start_analysis()
 
         # set gui for analyzed programs
-        self.apply_prog_list_to_gui()
+        self.gui.update_analyzed_prog_list(self.analyzed_progs)
+        # self.usb.update_analyzed_prog_list(self.analyzed_progs
 
         # initially set drawing black background
         # for corresponding renderers to True
-        for stream in self.analyzed_progs.get_list():
-            self.gui.set_draw_mode_for_renderers(True, stream[0])
+        for stream in self.analyzed_progs:
+            self.gui.update_rendering_mode(True, stream[0])
 
         self.gui.queue_draw()
 
         GObject.timeout_add(1000, self.on_get_cpu_load)
+
+    @property
+    def stream_progs(self):
+        return self.sprogs_control.prog_list
+
+    @property
+    def analyzed_progs(self):
+        return self.aprogs_control.prog_list
+
+    @stream_progs.setter
+    def stream_progs(self, value):
+        self.sprogs_control.prog_list = value
+
+    @analyzed_progs.setter
+    def analyzed_progs(self, value):
+        print("Setter", value)
+        self.aprogs_control.prog_list = value
 
     # when app closes, we need to take some actions
     def __destroy__(self):
@@ -132,6 +147,15 @@ class Control(GObject.GObject):
         # disconnect from tuner
         self.rf_tuner.disconnect()
         self.rf_tuner.thread_active = False
+
+    # start server
+    def start_server(self, port):
+        # server for recieving messages from gstreamer pipeline
+        server = Gio.SocketService.new()
+        server.add_inet_port(port, None)
+        # x - data to be passed to callback
+        server.connect("incoming", self.message_from_pipeline_callback)
+        server.start()
 
     def start_analysis(self):
         # execute all gstreamer pipelines
@@ -145,225 +169,144 @@ class Control(GObject.GObject):
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
         self.gui.toolbar.change_start_icon()
-        self.stream_progs.clear_model()
+
+        # clear stream prog list
+        self.stream_progs.clear()
+
+        # update stream prog list in Gui and Usb
+        self.gui.update_stream_prog_list([], all_streams=True)
+        # self.usb.update_stream_prog_list([], all_streams=True)
 
         # set volume on all renderers to null
         self.gui.mute_all_renderers()
 
         # set drawing black background for all renderers to True
-        for stream in self.analyzed_progs.get_list():
-            self.gui.set_draw_mode_for_renderers(True, stream[0])
+        for stream in self.analyzed_progs:
+            self.gui.update_rendering_mode(True, stream[0])
         # force redrawing of gui
         self.gui.queue_draw()
 
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
-        self.gui.show_cpu_load(load)
+        self.gui.update_cpu_load(load)
         return True
 
-    # start server
-    def start_server(self, port):
-        # server for recieving messages from gstreamer pipeline
-        server = Gio.SocketService.new()
-        server.add_inet_port(port, None)
-        # x - data to be passed to callback
-        server.connect("incoming", self.message_from_pipeline_callback)
-        server.start()
+    # Interaction with Gui and Usb
+    # Common methods for Gui and USb
 
-    def message_from_pipeline_callback(self, obj, conn, source):
-        istream = conn.get_input_stream()
-        ostream = conn.get_output_stream()
-        buffer = istream.read_bytes(1000)
-        data = buffer.get_data()
+    # new analyzed prog list received
+    def on_new_analyzed_prog_list(self, source):
+        # get selected program list from message source
+        self.analyzed_progs = source.get_analyzed_prog_list()
 
-        # decode string back to unicode
-        wstr = data.decode('utf-8', 'ignore')
-
-        if len(wstr) > 0:
-            if wstr[0] == 'd':
-                # received program list
-                # convert program string from pipeline to program list (array)
-                prog_list = self.msg_translator.convert_stream_string_to_list(
-                    wstr[1:])
-
-                # append prog list to model
-                self.gui.update_stream_prog_list(prog_list)
-
-                # compare received and current analyzed prog lists
-                # FIXME
-                compared_prog_list = self.analyzed_progs.get_compared_list(
-                    prog_list)
-
-                # apply compared program list to backend
-                # (compared list contains only program equal prorams
-                # from current and received lists)
-                self.apply_prog_list_to_backend(compared_prog_list)
-
-                # apply analysis params to backend
-                self.send_analysis_params_to_backend()
-
-                # set drawing black background
-                # for corresponding renderers to False
-                #TODO: pass not only stream id, but prog id too,
-                # to disable drawing in only those renderers, that
-                # should be drawn by backend
-                self.gui.set_draw_mode_for_renderers(False,
-                                                     compared_prog_list[0])
-
-            elif wstr[0] == 'v':
-                # received video parameters
-                # freeze black blockiness av_luma av_diff
-                vparams = self.msg_translator.translate_vparams_string_to_list(
-                    wstr[1:])
-                self.video_error_detector.set_data(vparams)
-                self.gui.on_video_measured_data(vparams)
-
-            elif wstr[0] == 'e':
-                # received end of stream
-                self.on_end_of_stream(int(wstr[1:]))
-                print(wstr)
-
-    # make changes in gui according to program list
-    def apply_prog_list_to_gui(self):
-        # set gui for new programs from program list
-        self.gui.set_new_programs(self.analyzed_progs)
-
-    # applying prog list to backend
-    def apply_prog_list_to_backend(self, prog_list):
-        # to draw video backend needs xid of drawing areas
-        # so we get them from gui
-        xids = self.gui.get_renderers_xids()
-
-        # apply new settings to backend
-        # (settings consist of program list and xids)
-        self.backend.apply_new_program_list(prog_list, xids)
-
-    # actions when backend send "end of stream" message
-    def on_end_of_stream(self, stream_id):
-        # refresh program list model
-        # delete this stream from model
-        # this is done by passing empty prog list to model
-        self.gui.update_stream_prog_list([stream_id, []])
-
-        # getting state of gstreamer pipeline with corresponding stream id
-        state = self.backend.get_pipeline_state(stream_id)
-
-        # if current state is RUNNING
-        # (this means that pipeline currently decoding some programs)
-        # we need to restart this pipeline
-        if state is State.RUNNING:
-            self.backend.restart_pipeline(stream_id)
-
-        # set drawing black background for corresponding renderers to True
-        self.gui.set_draw_mode_for_renderers(True, stream_id)
-        # force redrawing of gui
-        self.gui.queue_draw()
-
-    # apply analysis params to gstreamer pipelines
-    def send_analysis_params_to_backend(self):
-        # get black pixel value from analysis settings
-        black_pixel_val = int(self.analysis_settings[5][2])
-        # get pixel difference value from analysis settings
-        pixel_diff = int(self.analysis_settings[9][2])
-
-        # apply parameters to gstreamer pipelines
-        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
-
-    # actions when gui sends NEW_SETTINS_PROG_LIST message to control
-    def on_new_prog_settings_from_gui(self, wnd):
-        # get selected program list from stream progs model
-        self.analyzed_progs = self.gui.get_selected_prog_list()
-
+        # Configure Gui and Usb according to new analyzed prog list
         # update gui according to new program list
-        self.apply_prog_list_to_gui()
+        self.gui.update_analyzed_prog_list(self.analyzed_progs)
+        # update usb according to new program list
+        # self.usb.update_analyzed_prog_list(self.analyzed_progs)
 
+        # Configure error detectors according to new analyzed prog list
+        # pass new prog list to error detectors
+        self.video_error_detector.set_programs_list(
+                                        self.analyzed_progs)
+        self.audio_error_detector.set_programs_list(
+                                        self.analyzed_progs)
+
+        # Configure backend according to new analyzed prog list
         # we need to restart gstreamer pipelines with ids that were selected
         # so we need to extract these ids from program list
         stream_ids = []
         # iterating over stream rows
         for stream in self.analyzed_progs:
             stream_ids.append(stream[0])
-
         # restart pipelines with selected ids
-        for process_id in stream_ids:
-            self.backend.restart_pipeline(process_id)
+        for pipeline_id in stream_ids:
+            self.backend.restart_pipeline(pipeline_id)
 
-        # pass new prog list to error detectors
-        self.video_error_detector.set_programs_list(self.analyzed_progs)
-        self.audio_error_detector.set_programs_list(self.analyzed_progs)
-
-        # save program list in config
+        # Save analyzed prog list in Config
         self.config.set_prog_list(self.analyzed_progs)
 
-    # gui sent 'start analysis' message
-    def on_start_from_gui(self, wnd):
-        self.start_analysis()
+    # new analysis settings received
+    def on_new_analysis_settings(self, source):
+        # get new analysis settings from message source
+        self.analysis_settings = source.get_analysis_settings()
 
-    # gui sent 'stop analysis' message
-    def on_stop_from_gui(self, wnd):
-        self.stop_analysis()
+        # Configure Gui and Usb according to new analysis settings
+        self.gui.update_analysis_settings(self.analysis_settings)
+        # self.usb.update_analysis_settings(self.analysis_settings)
 
-    # volume of program changed in gui
-    def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
-        self.backend.change_volume(stream_id, prog_id, pid, value)
+        # Configure error detectors according to new analysis settings
+        self.video_error_detector.set_analysis_settings(self.analysis_settings)
+        self.audio_error_detector.set_analysis_settings(self.analysis_settings)
 
-    # color theme changed in gui
-    def on_gui_color_theme_changed(self, wnd, data):
-        self.config.set_dark_theme(data)
-
-    # program table is shown/hidden in gui
-    def on_gui_table_revealer(self, wnd, data):
-        self.config.set_table_revealer(data)
-
-    # plot was added/deleted in gui
-    def on_gui_plot_page_changed(self, wnd):
-        plot_info = self.gui.get_plot_info()
-        self.config.set_plot_info(plot_info)
-
-    # analyis settings were changed
-    def on_analysis_settings_changed(self, wnd):
-        # apply settings to backend
+        # Configure backend according to new analysis settings
         self.send_analysis_params_to_backend()
 
-        # get analysis settings from model
-        analysis_settings = self.error_model.get_settings_list()
+        # Save analysis settings in Config
+        self.config.set_analysis_settings(self.analysis_settings)
 
-        # if analysis settings dialog is visible - update values
-        if self.gui.analysisSetDlg.get_visible() is True:
-            self.gui.analysisSetDlg.update_values()
+    # new tuner settings received
+    def on_new_tuner_settings(self, source):
+        # get new tuner settings from message source
+        self.tuner_settings = source.get_tuner_settings()
 
-        # set new settings to error detector
-        self.video_error_detector.set_analysis_settings(analysis_settings)
-        self.audio_error_detector.set_analysis_settings(analysis_settings)
+        # Configure Gui and Usb according to new analysis settings
+        self.gui.update_tuner_settings(self.tuner_settings)
+        # self.usb.update_tuner_settings(self.tuner_settings)
 
-        # save analysis settings to config
-        self.config.set_analysis_settings(analysis_settings)
+        # Configure dvb tuner according to new tuner settings
+        self.rf_tuner.apply_settings(self.tuner_settings)
 
-    # tuner settings were changed
-    def on_tuner_settings_changed(self, wnd):
-        # get tuner settings
-        tuner_settings = self.tuner_model.get_settings_list()
-
-        # if tuner dialog is visible - update values
-        if self.gui.tunerDlg.get_visible() is True:
-            self.gui.tunerDlg.update_values()
-
-        self.rf_tuner.apply_settings(tuner_settings)
-
-        # save settings to config
-        self.config.set_tuner_settings(tuner_settings)
-
-        # restart all pipelines because of the tuner settings change
+        # FIXME: is it necessary? check this
+        # Configure backend according to new tuner settings
         self.backend.start_all_pipelines()
 
-    # new tuner status received
-    def on_new_tuner_status(self, src, status, hw_errors, temperature):
+        # Save tuner settings in Config
+        self.config.set_tuner_settings(tuner_settings)
+
+    # Interaction with Gui and Usb
+    # Methods specific for Gui
+
+    # Gui sent a message about start button clicked
+    def on_start(self, source):
+        self.start_analysis()
+
+    # Gui sent a message about stop button clicked
+    def on_stop(self, source):
+        self.stop_analysis()
+
+    # Gui sent a message about volume level changed
+    def on_volume_changed(self, source, stream_id, prog_id, pid, value):
+        # tell backend to change volume in corresponding pipeline
+        self.backend.change_volume(stream_id, prog_id, pid, value)
+
+    # Gui sent a message about color theme changed
+    def on_gui_color_theme_changed(self, source, color_theme):
+        # save new color theme in Config
+        self.config.set_dark_theme(color_theme)
+
+    # Gui sent a message about program table hidden/revealed
+    def on_gui_table_revealer(self, source, table_state):
+        # save program table state in Config
+        self.config.set_table_revealer(table_state)
+
+    # Gui sent a message about plot was added/deleted
+    def on_gui_plot_page_changed(self, source):
+        # get current plot info from Gui
+        plot_info = self.gui.get_plot_info()
+        # save current plot info in Config
+        self.config.set_plot_info(plot_info)
+
+    # Methods for interaction with dvb tuner control
+
+    # Tuner control sent a message with new status
+    def on_new_tuner_status(self, source, status, hw_errors, temperature):
         #print(status, hw_errors, temperature)
         pass
 
-    # new tuner measured data received
+    # Tuner control sent a message with new measured data
     def on_new_tuner_measured_data(self,
-                                   src,
+                                   source,
                                    mer,
                                    mer_updated,
                                    ber1,
@@ -382,9 +325,100 @@ class Control(GObject.GObject):
                          ber3,
                          ber3_updated]
 
-        self.gui.on_new_tuner_measured_data(measured_data)
+        self.gui.update_tuner_measured_data(measured_data)
 
-    # new tuner signal parameters received
-    def on_new_tuner_params(self, src, status, modulation, params):
-        self.gui.on_new_tuner_params(status, modulation, params)
+    # Tuner control sent a message with new tuner params
+    def on_new_tuner_params(self, source, status, modulation, params):
+        self.gui.update_tuner_params(status, modulation, params)
 
+    # Methods for interaction with backend
+
+    # Set new analysis settings to backend
+    def send_analysis_params_to_backend(self):
+        # get black pixel value from analysis settings
+        black_pixel_val = int(self.analysis_settings[ai.BLACK_PIXEL][2])
+        # get pixel difference value from analysis settings
+        pixel_diff = int(self.analysis_settings[ai.PIXEL_DIFF][2])
+
+        # apply parameters to gstreamer pipelines
+        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
+
+    # Backend sent a message that one of streams has ended
+    def end_of_stream_received(self, stream_id):
+        # update stream program list in Gui and Usb
+        self.gui.update_stream_prog_list([stream_id, []])
+        # self.usb.update_stream_prog_list([stream_id, []])
+
+        # getting state of gstreamer pipeline with corresponding stream id
+        state = self.backend.get_pipeline_state(stream_id)
+
+        # if current state is RUNNING
+        # (this means that pipeline currently decoding some programs)
+        # we need to restart this pipeline
+        if state is State.RUNNING:
+            self.backend.restart_pipeline(stream_id)
+
+        # set drawing black background for corresponding renderers to True
+        self.gui.update_rendering_mode(True, stream_id)
+        # force redrawing of gui
+        self.gui.queue_draw()
+
+    # Handling messages from backend
+    def message_from_pipeline_callback(self, obj, conn, source):
+        istream = conn.get_input_stream()
+        ostream = conn.get_output_stream()
+        buffer = istream.read_bytes(1000)
+        data = buffer.get_data()
+
+        # decode string back to unicode
+        wstr = data.decode('utf-8', 'ignore')
+
+        if len(wstr) > 0:
+            # new stream program list received from backend
+            if wstr[0] == 'd':
+                # translate message from string to list
+                prog_list = self.msg_translator.get_prog_list(wstr[1:])
+
+                # update stream program list in Gui and Usb
+                self.gui.update_stream_prog_list(prog_list)
+                # self.usb.update_stream_prog_list(prog_list)
+
+                # compare received and current analyzed prog lists
+                # (compared list contains only program equal prorams
+                # from current and received lists)
+                compared_prog_list = self.aprogs_control.get_compared_list(
+                    prog_list)
+
+                # apply new prog list to backend
+                # get xids from gui
+                xids = self.gui.get_renderers_xids()
+                # pass prog list and xids to backend
+                self.backend.apply_new_program_list(compared_prog_list, xids)
+
+                # apply analysis params to backend
+                self.send_analysis_params_to_backend()
+
+                # set drawing black background
+                # for corresponding renderers to False
+                #TODO: pass not only stream id, but prog id too,
+                # to disable drawing in only those renderers, that
+                # should be drawn by backend
+                self.gui.update_rendering_mode(False, compared_prog_list[0])
+
+            # measured data for video received from backend
+            elif wstr[0] == 'v':
+                # translate message from string to list
+                vparams = self.msg_translator.get_vparams_list(wstr[1:])
+                self.video_error_detector.set_data(vparams)
+
+                # update video plot data in gui
+                self.gui.update_video_plots_data(vparams)
+
+            # measured data for audio received from backend
+            elif wstr[0] == 'a':
+                pass
+
+            # end of stream message received from backend
+            elif wstr[0] == 'e':
+                self.end_of_stream_received(int(wstr[1:]))
+                print(wstr)

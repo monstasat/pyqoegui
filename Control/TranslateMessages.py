@@ -4,7 +4,7 @@ class TranslateMessages():
 
 # PROG LIST
     # convert stream string to stream list
-    def convert_stream_string_to_list(self, stream_string):
+    def get_prog_list(self, stream_string):
         PROG_DIVIDER = ':*:'
         PARAM_DIVIDER = '^:'
         PROG_PARAMS = {"number": 0,
@@ -49,7 +49,7 @@ class TranslateMessages():
         return stream_params
 
 # VIDEO PARAMETERS
-    def translate_vparams_string_to_list(self, vparams_string):
+    def get_vparams_list(self, vparams_string):
         PART_DIVIDER = ':*:'
         PARAM_DIVIDER = ':'
 

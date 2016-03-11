@@ -2,10 +2,11 @@ class ProgramListControl():
     def __init__(self, prog_list = []):
         self.prog_list = prog_list
 
+    def clear():
+        self.prog_list = []
+
     # compare two prog lists and make new list with only equal programs
     def get_compared_list(self, gs_prog_list):
-        # get prog list from model
-        prog_list = self.get_list()
         # new prog list after comparison
         compared_list = []
         # append stream id
@@ -13,7 +14,7 @@ class ProgramListControl():
 
         compared_progs = []
         # iterating over streams in saved prog list
-        for stream in prog_list:
+        for stream in self.prog_list:
             # in case if received stream exists in saved prog list
             if stream[0] == gs_prog_list[0]:
                 progs = stream[1]

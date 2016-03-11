@@ -64,7 +64,7 @@ class RendererGrid(Gtk.FlowBox):
 
                 video_pid = None
                 audio_pid = None
-                for pid in prog[5]:
+                for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_pid = int(pid[0])
                         # FIXME: & VIDEO
@@ -74,19 +74,22 @@ class RendererGrid(Gtk.FlowBox):
                         # FIXME: & AUDIO
                         prog_type = prog_type | 0x02
 
-                self.rend_arr.append(Renderer(stream_id,
-                                              prog_id,
-                                              prog_name,
-                                              prog_type,
-                                              video_pid,
-                                              audio_pid))
+                # create renderer
+                renderer = Renderer(stream_id,
+                                  prog_id,
+                                  prog_name,
+                                  prog_type,
+                                  video_pid,
+                                  audio_pid)
+
+                self.rend_arr.append(renderer)
 
                 # connect renderer to volume changed signal
-                self.rend_arr[i].connect(CustomMessages.VOLUME_CHANGED,
+                renderer.connect(CustomMessages.VOLUME_CHANGED,
                                          self.on_volume_changed)
                 af = Gtk.AspectFrame(hexpand=True, vexpand=True)
                 af.set(0.5, 0.5, 4.0/3.0, False)
-                af.add(self.rend_arr[i])
+                af.add(renderer)
                 # insert renderer to flow box
                 self.insert(af, -1)
 
@@ -117,7 +120,7 @@ class RendererGrid(Gtk.FlowBox):
             rend = self.rend_arr[i]
             rend.drawarea.realize()
             xids.append([rend.stream_id,
-                         rend.progID,
+                         rend.prog_id,
                          rend.drawarea.get_window().get_xid()]
                         )
         return xids

@@ -5,7 +5,7 @@ from Gui import Spacing
 
 
 class AnalysisSettingsPage(Gtk.Box):
-    def __init__(self, store, indexes):
+    def __init__(self, main_dlg, indexes):
         Gtk.Box.__init__(self)
 
         # box must be with vertical orientation
@@ -16,7 +16,7 @@ class AnalysisSettingsPage(Gtk.Box):
         self.set_border_width(Spacing.BORDER)
 
         # remember store
-        self.store = store
+        self.store = main_dlg.store
 
         # remember indexes
         self.indexes = indexes

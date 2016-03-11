@@ -39,13 +39,6 @@ class Renderer(Gtk.Grid):
         # audio pid
         self.audio_pid = audio_pid
 
-        for pid in guiProgInfo[4]:
-            pid_type = pid[1].split('-')[0]
-            if pid_type == 'video':
-                self.video_pid = int(pid[0])
-            elif pid_type == 'audio':
-                self.audio_pid = int(pid[0])
-
         # should be horizontally expandable and fill all available space
         self.set_hexpand_set(True)
         self.set_hexpand(True)
@@ -78,7 +71,8 @@ class Renderer(Gtk.Grid):
         self.volbtn.connect('value-changed', self.volume_changed)
         # if program to this renderer do no contain audio,
         # disable volume button
-        if (guiProgInfo[3] != 2) and (guiProgInfo[3] != 3):
+        # FIXME: chnage 2 and 3
+        if (self.prog_type != 2) and (self.prog_type != 3):
             self.volbtn.set_sensitive(False)
 
         # creating a program label

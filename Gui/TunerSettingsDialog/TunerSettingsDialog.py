@@ -6,6 +6,7 @@ from Gui.TunerSettingsDialog.TunerStatusBox import TunerStatusBox
 from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
 from Gui.TunerSettingsDialog.TunerSettingsModel import TunerSettingsModel
 from Gui import Spacing
+from Control import TunerSettingsIndexes as ti
 
 
 # dialog for managing tuner settings
@@ -95,7 +96,7 @@ class TunerSettingsDialog(BaseDialog):
     # when the dialog is shown
     def on_shown(self, widget):
         BaseDialog.on_shown(self, widget)
-        self.update_values()
+        self.update_values(self.store.get_settings_list())
 
     # apply values from spin buttons to model
     def apply_settings(self):
@@ -113,21 +114,26 @@ class TunerSettingsDialog(BaseDialog):
         self.store.set_settings(settings)
 
     # update values in controls buttons
-    def update_values(self):
-        self.standard_combo.combobox.set_active(
-            self.store.get_value_by_index(self.store.device))
-        self.dvbt2_box.frequency = self.store.get_value_by_index(
-            self.store.dvbt2_freq)
-        self.dvbt2_box.bandwidth = self.store.get_value_by_index(
-            self.store.dvbt2_bw)
-        self.dvbt2_box.plp_id = self.store.get_value_by_index(
-            self.store.dvbt2_plpid)
-        self.dvbt_box.frequency = self.store.get_value_by_index(
-            self.store.dvbt_freq)
-        self.dvbt_box.bandwidth = self.store.get_value_by_index(
-            self.store.dvbt_bw)
-        self.dvbc_box.frequency = self.store.get_value_by_index(
-            self.store.dvbc_freq)
+    def update_values(self, tuner_settings):
+        # update data in the model
+        self.store.set_settings(tuner_settings)
+
+        if self.get_visible() is True:
+
+            self.standard_combo.combobox.set_active(
+                self.store.get_value_by_index(ti.DEVICE))
+            self.dvbt2_box.frequency = self.store.get_value_by_index(
+                ti.T2_FREQ)
+            self.dvbt2_box.bandwidth = self.store.get_value_by_index(
+                ti.T2_BW)
+            self.dvbt2_box.plp_id = self.store.get_value_by_index(
+                ti.T2_PLP_ID)
+            self.dvbt_box.frequency = self.store.get_value_by_index(
+                ti.T_FREQ)
+            self.dvbt_box.bandwidth = self.store.get_value_by_index(
+                ti.T_BW)
+            self.dvbc_box.frequency = self.store.get_value_by_index(
+                ti.C_FREQ)
 
     def set_new_tuner_params(self, status, modulation, params):
         self.status_box.signal_params_view.set_signal_params(modulation,

@@ -113,16 +113,18 @@ class ProgramTable(Gtk.TreeView):
         store = self.get_model()
         store.clear()
 
+        prog_cnt = 0
         for stream in prog_list:
             stream_id = stream[0]
             for prog in stream[1]:
+                prog_cnt += 1
                 prog_name = prog[1]
                 prog_type = 0
                 prog_id = int(prog[0])
 
                 video_pid = 0
                 audio_pid = 0
-                for pid in prog[5]:
+                for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_pid = int(pid[0])
                         # FIXME: & VIDEO
@@ -132,39 +134,39 @@ class ProgramTable(Gtk.TreeView):
                         # FIXME: & AUDIO
                         prog_type = prog_type | 0x02
 
-            treeiter = store.append(
-                # start of visible part
-                # prog num
-                [i+1, '#FFFFFF',
-                 # prog name
-                 prog_name, '#FFFFFF',
-                 # lufs level
-                 '%g' % (0.0), '#FFFFFF',
-                 # video loss
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # black frame
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # freeze
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # blockiness
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # audio loss
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # silence
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # loudness
-                 self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                 # start of invisible part
-                 # prog type
-                 prog_type,
-                 # stream id
-                 stream_id,
-                 # prog id
-                 prog_id,
-                 # video pid
-                 video_pid,
-                 # audio pid
-                 audio_pid])
+                treeiter = store.append(
+                    # start of visible part
+                    # prog num
+                    [prog_cnt, '#FFFFFF',
+                     # prog name
+                     prog_name, '#FFFFFF',
+                     # lufs level
+                     '%g' % (0.0), '#FFFFFF',
+                     # video loss
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # black frame
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # freeze
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # blockiness
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # audio loss
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # silence
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # loudness
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # start of invisible part
+                     # prog type
+                     prog_type,
+                     # stream id
+                     stream_id,
+                     # prog id
+                     prog_id,
+                     # video pid
+                     video_pid,
+                     # audio pid
+                     audio_pid])
 
     def update_table_cell(self, row, index, val):
         # FIXME prog type 1, 2 change to VIDEO, AUDIO (define types somewhere)

@@ -12,7 +12,7 @@ class PlotTypeSelectDialog(BaseDialog):
         BaseDialog.__init__(self, "Настройка параметров графика", parent)
 
         # remember store
-        self.store = parent.analyzedStore
+        self.store = parent.analyzed_progs_model
 
         # get main widget
         mainBox = self.get_content_area()
@@ -77,8 +77,10 @@ class PlotTypeSelectDialog(BaseDialog):
         mainBox.pack_start(self.stack, True, True, 0)
 
         # connect to store signals
-        parent.analyzedStore.connect('row-deleted', self.on_row_deleted)
-        parent.analyzedStore.connect('row-inserted', self.on_row_inserted)
+        parent.analyzed_progs_model.connect('row-deleted',
+                                            self.on_row_deleted)
+        parent.analyzed_progs_model.connect('row-inserted',
+                                            self.on_row_inserted)
 
         self.show_all()
         # set dialog view

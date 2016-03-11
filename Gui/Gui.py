@@ -80,6 +80,11 @@ class Gui(Gtk.Window):
         # create program tree model for analyzed programs
         self.analyzed_progs_model = ProgramTreeModel(analyzed_progs_list)
 
+        # create analysis settings list
+        self.analysis_settings = analysis_settings_list
+        # create tuner settings list
+        self.tuner_settings = tuner_settings_list
+
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
         # create tuner settings dialog
@@ -216,23 +221,110 @@ class Gui(Gtk.Window):
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
 
-    def update_stream_prog_list(self, prog_list):
-        self.stream_progs_model.add_one_stream(prog_list)
+    # Methods for interaction with Control
+    # Common methods for Gui and Usb
 
-    def get_selected_prog_list(self):
-        return self.stream_progs_model.get_selected_list()
+    # called by Control to update stream prog list
+    def update_stream_prog_list(self, prog_list, all_streams=False):
+        if all_streams is True:
+            self.stream_progs_model.add_all_streams(prog_list)
+        else:
+            self.stream_progs_model.add_one_stream(prog_list)
 
-    # show cpu load
-    def show_cpu_load(self, load):
-        self.cpu_load_val.set_text(str(load) + "%")
+    # called by Control to update analyzed prog list
+    def update_analyzed_prog_list(self, prog_list):
+        # apply prog list to analyzed progs model
+        self.analyzed_progs_model.add_all_streams(prog_list)
+        # add new programs to gui
+        self.cur_results_page.on_prog_list_changed(prog_list)
+        # determine wether table revealer button should be visible
+        self.manage_table_revealer_button_visibility()
 
-    # video data from error detector received
-    def show_video_status(self, results):
+    # called by Control to update analysis settings
+    def update_analysis_settings(self, analysis_settings):
+        # save settings
+        self.analysis_settings = analysis_settings
+        # update analysis settings dialog
+        self.analysisSetDlg.update_values(self.analysis_settings)
+        # update intervals in plots
+        for plot in self.plot_page.plots:
+            self.plot_page.add_plot_intervals(plot, self.analysis_settings)
+
+    # called by Control to update tuner settings
+    def update_tuner_settings(self, tuner_settings):
+        # save settings
+        self.tuner_settings = tuner_settings
+        # update tuner dialog
+        self.tunerDlg.update_values(self.tuner_settings)
+
+    # called by Control to update tuner parameters
+    def update_tuner_params(self, status, modulation, params):
+        if self.tunerDlg.get_visible() is True:
+            self.tunerDlg.set_new_tuner_params(status, modulation, params)
+
+    # called by Control to update tuner measured data
+    def update_tuner_measured_data(self, measured_data):
+        if self.tunerDlg.get_visible() is True:
+            self.tunerDlg.set_new_measured_data(measured_data)
+
+    # called by Error Detector to update video status
+    def update_video_status(self, results):
         self.cur_results_page.prgtbl.update_video(results)
 
-    # audio data from error detector received
-    def show_audio_status(self, results):
+    # called by Error Detector to update audio status
+    def update_audio_status(self, results):
         self.cur_results_page.prgtbl.update_audio(results)
+
+    # Control asks to return analyzed prog list
+    def get_analyzed_prog_list(self):
+        return self.stream_progs_model.get_selected_list()
+
+    # Control asks to return analysis settings
+    def get_analysis_settings(self):
+        return self.analysisSetDlg.store.get_settings_list()
+
+    # Control asks to return tuner settings
+    def get_tuner_settings(self):
+        return self.tunerDlg.store.get_settings_list()
+
+    # Methods for interaction with Control
+    # Specific Gui methods
+
+    # called by Control to update cpu load
+    def update_cpu_load(self, load):
+        self.cpu_load_val.set_text(str(load) + "%")
+
+    # called by Control to update data in video plots
+    def update_video_plots_data(self, data):
+        self.plot_page.on_incoming_data(data)
+
+    # called by Control to update data in audio plots
+    def update_audio_plots_data(self, data):
+        pass
+
+    # called by Control to update drawing mode for renderers
+    def update_rendering_mode(self, draw, stream_id):
+        self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
+
+    # called by Control to mute all programs
+    def mute_all_renderers(self):
+        self.cur_results_page.mute_all_renderers()
+
+    # Control asks to return current xids for video rendering
+    def get_renderers_xids(self):
+        return self.cur_results_page.get_renderers_xid()
+
+    # Control asks to return info about currently existing plots
+    def get_plot_info(self):
+        plot_info = []
+        for plot in self.plot_page.plots:
+            colors = []
+            for color in plot.colors:
+                colors.append([color.red, color.green, color.blue, color.alpha])
+            plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
+        return plot_info
+
+    # User actions handling
 
     # on reveal table button (in header bar) clicked
     def reveal_child(self, button, revealer):
@@ -270,45 +362,7 @@ class Gui(Gtk.Window):
                               widget.get_active())
         self.emit(CustomMessages.COLOR_THEME, widget.get_active())
 
-    # get renderers xids from cur result page
-    def get_renderers_xids(self):
-        return self.cur_results_page.get_renderers_xid()
-
-    # set gui for new program list
-    def set_new_programs(self, prog_list):
-        # apply prog list to analyzed progs model
-        self.analyzed_progs_model.add_all_streams(prog_list)
-        # add new programs to gui
-        self.cur_results_page.on_prog_list_changed(prog_list)
-        # determine wether table revealer button should be visible
-        self.manage_table_revealer_button_visibility()
-
-    def on_video_measured_data(self, data):
-        self.plot_page.on_incoming_data(data)
-
-    def set_draw_mode_for_renderers(self, draw, stream_id):
-        self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
-
-    # get plot page parameters
-    def get_plot_info(self):
-        plot_info = []
-        for plot in self.plot_page.plots:
-            colors = []
-            for color in plot.colors:
-                colors.append([color.red, color.green, color.blue, color.alpha])
-            plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
-        return plot_info
-
-    def mute_all_renderers(self):
-        self.cur_results_page.mute_all_renderers()
-
-    def on_new_tuner_params(self, status, modulation, params):
-        if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_tuner_params(status, modulation, params)
-
-    def on_new_tuner_measured_data(self, measured_data):
-        if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_measured_data(measured_data)
+    # Functions called when user clicks one of the buttons from toolbar
 
     # start button was clicked
     def on_start_clicked(self, widget):
@@ -353,9 +407,6 @@ class Gui(Gtk.Window):
         if responce == Gtk.ResponseType.APPLY:
             # apply settings
             self.analysisSetDlg.apply_settings()
-            # apply changes to plots
-            for plot in self.plot_page.plots:
-                self.plot_page.add_plot_intervals(plot)
             # emit signal from gui to control about new analysis params
             self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 

@@ -1,6 +1,6 @@
 from gi.repository import GObject
 
-from Gui.AnalysisSettingsDialog import AnalysisSettingsModel as em
+from Control import AnalysisSettingsIndexes as ai
 from Control.ErrorDetector import StatusTypes as types
 from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 
@@ -33,13 +33,13 @@ class AudioErrorDetector(BaseErrorDetector):
 
     def set_analysis_settings(self, analysis_settings):
 
-        self.audio_loss = analysis_settings[em.AUDIO_LOSS][2]
+        self.audio_loss = analysis_settings[ai.AUDIO_LOSS][2]
 
-        self.overload_err = analysis_settings[em.OVERLOAD_ERR][2]
-        self.overload_warn = analysis_settings[em.OVERLOAD_WARN][2]
+        self.overload_err = analysis_settings[ai.OVERLOAD_ERR][2]
+        self.overload_warn = analysis_settings[ai.OVERLOAD_WARN][2]
 
-        self.silence_err = analysis_settings[em.SILENCE_ERR][2]
-        self.silence_warn = analysis_settings[em.SILENCE_WARN][2]
+        self.silence_err = analysis_settings[ai.SILENCE_ERR][2]
+        self.silence_warn = analysis_settings[ai.SILENCE_WARN][2]
 
     def is_loss(self, is_overload, is_silence, storage):
         if is_overload is types.UNKNOWN or \
@@ -92,7 +92,7 @@ class AudioErrorDetector(BaseErrorDetector):
                              self.is_overload_flag,       # overload flag
                              self.is_silence_flag]])      # silence flag
 
-        self.gui.show_audio_status(results)
+        self.gui.update_video_status(results)
 
         return True
 

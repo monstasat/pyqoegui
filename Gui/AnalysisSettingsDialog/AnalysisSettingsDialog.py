@@ -15,36 +15,36 @@ class AnalysisSettingsDialog(BaseDialog):
 
         mainBox = self.get_content_area()
 
-        self.analysis_settings_store = AnalysisSettingsModel(analysis_settings)
+        self.store = AnalysisSettingsModel(analysis_settings)
 
         # fill page list with created pages
         self.pages = []
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [0]),
+            AnalysisSettingsPage(self, [0]),
             "video_loss",
             "Пропадание видео"))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [1]),
+            AnalysisSettingsPage(self, [1]),
             "audio_loss",
             "Пропадание аудио"))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [2, 3, 4, 5]),
+            AnalysisSettingsPage(self, [2, 3, 4, 5]),
             "black_frame",
             "Чёрный кадр"))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [6, 7, 8, 9]),
+            AnalysisSettingsPage(self, [6, 7, 8, 9]),
             "freeze",
             '"Заморозка" видео"'))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [10, 11]),
+            AnalysisSettingsPage(self, [10, 11]),
             "blockiness",
             "Блочность"))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [12, 13]),
+            AnalysisSettingsPage(self, [12, 13]),
             "overload",
             '"Перегрузка" звука'))
         self.pages.append((
-            AnalysisSettingsPage(self.analysis_settings_store, [14, 15]),
+            AnalysisSettingsPage(self, [14, 15]),
             "silence",
             "Тишина"))
 
@@ -87,7 +87,7 @@ class AnalysisSettingsDialog(BaseDialog):
                 page[0].store[iter_][2] = value
 
     # update values in spin buttons
-    def update_values(self):
+    def update_values(self, analysis_settings):
         for page in self.pages:
             for entry in page[0].get_children():
                 i = entry.index

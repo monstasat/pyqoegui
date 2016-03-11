@@ -7,7 +7,7 @@ import time
 
 from gi.repository import GObject
 
-from Gui.TunerSettingsDialog import TunerSettingsModel as tm
+from Control import TunerSettingsIndexes as ti
 from Control import CustomMessages
 
 # msg start byte
@@ -28,7 +28,7 @@ COD_COMAND_RESET = 5
 
 
 # class for dvb-t2 tuner management via com-port
-class RfExchange(GObject.GObject):
+class DVBTunerControl(GObject.GObject):
 
     __gsignals__ = {
         CustomMessages.NEW_TUNER_STATUS: (GObject.SIGNAL_RUN_FIRST,
@@ -189,19 +189,19 @@ class RfExchange(GObject.GObject):
         else:
             device = tuner_settings[0][0]
             # if standard is DVB-T2
-            if device == tm.DVBT2:
+            if device == ti.DVBT2:
                 frequency = tuner_settings[1][0]
                 modulation = 9
                 width = tuner_settings[2][0]
                 dvb_c_t_t2_params = tuner_settings[3][0]
             # if standard is DVB-T
-            elif device == tm.DVBT:
+            elif device == ti.DVBT:
                 frequency = tuner_settings[4][0]
                 modulation = 6
                 width = tuner_settings[5][0]
                 dvb_c_t_t2_params = 0
             # if standard is DVB-C
-            elif device == tm.DVBC:
+            elif device == ti.DVBC:
                 frequency = tuner_settings[6][0]
                 modulation = 3
                 width = 0

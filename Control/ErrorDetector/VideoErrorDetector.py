@@ -1,6 +1,6 @@
 from gi.repository import GObject
 
-from Gui.AnalysisSettingsDialog import AnalysisSettingsModel as em
+from Control import AnalysisSettingsIndexes as ai
 from Control.ErrorDetector import StatusTypes as types
 from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 
@@ -40,18 +40,18 @@ class VideoErrorDetector(BaseErrorDetector):
 
     def set_analysis_settings(self, analysis_settings):
 
-        self.video_loss = analysis_settings[em.VIDEO_LOSS][2]
+        self.video_loss = analysis_settings[ai.VIDEO_LOSS][2]
 
-        self.black_err = analysis_settings[em.BLACK_ERR][2]
-        self.black_warn = analysis_settings[em.BLACK_WARN][2]
-        self.black_luma_warn = analysis_settings[em.LUMA_WARN][2]
+        self.black_err = analysis_settings[ai.BLACK_ERR][2]
+        self.black_warn = analysis_settings[ai.BLACK_WARN][2]
+        self.black_luma_warn = analysis_settings[ai.LUMA_WARN][2]
 
-        self.freeze_err = analysis_settings[em.FREEZE_ERR][2]
-        self.freeze_warn = analysis_settings[em.FREEZE_WARN][2]
-        self.freeze_diff_warn = analysis_settings[em.DIFF_WARN][2]
+        self.freeze_err = analysis_settings[ai.FREEZE_ERR][2]
+        self.freeze_warn = analysis_settings[ai.FREEZE_WARN][2]
+        self.freeze_diff_warn = analysis_settings[ai.DIFF_WARN][2]
 
-        self.block_err = analysis_settings[em.BLOCK_ERR][2]
-        self.block_warn = analysis_settings[em.BLOCK_WARN][2]
+        self.block_err = analysis_settings[ai.BLOCK_ERR][2]
+        self.block_warn = analysis_settings[ai.BLOCK_WARN][2]
 
     def is_loss(self, is_black, is_freeze, is_blocky, storage):
         if is_black is types.UNKNOWN or \
@@ -128,7 +128,7 @@ class VideoErrorDetector(BaseErrorDetector):
                              self.is_freeze_flag,         # freeze
                              self.is_blocky_flag]])       # blockiness
 
-        self.gui.show_video_status(results)
+        self.gui.update_video_status(results)
 
         return True
 

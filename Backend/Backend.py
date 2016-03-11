@@ -48,26 +48,27 @@ class Backend():
             return State.NONEXISTENT
 
     # apply new program list
-    def apply_new_program_list(self, progList, xids):
+    def apply_new_program_list(self, prog_list, xids):
         # combine received prog list and xids
-        combined_list = self.combine_prog_list_with_xids(progList, xids)
+        combined_list = self.combine_prog_list_with_xids(prog_list, xids)
 
         # if stream with sent number exist and program num is not null
         if (self.is_pipeline(combined_list[0]) is True):
             # determine number of programs in this stream
             # to get necessary number of xids
-            self.gs_pipelines[combined_list[0]].apply_new_program_list(combined_list)
+            self.gs_pipelines[combined_list[0]].apply_new_program_list(
+                combined_list)
 
     # combines prog list with renderers xids
-    def combine_prog_list_with_xids(self, progList, xids):
-        stream_id = progList[0]
-        progs = progList[1]
+    def combine_prog_list_with_xids(self, prog_list, xids):
+        stream_id = prog_list[0]
+        progs = prog_list[1]
         combined_progs = []
         for prog in progs:
             i = 0
             while i != len(xids):
-                                # stream id                    # prog id
-                if (stream_id == xids[i][0]) and (prog[0] == xids[i][1]):
+                prog_id = int(prog[0])
+                if (stream_id == xids[i][0]) and (prog_id == xids[i][1]):
                     prog.insert(4, xids[i][2])
                     combined_progs.append(prog)
                 i += 1
