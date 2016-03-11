@@ -11,7 +11,7 @@ from Gui import Spacing
 
 class AnalysisSettingsDialog(BaseDialog):
     def __init__(self, parent, analysis_settings):
-        BaseDialog.__init__(self, "Настройки анализа", parent)
+        BaseDialog.__init__(self, "Настройки анализа", parent.window)
 
         mainBox = self.get_content_area()
 

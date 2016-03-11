@@ -19,7 +19,7 @@ from Gui import Spacing
 class ProgramSelectDialog(BaseDialog):
 
     def __init__(self, parent):
-        BaseDialog.__init__(self, "Выбор программ для анализа", parent)
+        BaseDialog.__init__(self, "Выбор программ для анализа", parent.window)
 
         self.set_default_size(500, 0)
 

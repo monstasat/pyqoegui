@@ -14,7 +14,7 @@ class TunerSettingsDialog(BaseDialog):
     def __init__(self,
                  parent,
                  tuner_settings):
-        BaseDialog.__init__(self, "Настройки ТВ тюнера", parent)
+        BaseDialog.__init__(self, "Настройки ТВ тюнера", parent.window)
 
         mainBox = self.get_content_area()
 

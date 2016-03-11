@@ -18,7 +18,7 @@ from Control import CustomMessages
 from BaseInterface import BaseInterface
 
 
-class Gui(BaseInterface, Gtk.Window):
+class Gui(BaseInterface):
 
     # specific Gui signals
     __gsignals__ = {
@@ -52,14 +52,14 @@ class Gui(BaseInterface, Gtk.Window):
                                analysis_settings_list,
                                tuner_settings_list)
 
-        Gtk.Window.__init__(self, application=app)
+        self.window = Gtk.Window(application=app)
 
         # set size
-        self.set_default_size(width, height)
+        self.window.set_default_size(width, height)
 
         # show in fullscreen if necessary
         if fullscreen is True:
-            self.fullscreen()
+            self.window.fullscreen()
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
@@ -69,9 +69,9 @@ class Gui(BaseInterface, Gtk.Window):
         # don't show menu on mouse right-click
         settings.set_property("gtk-titlebar-right-click", 'none')
         # don't show title bar and resizing cursors
-        self.set_decorated(False)
+        self.window.set_decorated(False)
         # place window at the center of the screen
-        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
@@ -170,7 +170,7 @@ class Gui(BaseInterface, Gtk.Window):
         vbox.add(hbox)
 
         # add main box to window
-        self.add(vbox)
+        self.window.add(vbox)
 
         # add prgtbl button to header bar
         self.showTableBtn = Gtk.ToggleButton(always_show_image=True,
@@ -187,7 +187,7 @@ class Gui(BaseInterface, Gtk.Window):
                                   )
         hb.pack_end(self.showTableBtn)
 
-        self.show_all()
+        self.window.show_all()
 
         # set initial gui view
         if color_theme is True:
@@ -213,72 +213,6 @@ class Gui(BaseInterface, Gtk.Window):
         btns = self.toolbar.get_children()
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
-
-    # Methods for interaction with Control
-    # Common methods for Gui and Usb
-
-    # called by Control to update stream prog list
-    def update_stream_prog_list(self, prog_list, all_streams=False):
-        if all_streams is True:
-            self.stream_progs_model.add_all_streams(prog_list)
-        else:
-            self.stream_progs_model.add_one_stream(prog_list)
-
-    # called by Control to update analyzed prog list
-    def update_analyzed_prog_list(self, prog_list):
-        # apply prog list to analyzed progs model
-        self.analyzed_progs_model.add_all_streams(prog_list)
-        # add new programs to gui
-        self.cur_results_page.on_prog_list_changed(prog_list)
-        # determine wether table revealer button should be visible
-        self.manage_table_revealer_button_visibility()
-
-    # called by Control to update analysis settings
-    def update_analysis_settings(self, analysis_settings):
-        # save settings
-        self.analysis_settings = analysis_settings
-        # update analysis settings dialog
-        self.analysisSetDlg.update_values(self.analysis_settings)
-        # update intervals in plots
-        for plot in self.plot_page.plots:
-            self.plot_page.add_plot_intervals(plot, self.analysis_settings)
-
-    # called by Control to update tuner settings
-    def update_tuner_settings(self, tuner_settings):
-        # save settings
-        self.tuner_settings = tuner_settings
-        # update tuner dialog
-        self.tunerDlg.update_values(self.tuner_settings)
-
-    # called by Control to update tuner parameters
-    def update_tuner_params(self, status, modulation, params):
-        if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_tuner_params(status, modulation, params)
-
-    # called by Control to update tuner measured data
-    def update_tuner_measured_data(self, measured_data):
-        if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_measured_data(measured_data)
-
-    # called by Error Detector to update video status
-    def update_video_status(self, results):
-        self.cur_results_page.prgtbl.update_video(results)
-
-    # called by Error Detector to update audio status
-    def update_audio_status(self, results):
-        self.cur_results_page.prgtbl.update_audio(results)
-
-    # Control asks to return analyzed prog list
-    def get_analyzed_prog_list(self):
-        return self.stream_progs_model.get_selected_list()
-
-    # Control asks to return analysis settings
-    def get_analysis_settings(self):
-        return self.analysisSetDlg.store.get_settings_list()
-
-    # Control asks to return tuner settings
-    def get_tuner_settings(self):
-        return self.tunerDlg.store.get_settings_list()
 
     # Methods for interaction with Control
     # Specific Gui methods
@@ -418,7 +352,7 @@ class Gui(BaseInterface, Gtk.Window):
 
     # about button was clicked
     def on_about_clicked(self, widget):
-        aboutDlg = AboutDialog(self)
+        aboutDlg = AboutDialog(self.window)
         responce = aboutDlg.run()
         if responce == Gtk.ResponseType.DELETE_EVENT or \
            responce == Gtk.ResponseType.CANCEL:

@@ -7,7 +7,7 @@ from Gui import Spacing
 class DumpSettingsDialog(BaseDialog):
     def __init__(self, parent):
 
-        BaseDialog.__init__(self, "Запись ТВ программ", parent)
+        BaseDialog.__init__(self, "Запись ТВ программ", parent.window)
 
         mainBox = self.get_content_area()
         mainBox.set_valign(Gtk.Align.CENTER)

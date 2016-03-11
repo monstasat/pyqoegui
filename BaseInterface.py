@@ -18,6 +18,8 @@ class BaseInterface(GObject.GObject):
                  analysis_settings_list,
                  tuner_settings_list):
 
+        GObject.GObject.__init__(self)
+
         # create analysis settings list
         self.analysis_settings = analysis_settings_list
         # create tuner settings list

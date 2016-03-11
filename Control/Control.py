@@ -119,7 +119,7 @@ class Control(GObject.GObject):
         for stream in self.analyzed_progs:
             self.gui.update_rendering_mode(True, stream[0])
 
-        self.gui.queue_draw()
+        self.gui.window.queue_draw()
 
         GObject.timeout_add(1000, self.on_get_cpu_load)
 
@@ -361,7 +361,7 @@ class Control(GObject.GObject):
         # set drawing black background for corresponding renderers to True
         self.gui.update_rendering_mode(True, stream_id)
         # force redrawing of gui
-        self.gui.queue_draw()
+        self.gui.window.queue_draw()
 
     # Handling messages from backend
     def message_from_pipeline_callback(self, obj, conn, source):
