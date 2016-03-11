@@ -11,8 +11,10 @@ class UsbExchange:
     STOP_MSG = 0x20
     MSG_VAR_LEN = 0x01
     MSG_CRC = 0x02
+    SEND_PERS_BUF = 0x0901
     # TODO: change prog num
     MAX_PROG_NUM = 20
+    MAX_DATA_SIZE = 243
     # 2: prefix
     # 2: code command
     HEADER = "HH"
@@ -79,8 +81,8 @@ class UsbExchange:
         LOUD_MSG = "%sB" % self.MAX_PROG_NUM
         VOID_MSG = "%sH" % 225
 
-        tmp_err = [0x11 for _ in range(self.MAX_PROG_NUM)]
-        tmp_lou = [25 for _ in range(self.MAX_PROG_NUM)]
+        tmp_err = [0 for _ in range(self.MAX_PROG_NUM)]
+        tmp_lou = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_zer = [0 for _ in range(225)]
         
         b = struct.pack("="+STATUS_MSG,
@@ -103,3 +105,18 @@ class UsbExchange:
             print("%x" % i)
         print (len(msg))
         self.connection.send(msg)
+
+    def send_prog_list(self):
+        PROG_MSG = self.HEADER + "HHHHH" #+ ("%sH" % MAX_DATA_SIZE)
+        b = struct.pack("="+PROG_MSG,
+                        self.PREFIX,
+                        self.SEND_PERS_BUF,
+                        100,
+                        0,
+                        1,
+                        0,
+                        0)
+        data = [0 for _ in range(self.MAX_DATA_SIZE)]
+        msg = struct.pack("=%sH" % self.MAX_DATA_SIZE, *data)
+        s = b''.join([b, msg])
+        self.connection.send(s)
