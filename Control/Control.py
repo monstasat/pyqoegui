@@ -59,7 +59,7 @@ class Control(GObject.GObject):
                        self.analyzed_progs,
                        self.analysis_settings,
                        self.tuner_settings,
-                       self.config.get_dark_theme(),
+                       self.config.get_color_theme(),
                        self.config.get_table_revealer(),
                        self.config.get_plot_info())
 
@@ -283,7 +283,7 @@ class Control(GObject.GObject):
     # Gui sent a message about color theme changed
     def on_gui_color_theme_changed(self, source, color_theme):
         # save new color theme in Config
-        self.config.set_dark_theme(color_theme)
+        self.config.set_color_theme(color_theme)
 
     # Gui sent a message about program table hidden/revealed
     def on_gui_table_revealer(self, source, table_state):

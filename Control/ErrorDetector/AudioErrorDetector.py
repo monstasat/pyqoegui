@@ -92,7 +92,7 @@ class AudioErrorDetector(BaseErrorDetector):
                              self.is_overload_flag,       # overload flag
                              self.is_silence_flag]])      # silence flag
 
-        self.gui.update_video_status(results)
+        self.gui.update_audio_status(results)
 
         return True
 

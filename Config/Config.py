@@ -36,12 +36,12 @@ class Config():
 
         return json.loads(progList)
 
-    def get_dark_theme(self):
+    def get_color_theme(self):
         self.config.read('config.ini')
         dark_theme = self.config['user'].getboolean('dark_theme')
         return bool(dark_theme)
 
-    def set_dark_theme(self, dark_theme):
+    def set_color_theme(self, dark_theme):
         self.config['user']['dark_theme'] = str(bool(dark_theme))
         self.write_ini()
 
