@@ -5,6 +5,7 @@ from Gui.AnalysisSettingsDialog.AnalysisSettingsPage import \
                                 AnalysisSettingsPage
 from Gui.Icon import Icon
 from Gui import Spacing
+from Control import AnalysisSettingsIndexes as ai
 
 
 class AnalysisSettingsDialog(BaseDialog):
@@ -18,31 +19,37 @@ class AnalysisSettingsDialog(BaseDialog):
         # fill page list with created pages
         self.pages = []
         self.pages.append((
-            AnalysisSettingsPage(self, [0]),
+            AnalysisSettingsPage(self, [ai.VIDEO_LOSS]),
             "video_loss",
             "Пропадание видео"))
         self.pages.append((
-            AnalysisSettingsPage(self, [1]),
+            AnalysisSettingsPage(self, [ai.AUDIO_LOSS]),
             "audio_loss",
             "Пропадание аудио"))
         self.pages.append((
-            AnalysisSettingsPage(self, [2, 3, 4, 5]),
+            AnalysisSettingsPage(self, [ai.BLACK_ERR,
+                                        ai.BLACK_WARN,
+                                        ai.LUMA_WARN,
+                                        ai.BLACK_PIXEL]),
             "black_frame",
             "Чёрный кадр"))
         self.pages.append((
-            AnalysisSettingsPage(self, [6, 7, 8, 9]),
+            AnalysisSettingsPage(self, [ai.FREEZE_ERR,
+                                        ai.FREEZE_WARN,
+                                        ai.DIFF_WARN,
+                                        ai.PIXEL_DIFF]),
             "freeze",
             '"Заморозка" видео"'))
         self.pages.append((
-            AnalysisSettingsPage(self, [10, 11]),
+            AnalysisSettingsPage(self, [ai.BLOCK_ERR, ai.BLOCK_WARN]),
             "blockiness",
             "Блочность"))
         self.pages.append((
-            AnalysisSettingsPage(self, [12, 13]),
+            AnalysisSettingsPage(self, [ai.OVERLOAD_ERR, ai.OVERLOAD_WARN]),
             "overload",
             '"Перегрузка" звука'))
         self.pages.append((
-            AnalysisSettingsPage(self, [14, 15]),
+            AnalysisSettingsPage(self, [ai.SILENCE_ERR, ai.SILENCE_WARN]),
             "silence",
             "Тишина"))
 
