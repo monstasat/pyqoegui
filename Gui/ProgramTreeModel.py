@@ -101,7 +101,6 @@ class ProgramTreeModel(Gtk.TreeStore):
 
         self.clear_model()
 
-        print(prog_list)
         for stream in prog_list:
             if len(stream[1]) > 0:
                 self.update_stream_info(stream)

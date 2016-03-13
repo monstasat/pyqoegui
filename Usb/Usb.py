@@ -88,9 +88,9 @@ class Usb(BaseInterface):
 
     # Control asks to return analysis settings
     def get_analysis_settings(self):
-        BaseInterface.get_analysis_settings(self)
+        return BaseInterface.get_analysis_settings(self)
 
     # Control asks to return tuner settings
     def get_tuner_settings(self):
-        BaseInterface.get_tuner_settings(self)
+        return BaseInterface.get_tuner_settings(self)
 
