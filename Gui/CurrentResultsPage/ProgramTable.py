@@ -47,7 +47,7 @@ class ProgramTable(Gtk.TreeView):
         # attaching list store to tree view widget
         self.store = Gtk.ListStore(int, str,        # n
                                    str, str,        # prog name
-                                   str, str,        # lufs
+                                   int, str,        # lufs
                                    str, str,        # video loss
                                    str, str,        # black frame
                                    str, str,        # freeze
@@ -73,10 +73,11 @@ class ProgramTable(Gtk.TreeView):
             # 3rd column is a progress bar for lufs levels
             if i == 4:
                 renderer = Gtk.CellRendererProgress()
-                # renderer.props.inverted = True
+
                 column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)],
                                             renderer,
-                                            text=i)
+                                            value=i,
+                                            text=i+1)
 
             # other colums are text labels
             else:
@@ -141,7 +142,7 @@ class ProgramTable(Gtk.TreeView):
                      # prog name
                      prog_name, '#FFFFFF',
                      # lufs level
-                     '%g' % (0.0), '#FFFFFF',
+                     0, '0',
                      # video loss
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # black frame
@@ -218,4 +219,23 @@ class ProgramTable(Gtk.TreeView):
 
     def update_audio(self, results):
         self.update(results, 'audio')
+
+    def update_lufs(self, lufs):
+        for row in self.get_model():
+            # create data header
+            # stream id, prog id, audio pid
+            data_header = [row[21], row[22], row[pid_index]]
+
+            for val in lufs:
+                try:
+                    index = val.index(data_header)
+                except:
+                    pass
+                else:
+                    data = sum(val[1]) / float(len(val[1]))
+                    row[4] = (data - (-59)) / abs(-5 - (-59))*100
+                    row[5] = '%.2f LUFS' % data
+                    # remove current item from result list
+                    # as we don't need it anymore
+                    lufs.remove(val)
 
