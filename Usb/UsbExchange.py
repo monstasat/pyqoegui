@@ -55,7 +55,7 @@ class UsbExchange:
         
         cyusb.init()
 
-        self.connection = cyusb.Connection()
+        #self.connection = cyusb.Connection()
 
     def __destroy__(self):
         cyusb.close()
@@ -107,6 +107,9 @@ class UsbExchange:
         print (len(msg))
         self.connection.send(msg)
 
+    def send_errors(self):
+        pass
+
     def send_prog_list(self):
         PROG_MSG = self.HEADER + "HHHHH" #+ ("%sH" % MAX_DATA_SIZE)
         b = struct.pack("="+PROG_MSG,
@@ -121,3 +124,4 @@ class UsbExchange:
         msg = struct.pack("=%sH" % self.MAX_DATA_SIZE, *data)
         s = b''.join([b, msg])
         self.connection.send(s)
+

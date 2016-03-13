@@ -20,6 +20,10 @@ class BaseInterface(GObject.GObject):
 
         GObject.GObject.__init__(self)
 
+        # create stream prog list
+        self.stream_prog_list = []
+        # create analyzed prog list
+        self.analyzed_prog_list = []
         # create analysis settings list
         self.analysis_settings = analysis_settings_list
         # create tuner settings list
@@ -29,18 +33,14 @@ class BaseInterface(GObject.GObject):
     # Common methods for Gui and Usb
 
     # called by Control to update stream prog list
-    def update_stream_prog_list(self, prog_list, all_streams=False):
-        #if all_streams is True:
-        #    self.stream_progs_model.add_all_streams(prog_list)
-        #else:
-        #    self.stream_progs_model.add_one_stream(prog_list)
-        pass
+    def update_stream_prog_list(self, prog_list):
+        # save stream prog list
+        self.stream_prog_list = prog_list
 
     # called by Control to update analyzed prog list
     def update_analyzed_prog_list(self, prog_list):
-        # apply prog list to analyzed progs model
-        #self.analyzed_progs_model.add_all_streams(prog_list)
-        pass
+        # save analyzed prog list
+        self.analyzed_prog_list = prog_list
 
     # called by Control to update analysis settings
     def update_analysis_settings(self, analysis_settings):

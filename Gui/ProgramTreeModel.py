@@ -96,36 +96,15 @@ class ProgramTreeModel(Gtk.TreeStore):
 
         return streams_params_list
 
-    # add or replace stream in model (stream info is list)
-    def add_one_stream(self, prog_list):
-
-        stream_id = prog_list[0]
-
-        # check if there is a stream in a model with equal stream id
-        # if yes, replace it
-        rootIter = self.get_iter_first()
-        if rootIter is not None:
-            while rootIter is not None:
-                if self[rootIter][4] == stream_id:
-                    self.remove(rootIter)
-                    break
-                rootIter = self.iter_next(rootIter)
-
-        # fill the model
-        stream_info = prog_list[1]
-        if len(stream_info) != 0:
-            self.update_stream_info(prog_list)
-
-        # return program number
-        return len(stream_info)
-
     # apply new list of streams to model
     def add_all_streams(self, prog_list):
 
         self.clear_model()
 
+        print(prog_list)
         for stream in prog_list:
-            self.update_stream_info(stream)
+            if len(stream[1]) > 0:
+                self.update_stream_info(stream)
 
     # append new stream to model
     def update_stream_info(self, prog_list):

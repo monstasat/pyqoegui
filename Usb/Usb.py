@@ -16,20 +16,27 @@ class Usb(BaseInterface):
                                analysis_settings_list,
                                tuner_settings_list)
 
-        GObject.timeout_add(1000, self.send_messages)
+        #GObject.timeout_add(1000, self.send_messages)
 
         self.exchange = UsbExchange()
 
+        self.interface_name = 'Usb'
+
     def send_messages(self):
         print("sending message")
+
+        self.exchange.send_init()
+        self.exchange.send_status()
+        self.exchange.send_errors()
+
         return True
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb
 
     # called by Control to update stream prog list
-    def update_stream_prog_list(self, prog_list, all_streams=False):
-        BaseInterface.update_stream_prog_list(self, prog_list, all_streams)
+    def update_stream_prog_list(self, prog_list):
+        BaseInterface.update_stream_prog_list(self, prog_list)
 
         # increment settings version
         self.exchange.settings_version += 1
@@ -77,6 +84,7 @@ class Usb(BaseInterface):
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
         BaseInterface.get_analyzed_prog_list(self)
+        return self.analyzed_prog_list
 
     # Control asks to return analysis settings
     def get_analysis_settings(self):

@@ -5,6 +5,30 @@ class ProgramListControl():
     def clear():
         self.prog_list = []
 
+    # add or replace one stream in a list
+    def add_one_stream(self, prog_list):
+
+        stream_id = prog_list[0]
+
+        # check if there is a stream in a model with equal stream id
+        # if yes, replace it
+        for stream in self.prog_list:
+            if stream[0] == stream_id:
+                func = lambda x:x if x!= stream else prog_list
+                self.prog_list  = list(map(func, self.prog_list))
+                break
+        # if no stream with such stream id found,
+        else:
+            for stream in self.prog_list:
+                # if found stream with id > that current id
+                # insert current prog list before this stream
+                if stream[0] > prog_list[0]:
+                    self.prog_list.insert(self.prog_list.index(stream),
+                                          prog_list)
+            else:
+                # if not, append prog list to the end
+                self.prog_list.append(prog_list)
+
     # compare two prog lists and make new list with only equal programs
     def get_compared_list(self, gs_prog_list):
         # new prog list after comparison

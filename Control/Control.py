@@ -129,6 +129,9 @@ class Control(GObject.GObject):
 
         self.gui.window.queue_draw()
 
+        # write message to log
+        self.log.write_log_message("application launched", True)
+
         GObject.timeout_add(1000, self.on_get_cpu_load)
 
     @property
@@ -145,7 +148,6 @@ class Control(GObject.GObject):
 
     @analyzed_progs.setter
     def analyzed_progs(self, value):
-        print("Setter", value)
         self.aprogs_control.prog_list = value
 
     # when app closes, we need to take some actions
@@ -155,6 +157,9 @@ class Control(GObject.GObject):
         # disconnect from tuner
         self.rf_tuner.disconnect()
         self.rf_tuner.thread_active = False
+
+        # write message to log
+        self.log.write_log_message("application closed")
 
     # start server
     def start_server(self, port):
@@ -173,6 +178,9 @@ class Control(GObject.GObject):
         # set volume on all renderers to null
         self.gui.mute_all_renderers()
 
+        # write message to log
+        self.log.write_log_message("analysis started")
+
     def stop_analysis(self):
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
@@ -182,8 +190,8 @@ class Control(GObject.GObject):
         self.stream_progs.clear()
 
         # update stream prog list in Gui and Usb
-        self.gui.update_stream_prog_list([], all_streams=True)
-        self.usb.update_stream_prog_list([], all_streams=True)
+        self.gui.update_stream_prog_list([])
+        self.usb.update_stream_prog_list([])
 
         # set volume on all renderers to null
         self.gui.mute_all_renderers()
@@ -193,6 +201,9 @@ class Control(GObject.GObject):
             self.gui.update_rendering_mode(True, stream[0])
         # force redrawing of gui
         self.gui.queue_draw()
+
+        # write message to log
+        self.log.write_log_message("analysis stopped")
 
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
@@ -234,6 +245,9 @@ class Control(GObject.GObject):
         # Save analyzed prog list in Config
         self.config.set_prog_list(self.analyzed_progs)
 
+        # write message to log
+        self.log.write_log_message("new programs selected for analysis", True)
+
     # new analysis settings received
     def on_new_analysis_settings(self, source):
         # get new analysis settings from message source
@@ -253,6 +267,9 @@ class Control(GObject.GObject):
         # Save analysis settings in Config
         self.config.set_analysis_settings(self.analysis_settings)
 
+        # write message to log
+        self.log.write_log_message("new analysis settings selected")
+
     # new tuner settings received
     def on_new_tuner_settings(self, source):
         # get new tuner settings from message source
@@ -271,6 +288,9 @@ class Control(GObject.GObject):
 
         # Save tuner settings in Config
         self.config.set_tuner_settings(self.tuner_settings)
+
+        # write message to log
+        self.log.write_log_message("new tuner settings selected")
 
     # Interaction with Gui and Usb
     # Methods specific for Gui
@@ -355,9 +375,12 @@ class Control(GObject.GObject):
 
     # Backend sent a message that one of streams has ended
     def end_of_stream_received(self, stream_id):
+        # update stream prog list
+        self.sprogs_control.add_one_stream([stream_id, []])
+
         # update stream program list in Gui and Usb
-        self.gui.update_stream_prog_list([stream_id, []])
-        self.usb.update_stream_prog_list([stream_id, []])
+        self.gui.update_stream_prog_list(self.stream_progs)
+        self.usb.update_stream_prog_list(self.stream_progs)
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)
@@ -389,9 +412,11 @@ class Control(GObject.GObject):
                 # translate message from string to list
                 prog_list = self.msg_translator.get_prog_list(wstr[1:])
 
+                self.sprogs_control.add_one_stream(prog_list)
+
                 # update stream program list in Gui and Usb
-                self.gui.update_stream_prog_list(prog_list)
-                self.usb.update_stream_prog_list(prog_list)
+                self.gui.update_stream_prog_list(self.stream_progs)
+                self.usb.update_stream_prog_list(self.stream_progs)
 
                 # compare received and current analyzed prog lists
                 # (compared list contains only program equal prorams

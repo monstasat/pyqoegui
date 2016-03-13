@@ -52,6 +52,8 @@ class Gui(BaseInterface):
                                analysis_settings_list,
                                tuner_settings_list)
 
+        self.interface_name = 'Gui'
+
         self.window = Gtk.Window(application=app)
 
         # set size
@@ -218,12 +220,9 @@ class Gui(BaseInterface):
     # Common methods for Gui and Usb
 
     # called by Control to update stream prog list
-    def update_stream_prog_list(self, prog_list, all_streams=False):
-        BaseInterface.update_stream_prog_list(self, prog_list, all_streams)
-        if all_streams is True:
-            self.stream_progs_model.add_all_streams(prog_list)
-        else:
-            self.stream_progs_model.add_one_stream(prog_list)
+    def update_stream_prog_list(self, prog_list):
+        BaseInterface.update_stream_prog_list(self, prog_list)
+        self.stream_progs_model.add_all_streams(prog_list)
 
     # called by Control to update analyzed prog list
     def update_analyzed_prog_list(self, prog_list):
