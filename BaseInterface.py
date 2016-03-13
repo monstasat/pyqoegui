@@ -75,6 +75,7 @@ class BaseInterface(GObject.GObject):
     # Control asks to return analysis settings
     def get_analysis_settings(self):
         pass
+
     # Control asks to return tuner settings
     def get_tuner_settings(self):
         pass
