@@ -200,7 +200,7 @@ class Control(GObject.GObject):
         for stream in self.analyzed_progs:
             self.gui.update_rendering_mode(True, stream[0])
         # force redrawing of gui
-        self.gui.queue_draw()
+        self.gui.window.queue_draw()
 
         # write message to log
         self.log.write_log_message("analysis stopped")

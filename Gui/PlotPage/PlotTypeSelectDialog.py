@@ -9,7 +9,9 @@ from Gui.PlotPage import PlotTypes
 
 class PlotTypeSelectDialog(BaseDialog):
     def __init__(self, parent):
-        BaseDialog.__init__(self, "Настройка параметров графика", parent)
+        BaseDialog.__init__(self,
+                            "Настройка параметров графика",
+                            parent.window)
 
         # remember store
         self.store = parent.analyzed_progs_model
