@@ -54,6 +54,7 @@ class UsbExchange:
         self.dvb_stat_ver = 0
         
         cyusb.init()
+
         self.connection = cyusb.Connection()
 
     def __destroy__(self):
