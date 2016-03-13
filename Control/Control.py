@@ -6,7 +6,7 @@ from gi.repository import Gio, GObject
 from Backend.Backend import Backend
 from Backend import State
 from Gui.Gui import Gui
-# from Usb.Usb import Usb
+from Usb.Usb import Usb
 from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
 from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
@@ -63,7 +63,9 @@ class Control(GObject.GObject):
                        self.config.get_table_revealer(),
                        self.config.get_plot_info())
 
-        # self.usb = Usb()
+        self.usb = Usb(self.analyzed_progs,
+                       self.analysis_settings,
+                       self.tuner_settings)
 
         # create video error detector
         self.video_error_detector = VideoErrorDetector(
@@ -97,7 +99,12 @@ class Control(GObject.GObject):
                          self.on_gui_plot_page_changed)
 
         # connect to usb signals
-        # --
+        self.usb.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
+                         self.on_new_analyzed_prog_list)
+        self.usb.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
+                         self.on_new_analysis_settings)
+        self.usb.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
+                         self.on_new_tuner_settings)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -112,7 +119,8 @@ class Control(GObject.GObject):
 
         # set gui for analyzed programs
         self.gui.update_analyzed_prog_list(self.analyzed_progs)
-        # self.usb.update_analyzed_prog_list(self.analyzed_progs
+        # set usb for analyzed programs
+        self.usb.update_analyzed_prog_list(self.analyzed_progs)
 
         # initially set drawing black background
         # for corresponding renderers to True
@@ -175,7 +183,7 @@ class Control(GObject.GObject):
 
         # update stream prog list in Gui and Usb
         self.gui.update_stream_prog_list([], all_streams=True)
-        # self.usb.update_stream_prog_list([], all_streams=True)
+        self.usb.update_stream_prog_list([], all_streams=True)
 
         # set volume on all renderers to null
         self.gui.mute_all_renderers()
@@ -203,7 +211,7 @@ class Control(GObject.GObject):
         # update gui according to new program list
         self.gui.update_analyzed_prog_list(self.analyzed_progs)
         # update usb according to new program list
-        # self.usb.update_analyzed_prog_list(self.analyzed_progs)
+        self.usb.update_analyzed_prog_list(self.analyzed_progs)
 
         # Configure error detectors according to new analyzed prog list
         # pass new prog list to error detectors
@@ -233,7 +241,7 @@ class Control(GObject.GObject):
 
         # Configure Gui and Usb according to new analysis settings
         self.gui.update_analysis_settings(self.analysis_settings)
-        # self.usb.update_analysis_settings(self.analysis_settings)
+        self.usb.update_analysis_settings(self.analysis_settings)
 
         # Configure error detectors according to new analysis settings
         self.video_error_detector.set_analysis_settings(self.analysis_settings)
@@ -252,7 +260,7 @@ class Control(GObject.GObject):
 
         # Configure Gui and Usb according to new analysis settings
         self.gui.update_tuner_settings(self.tuner_settings)
-        # self.usb.update_tuner_settings(self.tuner_settings)
+        self.usb.update_tuner_settings(self.tuner_settings)
 
         # Configure dvb tuner according to new tuner settings
         self.rf_tuner.apply_settings(self.tuner_settings)
@@ -326,10 +334,12 @@ class Control(GObject.GObject):
                          ber3_updated]
 
         self.gui.update_tuner_measured_data(measured_data)
+        self.usb.update_tuner_measured_data(measured_data)
 
     # Tuner control sent a message with new tuner params
     def on_new_tuner_params(self, source, status, modulation, params):
         self.gui.update_tuner_params(status, modulation, params)
+        self.usb.update_tuner_params(status, modulation, params)
 
     # Methods for interaction with backend
 
@@ -347,7 +357,7 @@ class Control(GObject.GObject):
     def end_of_stream_received(self, stream_id):
         # update stream program list in Gui and Usb
         self.gui.update_stream_prog_list([stream_id, []])
-        # self.usb.update_stream_prog_list([stream_id, []])
+        self.usb.update_stream_prog_list([stream_id, []])
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)
@@ -381,7 +391,7 @@ class Control(GObject.GObject):
 
                 # update stream program list in Gui and Usb
                 self.gui.update_stream_prog_list(prog_list)
-                # self.usb.update_stream_prog_list(prog_list)
+                self.usb.update_stream_prog_list(prog_list)
 
                 # compare received and current analyzed prog lists
                 # (compared list contains only program equal prorams
