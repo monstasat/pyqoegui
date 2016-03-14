@@ -30,6 +30,9 @@ class Control(GObject.GObject):
         # create message translator
         self.msg_translator = TranslateMessages()
 
+        # write message to log
+        self.log.write_log_message("application launched", True)
+
         # create program list from current streams
         self.sprogs_control = ProgramListControl([])
         # create program list currently selected by user
@@ -114,13 +117,15 @@ class Control(GObject.GObject):
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
 
-        # start analysis on app startup
-        self.start_analysis()
-
         # set gui for analyzed programs
         self.gui.update_analyzed_prog_list(self.analyzed_progs)
         # set usb for analyzed programs
         self.usb.update_analyzed_prog_list(self.analyzed_progs)
+
+        # write log message
+        msg = "initial number of selected programs: %d" % \
+                                        self.aprogs_control.get_prog_num()
+        self.log.write_log_message(msg)
 
         # initially set drawing black background
         # for corresponding renderers to True
@@ -129,10 +134,10 @@ class Control(GObject.GObject):
 
         self.gui.window.queue_draw()
 
-        # write message to log
-        self.log.write_log_message("application launched", True)
-
         GObject.timeout_add(1000, self.on_get_cpu_load)
+
+        # start analysis on app startup
+        self.start_analysis()
 
     @property
     def stream_progs(self):
@@ -246,7 +251,7 @@ class Control(GObject.GObject):
         self.config.set_prog_list(self.analyzed_progs)
 
         # write message to log
-        self.log.write_log_message("new programs selected for analysis", True)
+        self.log.write_log_message("new programs selected for analysis")
 
     # new analysis settings received
     def on_new_analysis_settings(self, source):
@@ -389,6 +394,9 @@ class Control(GObject.GObject):
         # (this means that pipeline currently decoding some programs)
         # we need to restart this pipeline
         if state is State.RUNNING:
+            # add event to log
+            msg = "end of stream (id = %d) received" % stream_id
+            self.log.write_log_message(msg)
             self.backend.restart_pipeline(stream_id)
 
         # set drawing black background for corresponding renderers to True
@@ -439,6 +447,10 @@ class Control(GObject.GObject):
                 # to disable drawing in only those renderers, that
                 # should be drawn by backend
                 self.gui.update_rendering_mode(False, compared_prog_list[0])
+
+                # write event to log
+                self.log.write_log_message("new stream prog list received "
+                                           "from backend")
 
             # measured data for video received from backend
             elif wstr[0] == 'v':

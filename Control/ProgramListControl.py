@@ -5,6 +5,12 @@ class ProgramListControl():
     def clear():
         self.prog_list = []
 
+    def get_prog_num(self):
+        prog_num = 0
+        for stream in self.prog_list:
+            prog_num += len(stream[1])
+        return prog_num
+
     # add or replace one stream in a list
     def add_one_stream(self, prog_list):
 
