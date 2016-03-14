@@ -1,7 +1,11 @@
 import cyusb
 import struct
 
-class UsbExchange:
+from gi.repository import GObject
+
+from Usb import UsbMessageTypes as usb_msgs
+
+class UsbExchange(GObject.GObject):
     """UsbExchange class"""
     PREFIX = 0x55AA
     VERSION = 0x3
@@ -48,6 +52,8 @@ class UsbExchange:
                  error_model = [],
                  tuner_model = []):
         
+        GObject.GObject.__init__(self)
+
         self.status_version = 0
         self.settings_version = 0
         self.dvb_cont_ver = 0
@@ -55,10 +61,107 @@ class UsbExchange:
         
         cyusb.init()
 
-        #self.connection = cyusb.Connection()
+        self.connection = cyusb.Connection()
+
+        self.state = 0
+        self.msg_count = 0
+        self.init_done = False
+
+        GObject.timeout_add(1000, self.read)
 
     def __destroy__(self):
         cyusb.close()
+
+    def read(self):
+        buf = self.connection.recv()
+
+        buf = struct.unpack("H"*int(len(buf)/2), buf)
+
+        for i, word in enumerate(buf):
+            if word == self.PREFIX:
+                self.state = self.PREFIX
+                self.msg_count = 0
+                continue
+
+            if self.state == self.PREFIX:
+                if word == usb_msgs.GET_BOARD_INFO:
+                    self.init_done = False
+                else:
+                    self.state = word
+                continue
+
+            if self.state == usb_msgs.SET_BOARD_MODE:
+                if self.msg_count == 0:
+                    print("usb set board mode")
+
+            elif self.state == usb_msgs.OPEN_CLIENT:
+                if self.msg_count == 0:
+                    print("usb open client")
+
+            elif self.state == usb_msgs.CLOSE_CLIENT:
+                if self.msg_count == 0:
+                    print("usb close client")
+
+            elif self.state == usb_msgs.SET_BOARD_MODE_EXT:
+                if self.msg_count == 0:
+                    print("usb set board mode ext")
+
+            elif self.state == usb_msgs.SET_IP:
+                if self.msg_count == 0:
+                    print("usb set ip settings")
+
+            elif self.state == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set video analysis settings")
+
+            elif self.state == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set audio analysis settings")
+
+            elif self.state == usb_msgs.SET_ANALYZED_PROG_LIST:
+                if self.msg_count == 0:
+                    print("usb set analyzed prog list")
+
+            elif self.state == usb_msgs.SET_TUNER_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set tuner settings")
+
+            elif self.state == usb_msgs.GET_IP:
+                if self.msg_count == 0:
+                    print("usb get ip settings")
+
+            elif self.state == usb_msgs.GET_VIDEO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb get video analysis settings")
+
+            elif self.state == usb_msgs.GET_AUDIO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb get audio analysis settings")
+
+            elif self.state == usb_msgs.GET_ANALYZED_PROG_LIST:
+                if self.msg_count == 0:
+                    print("usb get analyzed prog list")
+
+            elif self.state == usb_msgs.RESET:
+                if self.msg_count == 0:
+                    print("usb reset")
+
+            elif self.state == usb_msgs.GET_TUNER_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb get tuner settings")
+
+            elif self.state == usb_msgs.GET_TUNER_STATUS:
+                if self.msg_count == 0:
+                    print("usb get tuner status")
+
+            elif self.state == usb_msgs.POWEROFF:
+                if self.msg_count == 0:
+                    print("usb poweroff")
+
+            self.msg_count += 1
+
+    def message_parser(self, message):
+        pass
 
     def send_init(self):
         tmp = (0x0100 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE)

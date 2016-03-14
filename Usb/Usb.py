@@ -16,18 +16,22 @@ class Usb(BaseInterface):
                                analysis_settings_list,
                                tuner_settings_list)
 
-        #GObject.timeout_add(1000, self.send_messages)
+        self.interface_name = 'Usb'
 
         self.exchange = UsbExchange()
 
-        self.interface_name = 'Usb'
+        GObject.timeout_add(1000, self.send_messages)
+        GObject.timeout_add(1000, self.read_messages)
 
     def send_messages(self):
-        print("sending message")
-
         self.exchange.send_init()
-        self.exchange.send_status()
+        #self.exchange.send_status()
         self.exchange.send_errors()
+
+        return True
+
+    def read_messages(self):
+        self.exchange.read()
 
         return True
 
