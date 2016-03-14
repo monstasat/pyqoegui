@@ -108,6 +108,10 @@ class Control(GObject.GObject):
                          self.on_new_analysis_settings)
         self.usb.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
                          self.on_new_tuner_settings)
+        self.usb.connect(CustomMessages.ACTION_START_ANALYSIS,
+                         self.on_start)
+        self.usb.connect(CustomMessages.ACTION_STOP_ANALYSIS,
+                         self.on_stop)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -176,6 +180,7 @@ class Control(GObject.GObject):
         server.start()
 
     def start_analysis(self):
+
         # execute all gstreamer pipelines
         self.backend.start_all_pipelines()
         self.gui.toolbar.change_start_icon()

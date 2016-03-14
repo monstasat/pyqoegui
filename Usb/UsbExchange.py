@@ -5,6 +5,8 @@ import random
 from gi.repository import GObject
 
 from Usb import UsbMessageTypes as usb_msgs
+from Control import AnalysisSettingsIndexes as ai
+
 
 class UsbExchange(GObject.GObject):
     """UsbExchange class"""
@@ -64,9 +66,6 @@ class UsbExchange(GObject.GObject):
 
         self.connection = cyusb.Connection()
 
-        self.state = 0
-        self.msg_count = 0
-        self.init_done = False
         self.cpu_load = 0
 
         GObject.timeout_add(1000, self.read)
@@ -74,110 +73,8 @@ class UsbExchange(GObject.GObject):
     def __destroy__(self):
         cyusb.close()
 
-    def write(self):
-        if self.init_done is False:
-            self.send_init()
-        else:
-            self.send_status()
-            self.status_version += 1
-            self.send_errors()
-
-            #print("settings version: ", self.settings_version)
-            #print("status_version: ", self.status_version)
-            #print("tuner set ver: ", self.dvb_cont_ver)
-            #print("tuner stat ver:", self.dvb_stat_ver)
-
     def read(self):
-        buf = self.connection.recv()
-
-        buf = struct.unpack("H"*int(len(buf)/2), buf)
-
-        for i, word in enumerate(buf):
-            if word == self.PREFIX:
-                self.state = self.PREFIX
-                self.msg_count = 0
-                continue
-
-            if self.state == self.PREFIX:
-                if word == usb_msgs.GET_BOARD_INFO:
-                    self.init_done = False
-                else:
-                    self.state = word
-                continue
-
-            if self.state == usb_msgs.SET_BOARD_MODE:
-                if self.msg_count == 0:
-                    print("usb set board mode")
-                    self.init_done = True
-
-            elif self.state == usb_msgs.OPEN_CLIENT:
-                if self.msg_count == 0:
-                    print("usb open client")
-
-            elif self.state == usb_msgs.CLOSE_CLIENT:
-                if self.msg_count == 0:
-                    print("usb close client")
-
-            elif self.state == usb_msgs.SET_BOARD_MODE_EXT:
-                if self.msg_count == 0:
-                    print("usb set board mode ext")
-
-            elif self.state == usb_msgs.SET_IP:
-                if self.msg_count == 0:
-                    print("usb set ip settings")
-
-            elif self.state == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb set video analysis settings")
-
-            elif self.state == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb set audio analysis settings")
-
-            elif self.state == usb_msgs.SET_ANALYZED_PROG_LIST:
-                if self.msg_count == 0:
-                    print("usb set analyzed prog list")
-
-            elif self.state == usb_msgs.SET_TUNER_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb set tuner settings")
-
-            elif self.state == usb_msgs.GET_IP:
-                if self.msg_count == 0:
-                    print("usb get ip settings")
-
-            elif self.state == usb_msgs.GET_VIDEO_ANALYSIS_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb get video analysis settings")
-
-            elif self.state == usb_msgs.GET_AUDIO_ANALYSIS_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb get audio analysis settings")
-
-            elif self.state == usb_msgs.GET_ANALYZED_PROG_LIST:
-                if self.msg_count == 0:
-                    print("usb get analyzed prog list")
-
-            elif self.state == usb_msgs.RESET:
-                if self.msg_count == 0:
-                    print("usb reset")
-
-            elif self.state == usb_msgs.GET_TUNER_SETTINGS:
-                if self.msg_count == 0:
-                    print("usb get tuner settings")
-
-            elif self.state == usb_msgs.GET_TUNER_STATUS:
-                if self.msg_count == 0:
-                    print("usb get tuner status")
-
-            elif self.state == usb_msgs.POWEROFF:
-                if self.msg_count == 0:
-                    print("usb poweroff")
-
-            self.msg_count += 1
-
-    def message_parser(self, message):
-        pass
+        return self.connection.recv()
 
     def send_init(self):
         tmp = (0x0100 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE)
@@ -221,9 +118,6 @@ class UsbExchange(GObject.GObject):
         zer = struct.pack("=%sH" % 225, *tmp_zer)
 
         msg = b''.join([b, err, lou, zer])
-        #for i in b:
-        #    print("%x" % i)
-        #print (len(msg))
         self.connection.send(msg)
 
     def send_errors(self):
@@ -243,4 +137,80 @@ class UsbExchange(GObject.GObject):
         msg = struct.pack("=%sH" % self.MAX_DATA_SIZE, *data)
         s = b''.join([b, msg])
         self.connection.send(s)
+
+    def send_video_analysis_settings(self,
+                                     analysis_settings,
+                                     client_id,
+                                     request_id):
+
+        # header, length data, client id, msg cod, req id, length msg
+        VIDEO_ANALYSIS_MSG = self.HEADER + "HHHHH"
+        b = struct.pack("="+VIDEO_ANALYSIS_MSG,
+                        self.PREFIX,
+                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                        20,
+                        client_id,
+                        0xc514,
+                        request_id,
+                        16)
+
+        # level black warn, level black, level freeze warn, level freeze
+        # level diff warn, time to video loss, level luma warn
+        LEVELS = "fffffBB"
+        lvls = struct.pack("="+LEVELS,
+                           float(analysis_settings[ai.BLACK_WARN][2]),
+                           float(analysis_settings[ai.BLACK_ERR][2]),
+                           float(analysis_settings[ai.FREEZE_WARN][2]),
+                           float(analysis_settings[ai.FREEZE_ERR][2]),
+                           float(analysis_settings[ai.DIFF_WARN][2]),
+                           int(analysis_settings[ai.VIDEO_LOSS][2]),
+                           int(analysis_settings[ai.LUMA_WARN][2]))
+
+        # num of black frames, black level, pixel diff, num of freeze frames
+        PARAMS = "BBBB"
+        prms = struct.pack("="+PARAMS,
+                           int(analysis_settings[ai.BLACK_ERR][5]),
+                           int(analysis_settings[ai.BLACK_PIXEL][2]),
+                           int(analysis_settings[ai.PIXEL_DIFF][2]),
+                           int(analysis_settings[ai.FREEZE_ERR][5]))
+
+        RESERVED = "HI"
+        rsrvd = struct.pack("="+RESERVED,
+                            0, 0)
+
+        msg = b''.join([b, lvls, prms, rsrvd])
+        self.connection.send(msg)
+
+    def send_audio_analysis_settings(self,
+                                     analysis_settings,
+                                     client_id,
+                                     request_id):
+
+        # header, length data, client id, msg cod, req id, length msg
+        AUDIO_ANALYSIS_MSG = self.HEADER + "HHHHH"
+        b = struct.pack("="+AUDIO_ANALYSIS_MSG,
+                        self.PREFIX,
+                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                        16,
+                        client_id,
+                        0xc515,
+                        request_id,
+                        12)
+
+        # level black warn, level black, level freeze warn, level freeze
+        # level diff warn, time to video loss, level luma warn
+        LEVELS = "ffffB"
+        lvls = struct.pack("="+LEVELS,
+                           float(analysis_settings[ai.OVERLOAD_WARN][2]),
+                           float(analysis_settings[ai.OVERLOAD_ERR][2]),
+                           float(analysis_settings[ai.SILENCE_WARN][2]),
+                           float(analysis_settings[ai.SILENCE_ERR][2]),
+                           int(analysis_settings[ai.AUDIO_LOSS][2]))
+
+        RESERVED = "BHI"
+        rsrvd = struct.pack("="+RESERVED,
+                            0, 0, 0)
+
+        msg = b''.join([b, lvls, rsrvd])
+        self.connection.send(msg)
 

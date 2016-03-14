@@ -1,8 +1,11 @@
+import struct
+
 from gi.repository import GObject
 
 from BaseInterface import BaseInterface
 from Usb.UsbExchange import UsbExchange
-
+from Usb import UsbMessageTypes as usb_msgs
+from Control import CustomMessages
 
 class Usb(BaseInterface):
 
@@ -20,18 +23,136 @@ class Usb(BaseInterface):
 
         self.exchange = UsbExchange()
 
+        self.state = 0
+        self.msg_count = 0
+        self.init_done = False
+
         GObject.timeout_add(1000, self.send_messages)
         GObject.timeout_add(1000, self.read_messages)
 
     def send_messages(self):
-        self.exchange.write()
+
+        if self.init_done is False:
+            self.exchange.send_init()
+        else:
+            self.exchange.send_status()
+            self.exchange.status_version += 1
+            self.exchange.send_errors()
 
         return True
 
     def read_messages(self):
-        self.exchange.read()
+        buf = self.exchange.read()
+
+        buf = struct.unpack("H"*int(len(buf)/2), buf)
+
+        client_id = 0
+        request_id = 0
+
+        for i, word in enumerate(buf):
+            if word == self.exchange.PREFIX:
+                self.state = self.exchange.PREFIX
+                self.msg_count = 0
+                continue
+
+            if self.state == self.exchange.PREFIX:
+                if word == usb_msgs.GET_BOARD_INFO:
+                    self.init_done = False
+                else:
+                    self.state = word
+                continue
+
+            if self.state == usb_msgs.SET_BOARD_MODE:
+                if self.msg_count == 0:
+                    print("usb set board mode")
+                    self.init_done = True
+
+            elif self.state == usb_msgs.OPEN_CLIENT:
+                if self.msg_count == 0:
+                    print("usb open client")
+
+            elif self.state == usb_msgs.CLOSE_CLIENT:
+                if self.msg_count == 0:
+                    print("usb close client")
+
+            # remote client sent extended board mode (not used)
+            elif self.state == usb_msgs.SET_BOARD_MODE_EXT:
+                if self.msg_count == 0:
+                    pass
+
+            elif self.state == usb_msgs.SET_IP:
+                if self.msg_count == 0:
+                    print("usb set ip settings")
+
+            elif self.state == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set video analysis settings")
+
+            elif self.state == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set audio analysis settings")
+
+            elif self.state == usb_msgs.SET_ANALYZED_PROG_LIST:
+                if self.msg_count == 0:
+                    print("usb set analyzed prog list")
+
+            elif self.state == usb_msgs.SET_TUNER_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb set tuner settings")
+
+            elif self.state == usb_msgs.GET_IP:
+                if self.msg_count == 0:
+                    print("usb get ip settings")
+
+            elif self.state == usb_msgs.GET_VIDEO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    client_id = word
+                if self.msg_count == 2:
+                    request_id = word
+                    self.exchange.send_video_analysis_settings(
+                        self.analysis_settings,
+                        client_id,
+                        request_id)
+
+            elif self.state == usb_msgs.GET_AUDIO_ANALYSIS_SETTINGS:
+                if self.msg_count == 0:
+                    client_id = word
+                if self.msg_count == 2:
+                    request_id = word
+                    self.exchange.send_audio_analysis_settings(
+                        self.analysis_settings,
+                        client_id,
+                        request_id)
+
+            elif self.state == usb_msgs.GET_ANALYZED_PROG_LIST:
+                if self.msg_count == 0:
+                    print("usb get analyzed prog list")
+
+            # remote client asks to reset the device
+            elif self.state == usb_msgs.RESET:
+                if self.msg_count == 0:
+                    self.emit(CustomMessages.ACTION_STOP_ANALYSIS)
+                    self.emit(CustomMessages.ACTION_START_ANALYSIS)
+
+            elif self.state == usb_msgs.GET_TUNER_SETTINGS:
+                if self.msg_count == 0:
+                    print("usb get tuner settings")
+
+            elif self.state == usb_msgs.GET_TUNER_STATUS:
+                if self.msg_count == 0:
+                    #print("usb get tuner status")
+                    pass
+
+            # remote client asks to poweroff the device
+            elif self.state == usb_msgs.POWEROFF:
+                if self.msg_count == 0:
+                    pass
+
+            # increment word counter
+            self.msg_count += 1
 
         return True
+
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb

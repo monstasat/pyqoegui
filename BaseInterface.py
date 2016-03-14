@@ -11,7 +11,11 @@ class BaseInterface(GObject.GObject):
         CustomMessages.ANALYSIS_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.TUNER_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ())}
+                                               None, ()),
+        CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
+                                               None, ()),
+        CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
+                                              None, ())}
 
     def __init__(self,
                  analyzed_progs_list,

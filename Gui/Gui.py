@@ -22,10 +22,6 @@ class Gui(BaseInterface):
 
     # specific Gui signals
     __gsignals__ = {
-        CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
-        CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
-                                              None, ()),
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int, int, int, int)),
         CustomMessages.COLOR_THEME: (GObject.SIGNAL_RUN_FIRST,
