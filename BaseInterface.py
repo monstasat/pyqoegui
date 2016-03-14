@@ -27,7 +27,7 @@ class BaseInterface(GObject.GObject):
         # create stream prog list
         self.stream_prog_list = []
         # create analyzed prog list
-        self.analyzed_prog_list = []
+        self.analyzed_prog_list = analyzed_progs_list
         # create analysis settings list
         self.analysis_settings = analysis_settings_list
         # create tuner settings list
