@@ -213,6 +213,7 @@ class Control(GObject.GObject):
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
         self.gui.update_cpu_load(load)
+        self.usb.update_cpu_load(load)
         return True
 
     # Interaction with Gui and Usb
@@ -289,7 +290,7 @@ class Control(GObject.GObject):
 
         # FIXME: is it necessary? check this
         # Configure backend according to new tuner settings
-        self.backend.start_all_pipelines()
+        # self.backend.start_all_pipelines()
 
         # Save tuner settings in Config
         self.config.set_tuner_settings(self.tuner_settings)

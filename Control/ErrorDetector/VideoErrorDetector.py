@@ -97,7 +97,7 @@ class VideoErrorDetector(BaseErrorDetector):
         if freeze_pix_num is None or av_diff is None:
             return types.UNKNOWN
         elif freeze_pix_num > self.freeze_err:
-            return ERR
+            return types.ERR
         elif freeze_pix_num > self.freeze_warn:
             return types.WARN
         elif av_diff < self.freeze_diff_warn:

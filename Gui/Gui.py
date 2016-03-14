@@ -280,15 +280,16 @@ class Gui(BaseInterface):
 
     # Control asks to return tuner settings
     def get_tuner_settings(self):
-        BaseInterface.get_analysis_settings()
+        BaseInterface.get_analysis_settings(self)
         return self.tunerDlg.get_tuner_settings()
-
-    # Methods for interaction with Control
-    # Specific Gui methods
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):
+        BaseInterface.update_cpu_load(self, load)
         self.cpu_load_val.set_text(str(load) + "%")
+
+    # Methods for interaction with Control
+    # Specific Gui methods
 
     # called by Control to update data in video plots
     def update_video_plots_data(self, data):

@@ -1,5 +1,6 @@
 import cyusb
 import struct
+import random
 
 from gi.repository import GObject
 
@@ -66,11 +67,25 @@ class UsbExchange(GObject.GObject):
         self.state = 0
         self.msg_count = 0
         self.init_done = False
+        self.cpu_load = 0
 
         GObject.timeout_add(1000, self.read)
 
     def __destroy__(self):
         cyusb.close()
+
+    def write(self):
+        if self.init_done is False:
+            self.send_init()
+        else:
+            self.send_status()
+            self.status_version += 1
+            self.send_errors()
+
+            #print("settings version: ", self.settings_version)
+            #print("status_version: ", self.status_version)
+            #print("tuner set ver: ", self.dvb_cont_ver)
+            #print("tuner stat ver:", self.dvb_stat_ver)
 
     def read(self):
         buf = self.connection.recv()
@@ -93,6 +108,7 @@ class UsbExchange(GObject.GObject):
             if self.state == usb_msgs.SET_BOARD_MODE:
                 if self.msg_count == 0:
                     print("usb set board mode")
+                    self.init_done = True
 
             elif self.state == usb_msgs.OPEN_CLIENT:
                 if self.msg_count == 0:
@@ -188,26 +204,26 @@ class UsbExchange(GObject.GObject):
         tmp_err = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_lou = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_zer = [0 for _ in range(225)]
-        
+
         b = struct.pack("="+STATUS_MSG,
                         self.PREFIX,
                         (0x0300 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE),
-                        0, 0 , 0, 1, 0,
+                        0, 0, 0, 1, 0,
                         0,
-                        self.status_version,
-                        self.settings_version,
-                        50, 25,
-                        self.dvb_stat_ver,
-                        self.dvb_cont_ver)
+                        self.status_version % 255,
+                        self.settings_version % 255,
+                        int(self.cpu_load/100*255 + 0.5), 0,
+                        self.dvb_stat_ver % 255,
+                        self.dvb_cont_ver % 255)
 
         err = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_err)
         lou = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_lou)
         zer = struct.pack("=%sH" % 225, *tmp_zer)
 
         msg = b''.join([b, err, lou, zer])
-        for i in b:
-            print("%x" % i)
-        print (len(msg))
+        #for i in b:
+        #    print("%x" % i)
+        #print (len(msg))
         self.connection.send(msg)
 
     def send_errors(self):

@@ -24,9 +24,7 @@ class Usb(BaseInterface):
         GObject.timeout_add(1000, self.read_messages)
 
     def send_messages(self):
-        self.exchange.send_init()
-        #self.exchange.send_status()
-        self.exchange.send_errors()
+        self.exchange.write()
 
         return True
 
@@ -84,6 +82,11 @@ class Usb(BaseInterface):
     # called by Error Detector to update audio status
     def update_audio_status(self, results):
         BaseInterface.update_audio_status(self, results)
+
+    # called by Control to update cpu load
+    def update_cpu_load(self, load):
+        BaseInterface.update_cpu_load(self, load)
+        self.exchange.cpu_load = int(load)
 
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):

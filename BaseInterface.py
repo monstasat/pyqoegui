@@ -68,6 +68,10 @@ class BaseInterface(GObject.GObject):
     def update_audio_status(self, results):
         pass
 
+    # called by Control to update cpu load
+    def update_cpu_load(self, load):
+        pass
+
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
         pass
