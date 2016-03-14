@@ -114,6 +114,12 @@ class Gui(BaseInterface):
         cpu_load_box.add(self.cpu_load_val)
         cpu_load_box.set_halign(Gtk.Align.END)
         popBox.add(cpu_load_box)
+        remote_clients_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        remote_clients_box.add(Gtk.Label(label="Удалённых подключений: "))
+        self.remote_clients_num_val = Gtk.Label(label="0")
+        remote_clients_box.add(self.remote_clients_num_val)
+        remote_clients_box.set_halign(Gtk.Align.END)
+        popBox.add(remote_clients_box)
         popBox.show_all()
         popover.add(popBox)
         menuBtn.set_popover(popover)
@@ -302,6 +308,10 @@ class Gui(BaseInterface):
     # called by Control to mute all programs
     def mute_all_renderers(self):
         self.cur_results_page.mute_all_renderers()
+
+    # called by Control to update remote clients number
+    def update_remote_clients_num(self, clients_num):
+        self.remote_clients_num_val.set_text(str(cllients_num))
 
     # Control asks to return current xids for video rendering
     def get_renderers_xids(self):

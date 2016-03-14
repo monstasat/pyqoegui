@@ -33,6 +33,11 @@ class BaseInterface(GObject.GObject):
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
 
+        # create tuner status
+        self.tuner_status = []
+        # create tuner measured data
+        self.tuner_measured_data = []
+
     # Methods for interaction with Control
     # Common methods for Gui and Usb
 
@@ -78,12 +83,12 @@ class BaseInterface(GObject.GObject):
 
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
-        pass
+        return self.analyzed_prog_list
 
     # Control asks to return analysis settings
     def get_analysis_settings(self):
-        pass
+        return self.analysis_settings
 
     # Control asks to return tuner settings
     def get_tuner_settings(self):
-        pass
+        return self.tuner_settings

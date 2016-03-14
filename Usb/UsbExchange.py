@@ -69,20 +69,23 @@ class UsbExchange():
         return buf
 
     def send_init(self):
-        tmp = (0x0100 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE)
-        b = struct.pack("="+self.MSG_12,
-                        usb_msgs.PREFIX,
-                        tmp,
-                        self.TYPE,
-                        self.VERSION,
-                        0)
-        self.connection.send(b)
+        msg_code = (0x0100 | self.START_MSG | \
+                    self.STOP_MSG | self.EXIT_RECEIVE)
+
+        msg = struct.pack("="+self.MSG_12,
+                          usb_msgs.PREFIX,
+                          msg_code,
+                          self.TYPE,
+                          self.VERSION,
+                          0)
+        self.connection.send(msg)
 
     def send_status(self):
         STATUS_MSG = self.HEADER
         # reserved, ts count, reserved 
         STATUS_MSG += "HHBBB"
-        # flags, stat ver, sett ver, video load, aud load, dvbt2 stat ver, dvbt2 cont ver
+        # flags, stat ver, sett ver, video load, aud load,
+        # dvbt2 stat ver, dvbt2 cont ver
         STATUS_MSG += "BBBBBBB"
         # err flags
         ERROR_MSG = "%sB" % self.MAX_PROG_NUM
@@ -94,9 +97,12 @@ class UsbExchange():
         tmp_lou = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_zer = [0 for _ in range(225)]
 
+        msg_code = (0x0300 | self.START_MSG | \
+                    self.STOP_MSG | self.EXIT_RECEIVE)
+
         b = struct.pack("="+STATUS_MSG,
                         usb_msgs.PREFIX,
-                        (0x0300 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE),
+                        msg_code,
                         0, 0, 0, 1, 0,
                         0,
                         self.status_version & 0xff,
@@ -106,10 +112,10 @@ class UsbExchange():
                         self.dvb_cont_ver & 0xff)
 
         err = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_err)
-        lou = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_lou)
-        zer = struct.pack("=%sH" % 225, *tmp_zer)
+        loud = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_lou)
+        rsrvd = struct.pack("=%sH" % 225, *tmp_zer)
 
-        msg = b''.join([b, err, lou, zer])
+        msg = b''.join([b, err, loud, rsrvd])
         self.connection.send(msg)
 
     def send_errors(self):
@@ -122,40 +128,34 @@ class UsbExchange():
 
         # header, length data, client id, msg cod, req id, length msg
         VIDEO_ANALYSIS_MSG = self.HEADER + "HHHHH"
-        b = struct.pack("="+VIDEO_ANALYSIS_MSG,
-                        usb_msgs.PREFIX,
-                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                        20,
-                        client_id,
-                        0xc514,
-                        request_id,
-                        16)
-
         # level black warn, level black, level freeze warn, level freeze
         # level diff warn, time to video loss, level luma warn
         LEVELS = "fffffBB"
-        lvls = struct.pack("="+LEVELS,
-                           float(analysis_settings[ai.BLACK_WARN][2]),
-                           float(analysis_settings[ai.BLACK_ERR][2]),
-                           float(analysis_settings[ai.FREEZE_WARN][2]),
-                           float(analysis_settings[ai.FREEZE_ERR][2]),
-                           float(analysis_settings[ai.DIFF_WARN][2]),
-                           int(analysis_settings[ai.VIDEO_LOSS][2]),
-                           int(analysis_settings[ai.LUMA_WARN][2]))
-
         # num of black frames, black level, pixel diff, num of freeze frames
         PARAMS = "BBBB"
-        prms = struct.pack("="+PARAMS,
-                           int(analysis_settings[ai.BLACK_ERR][5]),
-                           int(analysis_settings[ai.BLACK_PIXEL][2]),
-                           int(analysis_settings[ai.PIXEL_DIFF][2]),
-                           int(analysis_settings[ai.FREEZE_ERR][5]))
-
         RESERVED = "HI"
-        rsrvd = struct.pack("="+RESERVED,
-                            0, 0)
 
-        msg = b''.join([b, lvls, prms, rsrvd])
+        msg = struct.pack("="+VIDEO_ANALYSIS_MSG+LEVELS+PARAMS+RESERVED,
+                          usb_msgs.PREFIX,
+                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                          20,
+                          client_id,
+                          0xc514,
+                          request_id,
+                          16,
+                          float(analysis_settings[ai.BLACK_WARN][2]),
+                          float(analysis_settings[ai.BLACK_ERR][2]),
+                          float(analysis_settings[ai.FREEZE_WARN][2]),
+                          float(analysis_settings[ai.FREEZE_ERR][2]),
+                          float(analysis_settings[ai.DIFF_WARN][2]),
+                          int(analysis_settings[ai.VIDEO_LOSS][2]),
+                          int(analysis_settings[ai.LUMA_WARN][2]),
+                          int(analysis_settings[ai.BLACK_ERR][5]),
+                          int(analysis_settings[ai.BLACK_PIXEL][2]),
+                          int(analysis_settings[ai.PIXEL_DIFF][2]),
+                          int(analysis_settings[ai.FREEZE_ERR][5]),
+                          0, 0)
+
         self.connection.send(msg)
 
     def send_audio_analysis_settings(self,
@@ -165,30 +165,25 @@ class UsbExchange():
 
         # header, length data, client id, msg cod, req id, length msg
         AUDIO_ANALYSIS_MSG = self.HEADER + "HHHHH"
-        b = struct.pack("="+AUDIO_ANALYSIS_MSG,
-                        usb_msgs.PREFIX,
-                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                        16,
-                        client_id,
-                        0xc515,
-                        request_id,
-                        12)
-
         # level black warn, level black, level freeze warn, level freeze
         # level diff warn, time to video loss, level luma warn
         LEVELS = "ffffB"
-        lvls = struct.pack("="+LEVELS,
-                           float(analysis_settings[ai.OVERLOAD_WARN][2]),
-                           float(analysis_settings[ai.OVERLOAD_ERR][2]),
-                           float(analysis_settings[ai.SILENCE_WARN][2]),
-                           float(analysis_settings[ai.SILENCE_ERR][2]),
-                           int(analysis_settings[ai.AUDIO_LOSS][2]))
-
         RESERVED = "BHI"
-        rsrvd = struct.pack("="+RESERVED,
-                            0, 0, 0)
+        msg = struct.pack("="+AUDIO_ANALYSIS_MSG+LEVELS+RESERVED,
+                          usb_msgs.PREFIX,
+                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                          16,
+                          client_id,
+                          0xc515,
+                          request_id,
+                          12,
+                          float(analysis_settings[ai.OVERLOAD_WARN][2]),
+                          float(analysis_settings[ai.OVERLOAD_ERR][2]),
+                          float(analysis_settings[ai.SILENCE_WARN][2]),
+                          float(analysis_settings[ai.SILENCE_ERR][2]),
+                          int(analysis_settings[ai.AUDIO_LOSS][2]),
+                          0, 0, 0)
 
-        msg = b''.join([b, lvls, rsrvd])
         self.connection.send(msg)
 
     def send_analyzed_prog_list(self,
@@ -196,6 +191,7 @@ class UsbExchange():
                                 client_id,
                                 request_id):
 
+        # header, length data, client id, msg cod, req id, length msg
         PROG_LIST_MSG = self.HEADER + "HHHHH"
         b = struct.pack("="+PROG_LIST_MSG,
                         usb_msgs.PREFIX,
@@ -208,48 +204,54 @@ class UsbExchange():
         data = [0 for _ in range(self.MAX_DATA_SIZE)]
         msg = struct.pack("=%sH" % self.MAX_DATA_SIZE, *data)
         s = b''.join([b, msg])
-        #self.connection.send(s)
+        self.connection.send(s)
 
     def send_tuner_settings(self,
                             tuner_settings,
                             client_id,
                             request_id):
 
+        # header, length data, client id, msg cod, req id, length msg
         TUNER_SET_MSG = self.HEADER + "HHHHH"
-        b = struct.pack("="+TUNER_SET_MSG,
-                        usb_msgs.PREFIX,
-                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                        68,
-                        client_id,
-                        0xc518,
-                        request_id,
-                        64)
-
         # control, data len, reserved, reserved
         CTRL_DATA = "BBII"
-        ctrl = struct.pack("="+CTRL_DATA,
-                           self.dvb_cont_ver & 0xf,
-                           54,
-                           0, 0)
-
         # device, reserved, reserved, c freq, t freq, t band, reserve,
         # t2 freq, t2 band, t2 plp id
         PARAMS = "BBHIIHHIHB"
-        prms = struct.pack("="+PARAMS,
-                           tuner_settings[ti.DEVICE][0],
-                           0, 0,
-                           tuner_settings[ti.C_FREQ][0],
-                           tuner_settings[ti.T_FREQ][0],
-                           tuner_settings[ti.T_BW][0],
-                           0,
-                           tuner_settings[ti.T2_FREQ][0],
-                           tuner_settings[ti.T2_BW][0],
-                           tuner_settings[ti.T2_PLP_ID][0])
+
+        msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
+                          usb_msgs.PREFIX,
+                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                          68,
+                          client_id,
+                          0xc518,
+                          request_id,
+                          64,
+                          self.dvb_cont_ver & 0xf,
+                          54,
+                          0, 0,
+                          tuner_settings[ti.DEVICE][0],
+                          0, 0,
+                          tuner_settings[ti.C_FREQ][0],
+                          tuner_settings[ti.T_FREQ][0],
+                          tuner_settings[ti.T_BW][0],
+                          0,
+                          tuner_settings[ti.T2_FREQ][0],
+                          tuner_settings[ti.T2_BW][0],
+                          tuner_settings[ti.T2_PLP_ID][0])
 
         RESERVED = "B"*95
         rsrvd = struct.pack("="+RESERVED,
                             *[0 for _ in range(95)])
 
-        msg = b''.join([b, ctrl, prms, rsrvd])
+        msg = b''.join([msg, rsrvd])
         self.connection.send(msg)
+
+    def send_tuner_status(self,
+                          tuner_status,
+                          tuner_measured_data,
+                          client_id,
+                          request_id):
+
+        pass
 

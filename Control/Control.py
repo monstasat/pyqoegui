@@ -112,6 +112,8 @@ class Control(GObject.GObject):
                          self.on_start)
         self.usb.connect(CustomMessages.ACTION_STOP_ANALYSIS,
                          self.on_stop)
+        self.usb.connect(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
+                         self.on_remote_clients_num_changed)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -188,9 +190,6 @@ class Control(GObject.GObject):
         # set volume on all renderers to null
         self.gui.mute_all_renderers()
 
-        # write message to log
-        self.log.write_log_message("analysis started")
-
     def stop_analysis(self):
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
@@ -211,9 +210,6 @@ class Control(GObject.GObject):
             self.gui.update_rendering_mode(True, stream[0])
         # force redrawing of gui
         self.gui.window.queue_draw()
-
-        # write message to log
-        self.log.write_log_message("analysis stopped")
 
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
@@ -257,7 +253,8 @@ class Control(GObject.GObject):
         self.config.set_prog_list(self.analyzed_progs)
 
         # write message to log
-        self.log.write_log_message("new programs selected for analysis")
+        self.log.write_log_message("new programs selected for analysis " + \
+                                   "(source: %s)" % source.interface_name)
 
     # new analysis settings received
     def on_new_analysis_settings(self, source):
@@ -279,7 +276,8 @@ class Control(GObject.GObject):
         self.config.set_analysis_settings(self.analysis_settings)
 
         # write message to log
-        self.log.write_log_message("new analysis settings selected")
+        self.log.write_log_message("new analysis settings selected " + \
+                                   "(source: %s)" % source.interface_name)
 
     # new tuner settings received
     def on_new_tuner_settings(self, source):
@@ -301,7 +299,8 @@ class Control(GObject.GObject):
         self.config.set_tuner_settings(self.tuner_settings)
 
         # write message to log
-        self.log.write_log_message("new tuner settings selected")
+        self.log.write_log_message("new tuner settings selected " + \
+                                   "(source: %s)" % source.interface_name)
 
     # Interaction with Gui and Usb
     # Methods specific for Gui
@@ -310,9 +309,17 @@ class Control(GObject.GObject):
     def on_start(self, source):
         self.start_analysis()
 
+        # write message to log
+        self.log.write_log_message("analysis started" + \
+                                   "(source: %s)" % source.interface_name)
+
     # Gui sent a message about stop button clicked
     def on_stop(self, source):
         self.stop_analysis()
+
+        # write message to log
+        self.log.write_log_message("analysis stopped" + \
+                                   "(source: %s)" % source.interface_name)
 
     # Gui sent a message about volume level changed
     def on_volume_changed(self, source, stream_id, prog_id, pid, value):
@@ -335,6 +342,12 @@ class Control(GObject.GObject):
         plot_info = self.gui.get_plot_info()
         # save current plot info in Config
         self.config.set_plot_info(plot_info)
+
+    # Interaction with Gui and Usb
+    # Methods specific for Usb
+
+    def on_remote_clients_num_changed(self, source, clients_num):
+        self.gui.update_remote_clients_num(clients_num)
 
     # Methods for interaction with dvb tuner control
 
