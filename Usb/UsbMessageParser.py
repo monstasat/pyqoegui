@@ -52,3 +52,16 @@ class UsbMessageParser():
         msg_data = buf[2:]
         return [msg_code, msg_data]
 
+
+def parse_video_analysis_settings(data, analysis_settings):
+    pass
+
+def parse_audio_analysis_settings(data, analysis_settings):
+    pass
+
+def parse_analyzed_prog_list(data):
+    pass
+
+def parse_tuner_settings(data, tuner_settings):
+    pass
+

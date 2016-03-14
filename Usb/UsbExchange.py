@@ -64,7 +64,9 @@ class UsbExchange():
         cyusb.close()
 
     def read(self):
-        return self.connection.recv()
+        buf = self.connection.recv()
+        buf = struct.unpack("H"*int(len(buf)/2), buf)
+        return buf
 
     def send_init(self):
         tmp = (0x0100 | self.START_MSG | self.STOP_MSG | self.EXIT_RECEIVE)

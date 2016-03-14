@@ -1,10 +1,8 @@
-import struct
-
 from gi.repository import GObject
 
 from BaseInterface import BaseInterface
 from Usb.UsbExchange import UsbExchange
-from Usb.UsbMessageParser import UsbMessageParser
+from Usb import UsbMessageParser as parser
 from Usb import UsbMessageTypes as usb_msgs
 from Control import CustomMessages
 
@@ -23,7 +21,7 @@ class Usb(BaseInterface):
         self.interface_name = 'Usb'
 
         self.exchange = UsbExchange()
-        self.msg_parser = UsbMessageParser()
+        self.msg_parser = parser.UsbMessageParser()
 
         self.init_done = False
 
@@ -44,8 +42,6 @@ class Usb(BaseInterface):
     def read_messages(self):
         buf = self.exchange.read()
 
-        buf = struct.unpack("H"*int(len(buf)/2), buf)
-
         self.msg_parser.extend(buf)
         messages = self.msg_parser.parse_queue()
 
@@ -60,7 +56,6 @@ class Usb(BaseInterface):
                 self.init_done = False
 
             elif msg_type == usb_msgs.SET_BOARD_MODE:
-                print("usb set board mode")
                 self.init_done = True
 
             elif msg_type == usb_msgs.OPEN_CLIENT:
@@ -69,33 +64,24 @@ class Usb(BaseInterface):
             elif msg_type == usb_msgs.CLOSE_CLIENT:
                 print("usb close client")
 
-            # remote client sent extended board mode (not used)
-            elif msg_type == usb_msgs.SET_BOARD_MODE_EXT:
-                pass
-
-            # remote client sent ip settings (not used)
-            elif msg_type == usb_msgs.SET_IP:
-                pass
-
             # remote client sent video analysis settings
             elif msg_type == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
-                pass
+                parser.parse_video_analysis_settings(msg_data,
+                                                     self.analysis_settings)
 
             # remote client sent audio analysis settings
             elif msg_type == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
-                pass
+                parser.parse_audio_analysis_settings(msg_data,
+                                                     self.analysis_settings)
 
             # remote client sent analyzed prog list
             elif msg_type == usb_msgs.SET_ANALYZED_PROG_LIST:
-                pass
+                parser.parse_analyzed_prog_list(msg_data)
 
             # remote client sent tuner settings
             elif msg_type == usb_msgs.SET_TUNER_SETTINGS:
-                pass
-
-            # remote client asks to return ip settings (not used)
-            elif msg_type == usb_msgs.GET_IP:
-                pass
+                parser.parse_tuner_settings(msg_data,
+                                            self.tuner_settings)
 
             # remote client asks to return video analysis settings
             elif msg_type == usb_msgs.GET_VIDEO_ANALYSIS_SETTINGS:
@@ -139,10 +125,6 @@ class Usb(BaseInterface):
                         request_id)
 
             elif msg_type == usb_msgs.GET_TUNER_STATUS:
-                pass
-
-            # remote client asks to poweroff the device (not used)
-            elif msg_type == usb_msgs.POWEROFF:
                 pass
 
         return True
