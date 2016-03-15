@@ -18,7 +18,7 @@ class BaseInterface(GObject.GObject):
                                               None, ())}
 
     def __init__(self,
-                 analyzed_progs_list,
+                 analyzed_prog_list,
                  analysis_settings_list,
                  tuner_settings_list):
 
@@ -27,7 +27,7 @@ class BaseInterface(GObject.GObject):
         # create stream prog list
         self.stream_prog_list = []
         # create analyzed prog list
-        self.analyzed_prog_list = analyzed_progs_list
+        self.analyzed_prog_list = analyzed_prog_list
         # create analysis settings list
         self.analysis_settings = analysis_settings_list
         # create tuner settings list

@@ -112,6 +112,34 @@ def parse_audio_analysis_settings(data, analysis_settings):
 
 
 def parse_analyzed_prog_list(data):
+
+    def decode_string(data, i):
+        bytes = struct.pack(13*"H", *data[i:(i + 13)])
+        string = bytes.decode('cp1251', 'replace')
+        return string
+
+    client_id = data[0]
+    length = data[1]
+    request_id = data[2]
+    # stream info
+    # 3, 4 - wparam
+    stream_num = data[5]
+    prog_num = data[6]
+    # prog info
+    prog_idx = data[7]
+    # 8 - hiword of wparam
+    stream_id = data[9]
+    prog_name = decode_string(data, 10)
+    prov_name = decode_string(data, 23)
+    prog_type = data[36]
+    pids_num = data[37]
+    # pids info
+    # 38, 39 - wparam
+    for i in range(pids_num):
+        pid = data[38 + 2 + i*28]
+        codec_int = data[38 + 4 + i*28]
+        codec_name = decode_string(data, 38 + 5 + i*28)
+
     return []
 
 

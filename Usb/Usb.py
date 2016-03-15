@@ -103,11 +103,11 @@ class Usb(BaseInterface):
 
             # remote client sent analyzed prog list
             elif msg_type == usb_msgs.SET_ANALYZED_PROG_LIST:
-                self.analyzed_progs_list = parser.parse_analyzed_prog_list(
+                self.analyzed_prog_list = parser.parse_analyzed_prog_list(
                                                     msg_data)
 
                 # send message to Control
-                self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
+                #self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
             # remote client sent tuner settings
             elif msg_type == usb_msgs.SET_TUNER_SETTINGS:
@@ -228,8 +228,7 @@ class Usb(BaseInterface):
 
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
-        BaseInterface.get_analyzed_prog_list(self)
-        return self.analyzed_prog_list
+        return BaseInterface.get_analyzed_prog_list(self)
 
     # Control asks to return analysis settings
     def get_analysis_settings(self):

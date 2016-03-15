@@ -269,6 +269,7 @@ class UsbExchange():
                            (pid_type_str == 'video'):
 
                             codec_name = encode_string(pid[2])
+                            codec_int = int(pid[1])
 
                             if pid_type_str == 'video':
                                 pid_type = 2
@@ -288,7 +289,7 @@ class UsbExchange():
                                                   0,
                                                   int(pid[0]),
                                                   pid_type,
-                                                  0)
+                                                  codec_int)
                             # codec name
                             cdc_name = struct.pack("=" + self.MAX_STR_SIZE*"B",
                                                    *codec_name)
