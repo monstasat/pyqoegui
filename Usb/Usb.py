@@ -85,35 +85,41 @@ class Usb(BaseInterface):
 
             # remote client sent video analysis settings
             elif msg_type == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
-                self.analysis_settings = parser.parse_video_analysis_settings(
+                result = self.msg_parser.parse_video_analysis_settings(
                                                     msg_data,
                                                     self.analysis_settings)
+                self.analysis_settings = result
 
                 # send message to Control
                 self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
             # remote client sent audio analysis settings
             elif msg_type == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
-                self.analysis_settings = parser.parse_audio_analysis_settings(
+                result = self.msg_parser.parse_audio_analysis_settings(
                                                     msg_data,
                                                     self.analysis_settings)
+                self.analysis_settings = result
 
                 # send message to Control
                 self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
             # remote client sent analyzed prog list
             elif msg_type == usb_msgs.SET_ANALYZED_PROG_LIST:
-                self.analyzed_prog_list = parser.parse_analyzed_prog_list(
+                result = self.msg_parser.parse_analyzed_prog_list(
                                                     msg_data)
 
-                # send message to Control
-                #self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
+                # if parser returned analyzed prog list
+                if result is not None:
+                    # send message to Control
+                    self.analyzed_prog_list
+                    self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
             # remote client sent tuner settings
             elif msg_type == usb_msgs.SET_TUNER_SETTINGS:
-                self.tuner_settings = parser.parse_tuner_settings(
+                result = self.msg_parser.parse_tuner_settings(
                                                     msg_data,
                                                     self.tuner_settings)
+                self.tuner_settings = result
 
                 # send message to Control
                 self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)

@@ -241,13 +241,8 @@ class UsbExchange():
                 for prog in stream[1]:
                     prog_name = encode_string(prog[1])
                     prov_name = encode_string(prog[2])
-                    prog_type = 0
+                    prog_id = int(prog[0])
                     pids_num = len(prog[4])
-                    for pid in prog[4]:
-                        if pid[2].split('-')[0] == 'video':
-                            prog_type |= 1
-                        elif pid[2].split('-')[0] == 'audio':
-                            prog_type |= 2
 
                     # wparam, stream id
                     prg_hdr = struct.pack("=IH", 0, stream_id)
@@ -258,7 +253,7 @@ class UsbExchange():
                     prv_name = struct.pack("=" + self.MAX_STR_SIZE*"B",
                                            *prov_name)
                     # prog type, pids num
-                    prg_end = struct.pack("=HH", prog_type, pids_num)
+                    prg_end = struct.pack("=HH", prog_id, pids_num)
 
                     prg_msg = b''.join([prg_hdr, prg_name, prv_name, prg_end])
 
