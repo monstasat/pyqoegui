@@ -311,7 +311,7 @@ class Gui(BaseInterface):
 
     # called by Control to update remote clients number
     def update_remote_clients_num(self, clients_num):
-        self.remote_clients_num_val.set_text(str(cllients_num))
+        self.remote_clients_num_val.set_text(str(clients_num))
 
     # Control asks to return current xids for video rendering
     def get_renderers_xids(self):

@@ -24,13 +24,24 @@ class Usb(BaseInterface):
 
         self.interface_name = 'Usb'
 
+        # create usb exchange
         self.exchange = UsbExchange()
+        # create message parser
         self.msg_parser = parser.UsbMessageParser()
 
+        # create tuner status
+        self.tuner_status = []
+        # create tuner measured data
+        self.tuner_measured_data = []
+
+        # initialization done flag
+        # True - handshake done with sopr board
+        # False - handshake not done with sopr board
         self.init_done = False
 
+        # launch read and write methods
         GObject.timeout_add(1000, self.send_messages)
-        GObject.timeout_add(1000, self.read_messages)
+        GObject.timeout_add(500, self.read_messages)
 
     def send_messages(self):
 
@@ -64,11 +75,15 @@ class Usb(BaseInterface):
 
             elif msg_type == usb_msgs.OPEN_CLIENT:
                 client_num = int(msg_data[1])
+                print("open client, client num = ", client_num)
+                print(msg_data)
                 self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
                           client_num)
 
             elif msg_type == usb_msgs.CLOSE_CLIENT:
                 client_num = int(msg_data[1])
+                print("close client, client num = ", client_num)
+                print(msg_data)
                 self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
                           client_num)
 

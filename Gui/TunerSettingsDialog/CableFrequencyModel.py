@@ -57,8 +57,8 @@ class CableFrequencyModel(Gtk.ListStore):
                 freq = (index*8 + 66) * 1000000
                 spec = False
             if spec is True:
-                ch_string = 'СТВК %d (%g МГц)' % (ch, freq / 1000000)
+                ch_string = 'ТВК S%02d (%g МГц)' % (ch, freq / 1000000)
             else:
-                ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
+                ch_string = 'ТВК %02d (%g МГц)' % (ch, freq / 1000000)
             self.append([ch_string, ch, freq, spec])
 

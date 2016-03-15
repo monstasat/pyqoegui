@@ -28,6 +28,15 @@ class UsbMessageParser():
         '''
         messages = []
 
+        # if there is no data in parser queue and something left in
+        # message queue, parse message queue
+        if len(self.buffer) == 0 and len(self.message_buffer) != 0:
+            res = self.parse_message(self.message_buffer)
+            messages.append(res)
+
+            # clear previous message
+            self.message_buffer.clear()
+
         # get word from queue
         while len(self.buffer) != 0:
 
@@ -53,7 +62,15 @@ class UsbMessageParser():
     def parse_message(self, buf):
         msg_code = buf[1]
         msg_data = buf[2:]
+
         return [msg_code, msg_data]
+
+
+# converts 2 words to float
+def words_to_float(loword, hiword):
+    bytes_ = ((hiword << 16) | loword).to_bytes(4, byteorder='little')
+    float_val =  struct.unpack('f', bytes_)[0]
+    return float_val
 
 
 # TODO: add message length check to this group of functions
@@ -63,27 +80,18 @@ def parse_video_analysis_settings(data, analysis_settings):
     client_id = data[0]
     length = data[1]
     request_id = data[2]
-    settings[ai.BLACK_ERR][2] = struct.unpack(
-                                'f',
-                                bytes((data[3] << 16) | data[4]))
-    settings[ai.BLACK_WARN][2] = struct.unpack(
-                                'f',
-                                bytes((data[5] << 16) | data[6]))
-    settings[ai.FREEZE_ERR][2] = struct.unpack(
-                                'f',
-                                bytes((data[7] << 16) | data[8]))
-    settings[ai.FREEZE_WARN][2] = struct.unpack(
-                                'f',
-                                bytes((data[9] << 16) | data[10]))
-    settings[ai.DIFF_WARN][2] = struct.unpack(
-                                'f',
-                                bytes((data[11] << 16) | data[12]))
-    settings[ai.VIDEO_LOSS][2] = float(data[13] >> 8)
-    settings[ai.LUMA_WARN][2] = float(data[13] & 0x00ff)
-    settings[ai.BLACK_ERR][5] = int(data[14] >> 8)
-    settings[ai.BLACK_PIXEL][2] = int(data[14] & 0x00ff)
-    settings[ai.PIXEL_DIFF][2] = int(data[15] >> 8)
-    settings[ai.FREEZE_ERR][5] = int(data[15] & 0x00ff)
+
+    settings[ai.BLACK_WARN][2] = words_to_float(data[3], data[4])
+    settings[ai.BLACK_ERR][2] = words_to_float(data[5], data[6])
+    settings[ai.FREEZE_WARN][2] = words_to_float(data[7], data[8])
+    settings[ai.FREEZE_ERR][2] = words_to_float(data[9], data[10])
+    settings[ai.DIFF_WARN][2] = words_to_float(data[11], data[12])
+    settings[ai.VIDEO_LOSS][2] = float(data[13] & 0x00ff)
+    settings[ai.LUMA_WARN][2] = float(data[13] >> 8)
+    settings[ai.BLACK_ERR][5] = int(data[14] & 0x00ff)
+    settings[ai.BLACK_PIXEL][2] = int(data[14] >> 8)
+    settings[ai.PIXEL_DIFF][2] = int(data[15] & 0x00ff)
+    settings[ai.FREEZE_ERR][5] = int(data[15] >> 8)
 
     return settings
 
@@ -94,19 +102,11 @@ def parse_audio_analysis_settings(data, analysis_settings):
     client_id = data[0]
     length = data[1]
     request_id = data[2]
-    settings[ai.OVERLOAD_ERR][2] = struct.unpack(
-                                'f',
-                                bytes((data[3] << 16) | data[4]))
-    settings[ai.OVERLOAD_WARN][2] = struct.unpack(
-                                'f',
-                                bytes((data[5] << 16) | data[6]))
-    settings[ai.SILENCE_ERR][2] = struct.unpack(
-                                'f',
-                                bytes((data[7] << 16) | data[8]))
-    settings[ai.SILENCE_WARN][2] = struct.unpack(
-                                'f',
-                                bytes((data[9] << 16) | data[10]))
-    settings[ai.AUDIO_LOSS][2] = float(data[11] >> 8)
+    settings[ai.OVERLOAD_WARN][2] = words_to_float(data[3], data[4])
+    settings[ai.OVERLOAD_ERR][2] = words_to_float(data[5], data[6])
+    settings[ai.SILENCE_WARN][2] = words_to_float(data[7], data[8])
+    settings[ai.SILENCE_ERR][2] = words_to_float(data[9], data[10])
+    settings[ai.AUDIO_LOSS][2] = float(data[11] & 0x00ff)
 
     return settings
 
@@ -125,9 +125,9 @@ def parse_tuner_settings(data, tuner_settings):
     settings[ti.DEVICE][0] = int(data[8] & 0x00ff)
     settings[ti.C_FREQ][0] = int(data[10] | (data[11] << 16))
     settings[ti.T_FREQ][0] = int(data[12] | (data[13] << 16))
-    settings[ti.T_BW][0] = int(data[14])
+    settings[ti.T_BW][0] = 2 - int(data[14])
     settings[ti.T2_FREQ][0] = int(data[16] | (data[17] << 16))
-    settings[ti.T2_BW][0] = int(data[18])
+    settings[ti.T2_BW][0] = 2 - int(data[18])
     settings[ti.T2_PLP_ID][0] = int(data[19] & 0x00ff)
 
     return settings

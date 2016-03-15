@@ -95,6 +95,10 @@ class TunerSettingsBox(Gtk.Box):
     # bandwidth setter
     @bandwidth.setter
     def bandwidth(self, value):
+        if value > 2:
+            value = 2
+        if value < 0:
+            value = 0
         self.bw_box.combobox.set_active(value)
 
     # plp id getter

@@ -33,11 +33,6 @@ class BaseInterface(GObject.GObject):
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
 
-        # create tuner status
-        self.tuner_status = []
-        # create tuner measured data
-        self.tuner_measured_data = []
-
     # Methods for interaction with Control
     # Common methods for Gui and Usb
 

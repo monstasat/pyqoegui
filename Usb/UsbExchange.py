@@ -234,10 +234,10 @@ class UsbExchange():
                           0, 0,
                           tuner_settings[ti.C_FREQ][0],
                           tuner_settings[ti.T_FREQ][0],
-                          tuner_settings[ti.T_BW][0],
+                          2 - tuner_settings[ti.T_BW][0],
                           0,
                           tuner_settings[ti.T2_FREQ][0],
-                          tuner_settings[ti.T2_BW][0],
+                          2 - tuner_settings[ti.T2_BW][0],
                           tuner_settings[ti.T2_PLP_ID][0])
 
         RESERVED = "B"*95

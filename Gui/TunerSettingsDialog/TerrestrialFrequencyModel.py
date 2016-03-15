@@ -27,6 +27,6 @@ class TerrestrialFrequencyModel(Gtk.ListStore):
             else:
                 ch = index + 13
                 freq = (ch*8 + 306) * 1000000
-            ch_string = 'ТВК %d (%g МГц)' % (ch, freq / 1000000)
+            ch_string = 'ТВК %02d (%g МГц)' % (ch, freq / 1000000)
             self.append([ch_string, ch, freq])
 
