@@ -1,8 +1,10 @@
 import cyusb
 import struct
 import random
+import math
 
 from Usb import UsbMessageTypes as usb_msgs
+from Control import ProgramListControl
 from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
 
@@ -19,7 +21,10 @@ class UsbExchange():
     SEND_PERS_BUF = 0x0901
     # TODO: change prog num
     MAX_PROG_NUM = 20
+    # max data size in one pers buf message (in words)
     MAX_DATA_SIZE = 243
+    # max string size
+    MAX_STR_SIZE = 26
     # 2: prefix
     # 2: code command
     HEADER = "HH"
@@ -46,14 +51,14 @@ class UsbExchange():
     # 4: param 1
     # 4: param 2
     ERR_INFO = "HHBBHIII"
-    
+
     def __init__(self):
 
         self.status_version = 0
         self.settings_version = 0
         self.dvb_cont_ver = 0
         self.dvb_stat_ver = 0
-        
+
         cyusb.init()
 
         self.connection = cyusb.Connection()
@@ -69,8 +74,8 @@ class UsbExchange():
         return buf
 
     def send_init(self):
-        msg_code = (0x0100 | self.START_MSG | \
-                    self.STOP_MSG | self.EXIT_RECEIVE)
+        msg_code = (0x0100 | self.START_MSG) | \
+                   (self.STOP_MSG | self.EXIT_RECEIVE)
 
         msg = struct.pack("="+self.MSG_12,
                           usb_msgs.PREFIX,
@@ -82,7 +87,7 @@ class UsbExchange():
 
     def send_status(self):
         STATUS_MSG = self.HEADER
-        # reserved, ts count, reserved 
+        # reserved, ts count, reserved
         STATUS_MSG += "HHBBB"
         # flags, stat ver, sett ver, video load, aud load,
         # dvbt2 stat ver, dvbt2 cont ver
@@ -97,8 +102,8 @@ class UsbExchange():
         tmp_lou = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_zer = [0 for _ in range(225)]
 
-        msg_code = (0x0300 | self.START_MSG | \
-                    self.STOP_MSG | self.EXIT_RECEIVE)
+        msg_code = (0x0300 | self.START_MSG) | \
+                   (self.STOP_MSG | self.EXIT_RECEIVE)
 
         b = struct.pack("="+STATUS_MSG,
                         usb_msgs.PREFIX,
@@ -186,25 +191,180 @@ class UsbExchange():
 
         self.connection.send(msg)
 
-    def send_analyzed_prog_list(self,
-                                analyzed_progs,
-                                client_id,
-                                request_id):
+    # send prog lists (stream and analyzed) to remote client
+    def send_prog_list(self, stream_progs, analyzed_progs,
+                       client_id, request_id):
 
-        # header, length data, client id, msg cod, req id, length msg
-        PROG_LIST_MSG = self.HEADER + "HHHHH"
-        b = struct.pack("="+PROG_LIST_MSG,
-                        usb_msgs.PREFIX,
-                        self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                        100,
-                        client_id,
-                        0xc516,
-                        request_id,
-                        1)
-        data = [0 for _ in range(self.MAX_DATA_SIZE)]
-        msg = struct.pack("=%sH" % self.MAX_DATA_SIZE, *data)
-        s = b''.join([b, msg])
-        self.connection.send(s)
+        #basic funtions needed for packing
+        def get_len(prog_list):
+            length = 0
+            for stream in prog_list:
+                for prog in stream[1]:
+                    # prog info header len
+                    length += (10 + 2*self.MAX_STR_SIZE)
+                    for pid in prog[4]:
+                        # pid info len
+                        length += (30 + self.MAX_STR_SIZE)
+
+            return length
+
+        def get_prog_num(prog_list):
+            prog_num = 0
+            for stream in prog_list:
+                prog_num += len(stream[1])
+
+            return prog_num
+
+        def encode_string(ustr):
+            astr = ustr.encode('cp1251', 'replace')
+            char_list = memoryview(astr).tolist()
+            # if string is shorter that MAX_STR_SIZE bytes
+            if len(char_list) < self.MAX_STR_SIZE:
+                char_list.extend([0]* (self.MAX_STR_SIZE - len(char_list)))
+            # if string is more than MAX_STR_SIZE bytes (or equal)
+            else:
+                char_list = char_list[:self.MAX_STR_SIZE]
+                char_list[self.MAX_STR_SIZE - 1] = 0
+
+            return char_list
+
+        def pack_prog_list(prog_list):
+            # pack stream prog list
+            # wparam, streams num, prog num
+            strm_msg = struct.pack("=IHH",
+                                   0,
+                                   len(prog_list),
+                                   get_prog_num(prog_list))
+
+            for stream in prog_list:
+                stream_id = stream[0]
+                for prog in stream[1]:
+                    prog_name = encode_string(prog[1])
+                    prov_name = encode_string(prog[2])
+                    prog_type = 0
+                    pids_num = len(prog[4])
+                    for pid in prog[4]:
+                        if pid[2].split('-')[0] == 'video':
+                            prog_type |= 1
+                        elif pid[2].split('-')[0] == 'audio':
+                            prog_type |= 2
+
+                    # wparam, stream id
+                    prg_hdr = struct.pack("=IH", 0, stream_id)
+                    # prog name
+                    prg_name = struct.pack("=" + self.MAX_STR_SIZE*"B",
+                                           *prog_name)
+                    # prov name
+                    prv_name = struct.pack("=" + self.MAX_STR_SIZE*"B",
+                                           *prov_name)
+                    # prog type, pids num
+                    prg_end = struct.pack("=HH", prog_type, pids_num)
+
+                    prg_msg = b''.join([prg_hdr, prg_name, prv_name, prg_end])
+
+                    for pid in prog[4]:
+                        pid_type_str = pid[2].split('-')[0]
+
+                        if (pid_type_str == 'audio') or \
+                           (pid_type_str == 'video'):
+
+                            codec_name = encode_string(pid[2])
+
+                            if pid_type_str == 'video':
+                                pid_type = 2
+                                # width, height, aspect x,
+                                # aspect y, frame rate
+                                pid_prms = struct.pack("=IIIIf",
+                                                       0, 0, 0, 0, 0.0)
+                            elif pid_type_str == 'audio':
+                                pid_type = 1
+                                # ch num, sample rate, bitrate,
+                                # reserved, reserved
+                                pid_prms = struct.pack("=IIIIf",
+                                                       0, 0, 0, 0, 0.0)
+
+                            # wparam, pid, type, codec
+                            pid_hdr = struct.pack("=IHHH",
+                                                  0,
+                                                  int(pid[0]),
+                                                  pid_type,
+                                                  0)
+                            # codec name
+                            cdc_name = struct.pack("=" + self.MAX_STR_SIZE*"B",
+                                                   *codec_name)
+
+                            pid_msg = b''.join([pid_hdr, cdc_name, pid_prms])
+
+                            # join with prog message
+                            prg_msg = b''.join([prg_msg, pid_msg])
+
+                    # join with stream message
+                    strm_msg = b''.join([strm_msg, prg_msg])
+
+            return strm_msg
+
+        # stream info header len
+        # *2 - because we send 2 lists - stream and analyzed
+        msg_len = 8 * 2
+        msg_len += get_len(stream_progs)
+        msg_len += get_len(analyzed_progs)
+
+        # pack stream and analyzed prog lists to byte arrays
+        packed_stream_progs = pack_prog_list(stream_progs)
+        packed_analyzed_progs = pack_prog_list(analyzed_progs)
+        # concatenate two arrays
+        msg_data = b''.join([packed_stream_progs, packed_analyzed_progs])
+
+        # calculate total messages needed to transmit prog lists
+        msg_parts_num = math.ceil(int(msg_len/2)/self.MAX_DATA_SIZE)
+
+        # send n messages to remote client
+        for i in range(msg_parts_num):
+
+            # if this message is first
+            if i == 0:
+                msg_code = 0xc516
+                offset = msg_len >> 1 # divide by 2
+            else:
+                msg_code = 0xc516 & 0x7fff
+                offset = i*self.MAX_DATA_SIZE
+
+            # if this message is last
+            if i == msg_parts_num - 1:
+                data_len = int(msg_len/2) - \
+                           (msg_parts_num - 1)*self.MAX_DATA_SIZE + 4
+                cod_command = self.SEND_PERS_BUF | self.EXIT_RECEIVE
+            else:
+                data_len = self.MAX_DATA_SIZE + 4
+                cod_command = self.SEND_PERS_BUF
+
+            # pack message header
+            # header, length data, client id, msg cod, req id, length msg
+            PROG_LIST_MSG = self.HEADER + "HHHHH"
+            hdr = struct.pack("="+PROG_LIST_MSG,
+                              usb_msgs.PREFIX,
+                              cod_command,
+                              data_len,
+                              client_id,
+                              msg_code,
+                              request_id,
+                              offset)
+
+            # slice total data payload into parts
+            # *2 - because we manipulate bytes, not words
+            if i == 0:
+                d = msg_data[:self.MAX_DATA_SIZE*2]
+            elif i == msg_parts_num - 1:
+                d = msg_data[offset*2:]
+            else:
+                d = msg_data[offset*2:(i+1)*self.MAX_DATA_SIZE*2]
+
+            # pack message data slice
+            data = struct.pack("="+"B"*len(d), *d)
+            # concatenate header and data
+            msg = b''.join([hdr, data])
+            # send message
+            self.connection.send(msg)
 
     def send_tuner_settings(self,
                             tuner_settings,

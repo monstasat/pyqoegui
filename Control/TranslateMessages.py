@@ -27,10 +27,10 @@ class TranslateMessages():
             for i in range(4):
                 # if prog name and provider name are not determined
                 if (i == 1) and (progParams[i] == "(null)"):
-                    progParams[i] = "Неизвестное имя" + " (PMT PID: " \
+                    progParams[i] = "Без имени (PMT PID: " \
                                     + str(progParams[0]) + ")"
                 if (i == 2) and (progParams[i] == "(null)"):
-                    progParams[i] = "Неизвестный провайдер"
+                    progParams[i] = "-"
                 prog_params_list.append(progParams[i])
 
             pids_params_list = []

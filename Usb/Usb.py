@@ -75,15 +75,11 @@ class Usb(BaseInterface):
 
             elif msg_type == usb_msgs.OPEN_CLIENT:
                 client_num = int(msg_data[1])
-                print("open client, client num = ", client_num)
-                print(msg_data)
                 self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
                           client_num)
 
             elif msg_type == usb_msgs.CLOSE_CLIENT:
                 client_num = int(msg_data[1])
-                print("close client, client num = ", client_num)
-                print(msg_data)
                 self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
                           client_num)
 
@@ -140,11 +136,12 @@ class Usb(BaseInterface):
                         client_id,
                         request_id)
 
-            # remote client asks to return analyzed prog list
+            # remote client asks to return stream and analyzed prog list
             elif msg_type == usb_msgs.GET_ANALYZED_PROG_LIST:
                 client_id = msg_data[0]
                 request_id = msg_data[2]
-                self.exchange.send_analyzed_prog_list(
+                self.exchange.send_prog_list(
+                        self.stream_prog_list,
                         self.analyzed_prog_list,
                         client_id,
                         request_id)

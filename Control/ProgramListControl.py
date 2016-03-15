@@ -11,6 +11,12 @@ class ProgramListControl():
             prog_num += len(stream[1])
         return prog_num
 
+    def get_pid_num(self):
+        pid_num = 0
+        for stream in self.prog_list:
+            for prog in stream[1]:
+                pid_num += len(prog[4])
+
     # add or replace one stream in a list
     def add_one_stream(self, prog_list):
 
