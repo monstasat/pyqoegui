@@ -13,9 +13,8 @@ class ProgramTable(Gtk.TreeView):
         # prog table column names
         self.heading_labels = [
             "№", "Программа", "Громкость",
-            "Нет видео", "Чёрный кадр", "Заморозка",
-            "Блочность", "Нет аудио", "Тихо",
-            "Громко"]
+            "Нет аудио", "Тихо", "Громко",
+            "Нет видео", "Чёрный кадр", "Заморозка", "Блочность"]
 
         # associates status code with a cell color
         self.clrs = {types.NO_ERR: '#80FF80',
@@ -48,13 +47,13 @@ class ProgramTable(Gtk.TreeView):
         self.store = Gtk.ListStore(int, str,        # n
                                    str, str,        # prog name
                                    int, str,        # lufs
+                                   str, str,        # audio loss
+                                   str, str,        # silence
+                                   str, str,        # loudness
                                    str, str,        # video loss
                                    str, str,        # black frame
                                    str, str,        # freeze
                                    str, str,        # blockiness
-                                   str, str,        # audio loss
-                                   str, str,        # silence
-                                   str, str,        # loudness
                                    int,             # prog type
                                    int,             # stream id
                                    int,             # prog id
@@ -143,6 +142,12 @@ class ProgramTable(Gtk.TreeView):
                      prog_name, '#FFFFFF',
                      # lufs level
                      0, '0',
+                     # audio loss
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # silence
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                     # loudness
+                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # video loss
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # black frame
@@ -150,12 +155,6 @@ class ProgramTable(Gtk.TreeView):
                      # freeze
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # blockiness
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # audio loss
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # silence
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # loudness
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # start of invisible part
                      # prog type
@@ -183,11 +182,11 @@ class ProgramTable(Gtk.TreeView):
         # set values for some variables dependent on content type
         if param_type == 'audio':
             pid_index = 24
-            shift = 14
+            shift = 6
             cell_num = 6
         elif param_type == 'video':
             pid_index = 23
-            shift = 6
+            shift = 12
             cell_num = 8
 
         # iterating over programs in table
