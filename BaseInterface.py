@@ -56,6 +56,10 @@ class BaseInterface(GObject.GObject):
         # save settings
         self.tuner_settings = tuner_settings
 
+    # called by Control to update tuner status
+    def update_tuner_status(self, status, hw_errors, temperature):
+        pass
+
     # called by Control to update tuner parameters
     def update_tuner_params(self, status, modulation, params):
         pass

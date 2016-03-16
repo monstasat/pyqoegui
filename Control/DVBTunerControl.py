@@ -113,7 +113,7 @@ class DVBTunerControl(GObject.GObject):
         # configure com port
         try:
             self.serial.baudrate = 115200
-            self.serial.port = '/dev/ttyS1'
+            self.serial.port = '/dev/ttyUSB0'
             self.serial.parity = serial.PARITY_NONE
             self.serial.bytesize = serial.EIGHTBITS
             self.serial.stopbits = serial.STOPBITS_ONE
@@ -476,6 +476,7 @@ class DVBTunerControl(GObject.GObject):
         while True:
             # read status
             if self.serial.isOpen() is False:
+                self.params = [0x8000, 0, 0]
                 self.connect_to_port()
 
                 # if opening port succeeded
@@ -491,14 +492,10 @@ class DVBTunerControl(GObject.GObject):
                         time.sleep(0.5)
 
             # read tuner status and params
-            if self.serial.isOpen() is True:
-
+            elif self.serial.isOpen() is True:
                 self.status = self.tuner_get_status()
                 self.measured_data = self.tuner_get_measured_info()
                 self.params = self.tuner_get_params()
-
-            else:
-                self.params = [0x8000, 0, 0]
 
             # if thread is no more needed, close
             if self.thread_active is False:

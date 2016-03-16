@@ -49,6 +49,7 @@ class TunerStatusBox(Gtk.Box):
         else:
             self.no_device = False
             self.status_ok = True
+            # FIXME: change 0x1, 0x2 to constants
             self.level_ok = bool(status & 0x1)
             self.lock_ok = bool(status & 0x2)
 

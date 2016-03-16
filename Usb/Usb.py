@@ -31,6 +31,8 @@ class Usb(BaseInterface):
 
         # create tuner status
         self.tuner_status = []
+        # create tuner params
+        self.tuner_params = []
         # create tuner measured data
         self.tuner_measured_data = []
 
@@ -170,8 +172,10 @@ class Usb(BaseInterface):
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_tuner_status(
+                        self.tuner_status,
                         self.tuner_params,
                         self.tuner_measured_data,
+                        self.tuner_settings,
                         client_id,
                         request_id)
 
@@ -208,9 +212,15 @@ class Usb(BaseInterface):
         # increment tuner settings version
         self.exchange.dvb_cont_ver += 1
 
+    # called by Control to update tuner status
+    def update_tuner_status(self, status, hw_errors, temperature):
+        BaseInterface.update_tuner_status(self, status, hw_errors, temperature)
+        self.tuner_status = [status, hw_errors, temperature]
+
     # called by Control to update tuner parameters
     def update_tuner_params(self, status, modulation, params):
         BaseInterface.update_tuner_params(self, status, modulation, params)
+        self.tuner_params = [status, modulation, params]
 
         # increment tuner status version
         self.exchange.dvb_stat_ver += 1
@@ -218,6 +228,7 @@ class Usb(BaseInterface):
     # called by Control to update tuner measured data
     def update_tuner_measured_data(self, measured_data):
         BaseInterface.update_tuner_measured_data(self, measured_data)
+        self.tuner_measured_data = measured_data
 
     # called by Error Detector to update video status
     def update_video_status(self, results):

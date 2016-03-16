@@ -52,7 +52,7 @@ class Control(GObject.GObject):
         self.start_server(1600)
 
         # create backend
-        self.backend = Backend(streams=1)
+        self.backend = Backend(streams=0)
         # create gui
         fullscreen = app.args.fullscreen
         self.gui = Gui(app,
@@ -353,8 +353,8 @@ class Control(GObject.GObject):
 
     # Tuner control sent a message with new status
     def on_new_tuner_status(self, source, status, hw_errors, temperature):
-        #print(status, hw_errors, temperature)
-        pass
+        self.gui.update_tuner_status(status, hw_errors, temperature)
+        self.usb.update_tuner_status(status, hw_errors, temperature)
 
     # Tuner control sent a message with new measured data
     def on_new_tuner_measured_data(self,

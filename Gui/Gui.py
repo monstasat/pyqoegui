@@ -248,6 +248,10 @@ class Gui(BaseInterface):
         # update tuner dialog
         self.tunerDlg.update_values(self.tuner_settings)
 
+    # called by Control to update tuner status
+    def update_tuner_status(self, status, hw_errors, temperature):
+        BaseInterface.update_tuner_status(self, status, hw_errors, temperature)
+
     # called by Control to update tuner parameters
     def update_tuner_params(self, status, modulation, params):
         BaseInterface.update_tuner_params(self, status, modulation, params)
