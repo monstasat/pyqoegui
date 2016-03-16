@@ -293,7 +293,7 @@ class Control(GObject.GObject):
 
         # FIXME: is it necessary? check this
         # Configure backend according to new tuner settings
-        # self.backend.start_all_pipelines()
+        self.backend.start_all_pipelines()
 
         # Save tuner settings in Config
         self.config.set_tuner_settings(self.tuner_settings)
