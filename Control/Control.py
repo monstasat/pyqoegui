@@ -40,11 +40,11 @@ class Control(GObject.GObject):
         # create list with analysis settings
         self.analysis_settings = self.config.get_analysis_settings()
         if len(self.analysis_settings) < len(ai.DEFAULT_VALUES):
-            self.analysis_settings  = ai.DEFAULT_VALUES
+            self.analysis_settings = ai.DEFAULT_VALUES
         # create tuner settings list
         self.tuner_settings = self.config.get_tuner_settings()
         if len(self.tuner_settings) < len(ti.DEFAULT_VALUES):
-            self.tuner_settings  = ti.DEFAULT_VALUES
+            self.tuner_settings = ti.DEFAULT_VALUES
 
         # create tv tuner control
         self.rf_tuner = DVBTunerControl(self.tuner_settings)
@@ -130,7 +130,7 @@ class Control(GObject.GObject):
 
         # write log message
         msg = "initial number of selected programs: %d" % \
-                                        self.aprogs_control.get_prog_num()
+              self.aprogs_control.get_prog_num()
         self.log.write_log_message(msg)
 
         # initially set drawing black background
@@ -253,8 +253,9 @@ class Control(GObject.GObject):
         self.config.set_prog_list(self.analyzed_progs)
 
         # write message to log
-        self.log.write_log_message("new programs selected for analysis " + \
-                                   "(source: %s)" % source.interface_name)
+        msg = "new programs selected for analysis " + \
+              "(source: %s)" % source.interface_name
+        self.log.write_log_message(msg)
 
     # new analysis settings received
     def on_new_analysis_settings(self, source):
@@ -276,8 +277,9 @@ class Control(GObject.GObject):
         self.config.set_analysis_settings(self.analysis_settings)
 
         # write message to log
-        self.log.write_log_message("new analysis settings selected " + \
-                                   "(source: %s)" % source.interface_name)
+        msg = "new analysis settings selected " + \
+              "(source: %s)" % source.interface_name
+        self.log.write_log_message(msg)
 
     # new tuner settings received
     def on_new_tuner_settings(self, source):
@@ -299,8 +301,9 @@ class Control(GObject.GObject):
         self.config.set_tuner_settings(self.tuner_settings)
 
         # write message to log
-        self.log.write_log_message("new tuner settings selected " + \
-                                   "(source: %s)" % source.interface_name)
+        msg = "new tuner settings selected " + \
+              "(source: %s)" % source.interface_name
+        self.log.write_log_message(msg)
 
     # Interaction with Gui and Usb
     # Methods specific for Gui
@@ -310,16 +313,16 @@ class Control(GObject.GObject):
         self.start_analysis()
 
         # write message to log
-        self.log.write_log_message("analysis started" + \
-                                   "(source: %s)" % source.interface_name)
+        msg = "analysis started" + "(source: %s)" % source.interface_name
+        self.log.write_log_message(msg)
 
     # Gui sent a message about stop button clicked
     def on_stop(self, source):
         self.stop_analysis()
 
         # write message to log
-        self.log.write_log_message("analysis stopped" + \
-                                   "(source: %s)" % source.interface_name)
+        msg = "analysis stopped" + "(source: %s)" % source.interface_name
+        self.log.write_log_message(msg)
 
     # Gui sent a message about volume level changed
     def on_volume_changed(self, source, stream_id, prog_id, pid, value):
@@ -462,7 +465,7 @@ class Control(GObject.GObject):
 
                 # set drawing black background
                 # for corresponding renderers to False
-                #TODO: pass not only stream id, but prog id too,
+                # TODO: pass not only stream id, but prog id too,
                 # to disable drawing in only those renderers, that
                 # should be drawn by backend
                 self.gui.update_rendering_mode(False, compared_prog_list[0])
@@ -488,3 +491,4 @@ class Control(GObject.GObject):
             elif wstr[0] == 'e':
                 self.end_of_stream_received(int(wstr[1:]))
                 print(wstr)
+

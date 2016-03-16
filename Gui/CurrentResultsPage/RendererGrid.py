@@ -12,7 +12,7 @@ class RendererGrid(Gtk.FlowBox):
 
     __gsignals__ = {
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, (int, int, int, int,))}
+                                        None, (int, int, int, int,))}
 
     def __init__(self):
         Gtk.FlowBox.__init__(self)
@@ -76,17 +76,17 @@ class RendererGrid(Gtk.FlowBox):
 
                 # create renderer
                 renderer = Renderer(stream_id,
-                                  prog_id,
-                                  prog_name,
-                                  prog_type,
-                                  video_pid,
-                                  audio_pid)
+                                    prog_id,
+                                    prog_name,
+                                    prog_type,
+                                    video_pid,
+                                    audio_pid)
 
                 self.rend_arr.append(renderer)
 
                 # connect renderer to volume changed signal
                 renderer.connect(CustomMessages.VOLUME_CHANGED,
-                                         self.on_volume_changed)
+                                 self.on_volume_changed)
                 af = Gtk.AspectFrame(hexpand=True, vexpand=True)
                 af.set(0.5, 0.5, 4.0/3.0, False)
                 af.add(renderer)
@@ -195,7 +195,6 @@ class RendererGrid(Gtk.FlowBox):
                     ratio = 0
                 else:
                     ratio = rect.height / rect.width
-                #ratio = rect.height/rect.width
             else:
                 ratio = 0
             cols = self.get_max_renderers_per_row(aspect_fb,

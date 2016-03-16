@@ -90,3 +90,4 @@ class Config():
         tuner_settings = self.config['user'].get('tuner_settings', '[]')
 
         return json.loads(tuner_settings)
+

@@ -1,5 +1,5 @@
 class ProgramListControl():
-    def __init__(self, prog_list = []):
+    def __init__(self, prog_list=[]):
         self.prog_list = prog_list
 
     def clear():
@@ -26,8 +26,9 @@ class ProgramListControl():
         # if yes, replace it
         for stream in self.prog_list:
             if stream[0] == stream_id:
-                func = lambda x:x if x!= stream else prog_list
-                self.prog_list  = list(map(func, self.prog_list))
+                self.prog_list = list(map((
+                                    lambda x: x if x != stream else prog_list),
+                                    self.prog_list))
                 break
         # if no stream with such stream id found,
         else:
@@ -99,3 +100,4 @@ class ProgramListControl():
         compared_list.append(compared_progs)
 
         return compared_list
+

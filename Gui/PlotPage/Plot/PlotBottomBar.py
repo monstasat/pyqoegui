@@ -47,7 +47,7 @@ class PlotBottomBar(Gtk.FlowBox):
 
     __gsignals__ = {
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ())}
+                                           None, ())}
 
     def __init__(self, selected_progs, colors):
         Gtk.FlowBox.__init__(self)

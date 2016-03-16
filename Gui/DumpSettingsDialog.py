@@ -4,6 +4,7 @@ from Gui.BaseDialog import BaseDialog
 from Gui.Placeholder import Placeholder
 from Gui import Spacing
 
+
 class DumpSettingsDialog(BaseDialog):
     def __init__(self, parent):
 

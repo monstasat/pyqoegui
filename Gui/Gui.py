@@ -25,11 +25,11 @@ class Gui(BaseInterface):
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int, int, int, int)),
         CustomMessages.COLOR_THEME: (GObject.SIGNAL_RUN_FIRST,
-                                        None, (int,)),
+                                     None, (int,)),
         CustomMessages.PROG_TABLE_REVEALER: (GObject.SIGNAL_RUN_FIRST,
-                                        None, (int,)),
+                                             None, (int,)),
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ())}
+                                           None, ())}
 
     def __init__(self,
                  app,
@@ -327,7 +327,10 @@ class Gui(BaseInterface):
         for plot in self.plot_page.plots:
             colors = []
             for color in plot.colors:
-                colors.append([color.red, color.green, color.blue, color.alpha])
+                colors.append([color.red,
+                               color.green,
+                               color.blue,
+                               color.alpha])
             plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
         return plot_info
 

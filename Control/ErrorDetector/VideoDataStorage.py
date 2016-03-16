@@ -48,3 +48,4 @@ class VideoDataStorage():
     @property
     def diff_average(self):
         return self.get_average(self.av_diff)
+

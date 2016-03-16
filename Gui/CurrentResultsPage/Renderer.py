@@ -12,7 +12,7 @@ class Renderer(Gtk.Grid):
 
     __gsignals__ = {
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, (int, int, int, int,))}
+                                        None, (int, int, int, int,))}
 
     def __init__(self,
                  stream_id,
@@ -65,8 +65,8 @@ class Renderer(Gtk.Grid):
 
         # creating volume button at the right edge of a renderer instance
         self.volbtn = Gtk.VolumeButton(halign=Gtk.Align.END,
-                                  hexpand=False,
-                                  vexpand=False)
+                                       hexpand=False,
+                                       vexpand=False)
 
         self.volbtn.connect('value-changed', self.volume_changed)
         # if program to this renderer do no contain audio,

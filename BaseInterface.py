@@ -9,9 +9,9 @@ class BaseInterface(GObject.GObject):
         CustomMessages.NEW_SETTINS_PROG_LIST: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.ANALYSIS_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
+                                                   None, ()),
         CustomMessages.TUNER_SETTINGS_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ()),
+                                                None, ()),
         CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
@@ -91,3 +91,4 @@ class BaseInterface(GObject.GObject):
     # Control asks to return tuner settings
     def get_tuner_settings(self):
         return self.tuner_settings
+

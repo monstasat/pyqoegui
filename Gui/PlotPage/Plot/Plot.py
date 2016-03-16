@@ -24,7 +24,7 @@ class Plot(Gtk.Box):
 
     __gsignals__ = {
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, ())}
+                                           None, ())}
 
     def __init__(self, plot_type, plot_progs, colors):
         Gtk.Box.__init__(self)
@@ -267,7 +267,7 @@ class Plot(Gtk.Box):
         # general offset
         x_offset = self.draw_width - self.rmargin
         # subframe offset
-        x_offset += self.rmargin - ((sample_width / self.frames_per_unit) * self.render_counter)
+        x_offset += self.rmargin - (sample_width / self.frames_per_unit)*self.render_counter
 
         # draw the graph
         # if self.background is None:
@@ -424,8 +424,6 @@ class Plot(Gtk.Box):
                 self.data[i].rotate(self.NUM_POINTS-1)
                 self.data[i][0] = (data - self.min) / abs(self.max - self.min)
                 self.prev_data[i] = data
-                #print(data - self.min / abs(self.max - self.min))
-                #print(self.data[i])
                 self.bottom_bar.set_value(data, i)
 
         if self.draw is True:

@@ -6,11 +6,12 @@ from Usb import UsbMessageParser as parser
 from Usb import UsbMessageTypes as usb_msgs
 from Control import CustomMessages
 
+
 class Usb(BaseInterface):
 
     __gsignals__ = {
         CustomMessages.REMOTE_CLIENTS_NUM_CHANGED: (GObject.SIGNAL_RUN_FIRST,
-                                               None, (int,))}
+                                                    None, (int,))}
 
     def __init__(self,
                  analyzed_progs,

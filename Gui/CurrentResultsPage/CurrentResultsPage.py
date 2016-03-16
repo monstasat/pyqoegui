@@ -16,7 +16,8 @@ class CurrentResultsPage(Gtk.Grid):
 
         # creating renderers
         self.rend = RendererGrid()
-        self.rend.connect(CustomMessages.VOLUME_CHANGED, self.on_volume_changed)
+        self.rend.connect(CustomMessages.VOLUME_CHANGED,
+                          self.on_volume_changed)
 
         # creating renderers overlay
         overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
@@ -54,10 +55,10 @@ class CurrentResultsPage(Gtk.Grid):
     # when user changes volume of renderer
     def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
         self.mainWnd.emit(CustomMessages.VOLUME_CHANGED,
-                  stream_id,
-                  prog_id,
-                  pid,
-                  value)
+                          stream_id,
+                          prog_id,
+                          pid,
+                          value)
 
     def get_renderers_xid(self):
         return self.rend.get_renderers_xid()

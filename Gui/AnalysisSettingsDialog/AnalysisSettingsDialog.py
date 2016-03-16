@@ -14,7 +14,7 @@ class AnalysisSettingsDialog(BaseDialog):
 
         mainBox = self.get_content_area()
 
-        self.analysis_settings  = analysis_settings
+        self.analysis_settings = analysis_settings
 
         # fill page list with created pages
         self.pages = []

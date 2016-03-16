@@ -250,3 +250,4 @@ class PlotPage(Gtk.Box):
             # if plot requires data for this stream/prog/pid
             if data[0] in plot.progs:
                 plot.on_incoming_data([data[0], data[1][plot.data_index]])
+

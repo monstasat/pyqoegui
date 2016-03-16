@@ -156,4 +156,3 @@ class GstreamerPipeline():
         # send message to gstreamer pipeline
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 
-

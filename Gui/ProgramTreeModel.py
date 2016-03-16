@@ -4,7 +4,7 @@ from gi.repository import Gtk
 
 
 class ProgramTreeModel(Gtk.TreeStore):
-    def __init__(self, prog_list = []):
+    def __init__(self, prog_list=[]):
         # icon name,
         # prog name,
         # is analyzed,
@@ -124,7 +124,6 @@ class ProgramTreeModel(Gtk.TreeStore):
             pids = prog[4]
 
             for pid in pids:
-                #pid_type = 'video'
                 pid_type = pid[2].split('-')[0]
                 if (pid_type == 'video') or (pid_type == 'audio'):
                     pid_str = "PID " + str(pid[0]) + ", " + str(pid[2])

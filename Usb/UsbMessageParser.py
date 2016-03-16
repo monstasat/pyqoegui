@@ -9,7 +9,7 @@ from Control import TunerSettingsIndexes as ti
 # converts 2 words to float
 def words_to_float(loword, hiword):
     bytes_ = ((hiword << 16) | loword).to_bytes(4, byteorder='little')
-    float_val =  struct.unpack('f', bytes_)[0]
+    float_val = struct.unpack('f', bytes_)[0]
     return float_val
 
 

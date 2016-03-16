@@ -4,6 +4,7 @@ from Control import AnalysisSettingsIndexes as ai
 from Control.ErrorDetector import StatusTypes as types
 from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 
+
 class AudioErrorDetector(BaseErrorDetector):
     def __init__(self,
                  prog_list,

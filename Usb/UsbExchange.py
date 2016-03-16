@@ -195,7 +195,7 @@ class UsbExchange():
     def send_prog_list(self, stream_progs, analyzed_progs,
                        client_id, request_id):
 
-        #basic funtions needed for packing
+        # basic funtions needed for packing
         def get_len(prog_list):
             length = 0
             for stream in prog_list:
@@ -220,7 +220,7 @@ class UsbExchange():
             char_list = memoryview(astr).tolist()
             # if string is shorter that MAX_STR_SIZE bytes
             if len(char_list) < self.MAX_STR_SIZE:
-                char_list.extend([0]* (self.MAX_STR_SIZE - len(char_list)))
+                char_list.extend([0]*(self.MAX_STR_SIZE - len(char_list)))
             # if string is more than MAX_STR_SIZE bytes (or equal)
             else:
                 char_list = char_list[:self.MAX_STR_SIZE]
@@ -320,7 +320,7 @@ class UsbExchange():
             # if this message is first
             if i == 0:
                 msg_code = 0xc516
-                offset = msg_len >> 1 # divide by 2
+                offset = msg_len >> 1  # divide by 2
             else:
                 msg_code = 0xc516 & 0x7fff
                 offset = i*self.MAX_DATA_SIZE
