@@ -270,7 +270,7 @@ class Plot(Gtk.Box):
         x_offset += self.rmargin - (sample_width / self.frames_per_unit)*self.render_counter
 
         # draw the graph
-        # if self.background is None:
+        #if self.background is None:
         self.draw_background()
 
         cr.set_source_surface(self.background)

@@ -224,18 +224,10 @@ class ProgramTable(Gtk.TreeView):
         for row in self.get_model():
             # create data header
             # stream id, prog id, audio pid
-            data_header = [row[21], row[22], row[pid_index]]
+            data_header = [row[21], row[22], row[24]]
 
-            for val in lufs:
-                try:
-                    index = val.index(data_header)
-                except:
-                    pass
-                else:
-                    data = sum(val[1]) / float(len(val[1]))
-                    row[4] = (data - (-59)) / abs(-5 - (-59))*100
-                    row[5] = '%.2f LUFS' % data
-                    # remove current item from result list
-                    # as we don't need it anymore
-                    lufs.remove(val)
+            if lufs[0] == data_header:
+                data = sum(lufs[1][1]) / float(len(lufs[1][1]))
+                row[4] = (data - (-59)) / abs(-5 - (-59))*100
+                row[5] = '%.2f LUFS' % data
 

@@ -309,6 +309,10 @@ class Gui(BaseInterface):
     def update_rendering_mode(self, draw, stream_id):
         self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
 
+    # called by Control to update lufs values in program table
+    def update_lufs(self, lufs):
+        self.cur_results_page.prgtbl.update_lufs(lufs)
+
     # called by Control to mute all programs
     def mute_all_renderers(self):
         self.cur_results_page.mute_all_renderers()

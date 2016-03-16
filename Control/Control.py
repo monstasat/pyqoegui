@@ -489,8 +489,12 @@ class Control(GObject.GObject):
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
                 self.audio_error_detector.set_data(aparams)
 
+                #print(wstr)
+
                 # update audio plot data in gui
                 self.gui.update_audio_plots_data(aparams)
+                # update lufs levels in program table in gui
+                self.gui.update_lufs(aparams)
 
             # end of stream message received from backend
             elif wstr[0] == 'e':

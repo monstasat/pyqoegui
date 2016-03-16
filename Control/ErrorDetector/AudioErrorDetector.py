@@ -67,8 +67,6 @@ class AudioErrorDetector(BaseErrorDetector):
         elif audio_level > self.overload_warn:
             return [types.WARN, types.NO_ERR]
         elif audio_level < self.silence_err:
-            print(audio_level)
-            print(self.silence_err)
             return [types.NO_ERR, types.ERR]
         elif audio_level < self.silence_warn:
             return [types.NO_ERR, types.WARN]
@@ -92,8 +90,8 @@ class AudioErrorDetector(BaseErrorDetector):
 
             results.append([storage.prog_info,
                             [self.is_loss_flag,           # audio loss
-                             self.is_overload_flag,       # overload flag
-                             self.is_silence_flag]])      # silence flag
+                             self.is_silence_flag,        # silence flag
+                             self.is_overload_flag]])     # overload flag
 
         self.gui.update_audio_status(results)
 
