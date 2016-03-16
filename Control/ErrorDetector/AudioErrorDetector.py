@@ -67,11 +67,13 @@ class AudioErrorDetector(BaseErrorDetector):
         elif audio_level > self.overload_warn:
             return [types.WARN, types.NO_ERR]
         elif audio_level < self.silence_err:
+            print(audio_level)
+            print(self.silence_err)
             return [types.NO_ERR, types.ERR]
-        elif audio_level > self.silence_warn:
+        elif audio_level < self.silence_warn:
             return [types.NO_ERR, types.WARN]
         else:
-            return types.NO_ERR
+            return [types.NO_ERR, types.NO_ERR]
 
     def on_parse_audio_data(self):
         results = []

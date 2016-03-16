@@ -78,3 +78,33 @@ class TranslateMessages():
 
         return param_list
 
+# AUDIO PARAMETERS
+
+    def get_aparams_list(self, aparams_string):
+        PART_DIVIDER = ':*:'
+        PARAM_DIVIDER = ':'
+
+        param_list = []
+
+        # split string to stream params and video params
+        str_parts = aparams_string.split(PART_DIVIDER)
+        # split stream parameters
+        stream_params = str_parts[0].split(PARAM_DIVIDER)
+        sparams_int = []
+        for param in stream_params:
+            sparams_int.append(int(param))
+
+        param_list.append(sparams_int)
+
+        audio_params_pack = [[], []]
+        for params_single_frame in str_parts[1:]:
+            # split params string to separate parameters
+            audio_params = params_single_frame.split(PARAM_DIVIDER)
+            for i, param in enumerate(audio_params):
+                audio_params_pack[i].append(float(param))
+
+        # append parameter list to aparam list
+        param_list.append(audio_params_pack)
+
+        return param_list
+

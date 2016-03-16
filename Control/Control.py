@@ -485,7 +485,12 @@ class Control(GObject.GObject):
 
             # measured data for audio received from backend
             elif wstr[0] == 'a':
-                pass
+                # translate message from string to list
+                aparams = self.msg_translator.get_aparams_list(wstr[1:])
+                self.audio_error_detector.set_data(aparams)
+
+                # update audio plot data in gui
+                self.gui.update_audio_plots_data(aparams)
 
             # end of stream message received from backend
             elif wstr[0] == 'e':

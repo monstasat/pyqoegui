@@ -303,7 +303,7 @@ class Gui(BaseInterface):
 
     # called by Control to update data in audio plots
     def update_audio_plots_data(self, data):
-        pass
+        self.plot_page.on_incoming_data(data)
 
     # called by Control to update drawing mode for renderers
     def update_rendering_mode(self, draw, stream_id):
