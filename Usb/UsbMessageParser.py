@@ -75,11 +75,12 @@ class UsbMessageParser():
 
         return [msg_code, msg_data]
 
-    def parse_analyzed_prog_list(data):
+    def parse_analyzed_prog_list(self, data):
 
         def decode_string(data, i):
             bytes = struct.pack(13*"H", *data[i:(i + 13)])
-            string = bytes.decode('cp1251', 'replace')
+            string = str(bytes.decode('cp1251', 'replace'))
+            string = string.rstrip(' \t\r\n\0')
             return string
 
         prog_info = []
@@ -103,16 +104,16 @@ class UsbMessageParser():
             stream_id = data[9]
             prog_name = decode_string(data, 10)
             prov_name = decode_string(data, 23)
-            prog_id = data[36]
-            pids_num = data[37]
+            prog_id = str(data[36])
+            pids_num = str(data[37])
 
             # pids info
             pid_info = []
             # 38, 39 - wparam
-            for i in range(pids_num):
-                pid = data[38 + 2 + i*28]
-                codec_int = data[38 + 4 + i*28]
-                codec_name = decode_string(data, 38 + 5 + i*28)
+            for i in range(int(pids_num)):
+                pid = str(data[38 + 2 + i*28])
+                codec_int = str(data[38 + 4 + i*28])
+                codec_name = str(decode_string(data, 38 + 5 + i*28))
 
                 # fill prog info
                 pid_info.append([pid, codec_int, codec_name])
@@ -120,15 +121,15 @@ class UsbMessageParser():
             # fill prog info
             prog_info = [prog_id, prog_name, prov_name, pids_num, pid_info]
 
-            if len(self.prog_list_msg_data) > 0:
+            if len(self.prog_list_msg_data) != 0:
                 for stream in self.prog_list_msg_data:
                     if stream[0] == stream_id:
                         stream[1].append(prog_info)
+                        break
+                else:
+                    self.prog_list_msg_data.append([stream_id, [prog_info]])
             else:
-                self.prog_list_msg_data = [[stream_id], prog_info]
-
-            # append prog list message
-            self.prog_list_msg_data.append(prog_info)
+                self.prog_list_msg_data = [[stream_id, [prog_info]]]
 
             # if this is a last message in a group
             # TODO: add additional check to be sure that the message

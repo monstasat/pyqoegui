@@ -111,7 +111,8 @@ class Usb(BaseInterface):
                 # if parser returned analyzed prog list
                 if result is not None:
                     # send message to Control
-                    self.analyzed_prog_list
+                    self.analyzed_prog_list = result
+                    print(self.analyzed_prog_list)
                     self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
 
             # remote client sent tuner settings

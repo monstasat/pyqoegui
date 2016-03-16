@@ -127,8 +127,9 @@ class ProgramTreeModel(Gtk.TreeStore):
                 #pid_type = 'video'
                 pid_type = pid[2].split('-')[0]
                 if (pid_type == 'video') or (pid_type == 'audio'):
+                    pid_str = "PID " + str(pid[0]) + ", " + str(pid[2])
                     self.append(citer, [self.TREE_ICONS[pid_type],
-                                        "PID " + pid[0] + ", " + pid[2],
+                                        pid_str,
                                         False,
                                         False,
                                         prog_list[0],
