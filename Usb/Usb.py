@@ -230,10 +230,17 @@ class Usb(BaseInterface):
     # called by Error Detector to update video status
     def update_video_status(self, results):
         BaseInterface.update_video_status(self, results)
+        # TODO: set values to status
 
     # called by Error Detector to update audio status
     def update_audio_status(self, results):
         BaseInterface.update_audio_status(self, results)
+        # TODO: set values to status
+
+    # called by Control to update lufs values in program table and plots
+    def update_lufs(self, lufs):
+        BaseInterface.update_lufs(self, lufs)
+        # TODO: set values to status
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):

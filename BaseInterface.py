@@ -96,6 +96,10 @@ class BaseInterface(GObject.GObject):
     def update_audio_status(self, results):
         pass
 
+    # called by Control to update lufs values in program table and plots
+    def update_lufs(self, lufs):
+        pass
+
     # called by Control to update cpu load
     def update_cpu_load(self, load):
         pass

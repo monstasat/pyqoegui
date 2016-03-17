@@ -270,6 +270,12 @@ class Gui(BaseInterface):
         BaseInterface.update_audio_status(self, results)
         self.cur_results_page.prgtbl.update_audio(results)
 
+    # called by Control to update lufs values in program table and plots
+    def update_lufs(self, lufs):
+        BaseInterface.update_lufs(self, lufs)
+        self.plot_page.on_incoming_data(lufs)
+        self.cur_results_page.prgtbl.update_lufs(lufs)
+
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
         BaseInterface.get_analyzed_prog_list(self)
@@ -300,11 +306,6 @@ class Gui(BaseInterface):
     # called by Control to update drawing mode for renderers
     def update_rendering_mode(self, draw, stream_id):
         self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
-
-    # called by Control to update lufs values in program table and plots
-    def update_lufs(self, lufs):
-        self.plot_page.on_incoming_data(lufs)
-        self.cur_results_page.prgtbl.update_lufs(lufs)
 
     # called by Control to mute all programs
     def mute_all_renderers(self):
