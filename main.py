@@ -15,6 +15,7 @@ class AtsApp(Gtk.Application):
         Gtk.Application.__init__(
             self,
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+
         # store for parsed command line options
         self.args = None
 

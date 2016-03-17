@@ -20,12 +20,14 @@ class BaseInterface(GObject.GObject):
                                               None, ())}
 
     def __init__(self,
+                 app,
                  analyzed_prog_list=[],
                  analysis_settings_list=ai.DEFAULT_VALUES,
                  tuner_settings_list=ti.DEFAULT_VALUES):
 
         GObject.GObject.__init__(self)
 
+        self.app = app
         # create stream prog list
         self.stream_prog_list = []
         # create analyzed prog list
@@ -35,13 +37,19 @@ class BaseInterface(GObject.GObject):
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
 
-    def factory(type_):
+        #self.app.hold()
+
+    def __destroy__(self):
+        #self.app.release()
+        pass
+
+    def factory(type_, app):
         if type_ == "Gui":
             from Gui.Gui import Gui
-            return Gui()
+            return Gui(app)
         if type_ == "Usb":
             from Usb.Usb import Usb
-            return Usb()
+            return Usb(app)
         assert 0, "Bad interface creation" + type_
     factory = staticmethod(factory)
 

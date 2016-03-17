@@ -30,13 +30,11 @@ class Gui(BaseInterface):
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                            None, ())}
 
-    def __init__(self):
+    def __init__(self, app):
 
-        BaseInterface.__init__(self)
+        BaseInterface.__init__(self, app)
 
-        self.interface_name = 'Gui'
-
-        self.window = Gtk.Window()
+        self.window = Gtk.Window(application=app)
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
@@ -186,16 +184,17 @@ class Gui(BaseInterface):
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
 
+    def __destroy__(self):
+        BaseInterface.__destroy__(self)
+        self.window.destroy()
+
     def set_gui_params(self,
-                       app,
                        width,
                        height,
                        fullscreen,
                        color_theme,
                        table_revealed,
                        plot_info):
-
-        self.window.set_property('application', app)
 
         # set size
         self.window.set_default_size(width, height)

@@ -57,8 +57,9 @@ class Control(GObject.GObject):
         self.backend = Backend(streams=1)
         interface_names = ['Gui', 'Usb']
         # create interfaces
-        self.interfaces = list(map(lambda x: BaseInterface.factory(x),
+        self.interfaces = list(map(lambda x: BaseInterface.factory(x, app),
                                    interface_names))
+
         # manage interfaces
         for interface in self.interfaces:
             interface.update_analyzed_prog_list(self.analyzed_progs)
@@ -78,8 +79,7 @@ class Control(GObject.GObject):
 
             # if interface is of type 'Gui'
             if self.is_gui(interface) is True:
-                interface.set_gui_params(app,
-                                         app.args.width,
+                interface.set_gui_params(app.args.width,
                                          app.args.height,
                                          app.args.fullscreen,
                                          self.config.get_color_theme(),
@@ -152,15 +152,21 @@ class Control(GObject.GObject):
 
     # when app closes, we need to take some actions
     def __destroy__(self):
+
         # terminate all gstreamer pipelines
         self.backend.terminate_all_pipelines()
-        # disconnect from tuner
-        self.rf_tuner.disconnect()
-        self.rf_tuner.thread_active = False
+
+        for interface in self.interfaces:
+            interface.__destroy__()
+        self.interfaces.clear()
 
         # stop server for recieving messages from gstreamer pipeline
         if self.server is not None:
             self.server.stop()
+
+        # disconnect from tuner
+        self.rf_tuner.disconnect()
+        self.rf_tuner.thread_active = False
 
         # write message to log
         self.log.write_log_message("application closed")

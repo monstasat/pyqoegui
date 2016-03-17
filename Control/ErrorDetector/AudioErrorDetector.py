@@ -93,7 +93,8 @@ class AudioErrorDetector(BaseErrorDetector):
                              self.is_silence_flag,        # silence flag
                              self.is_overload_flag]])     # overload flag
 
-        map(lambda x: x.update_audio_status(results), self.interfaces)
+        for interface in self.interfaces:
+            interface.update_audio_status(results)
 
         return True
 

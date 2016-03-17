@@ -13,11 +13,9 @@ class Usb(BaseInterface):
         CustomMessages.REMOTE_CLIENTS_NUM_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                     None, (int,))}
 
-    def __init__(self):
+    def __init__(self, app):
 
-        BaseInterface.__init__(self)
-
-        self.interface_name = 'Usb'
+        BaseInterface.__init__(self, app)
 
         # create usb exchange
         self.exchange = UsbExchange()
@@ -39,6 +37,10 @@ class Usb(BaseInterface):
         # launch read and write methods
         GObject.timeout_add(1000, self.send_messages)
         GObject.timeout_add(500, self.read_messages)
+
+    def __destroy__(self):
+        BaseInterface.__destroy__(self)
+        self.exchange.__destroy__()
 
     def send_messages(self):
 

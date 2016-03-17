@@ -70,7 +70,8 @@ class UsbExchange():
         self.cpu_load = 0
 
     def __destroy__(self):
-        cyusb.close()
+        if self.is_connected is True:
+            cyusb.close()
 
     def read(self):
         if self.is_connected is False:

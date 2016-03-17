@@ -128,7 +128,8 @@ class VideoErrorDetector(BaseErrorDetector):
                              self.is_freeze_flag,         # freeze
                              self.is_blocky_flag]])       # blockiness
 
-        map(lambda x: x.update_video_status(results), self.interfaces)
+        for interface in self.interfaces:
+            interface.update_video_status(results)
 
         return True
 
