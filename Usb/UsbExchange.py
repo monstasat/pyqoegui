@@ -70,7 +70,8 @@ class UsbExchange():
 
     def read(self):
         buf = self.connection.recv()
-        buf = struct.unpack("H"*int(len(buf)/2), buf)
+        fmt = "H"*int(len(buf)/2) + "B"*(len(buf) & 0x01)
+        buf = struct.unpack(fmt, buf)
         return buf
 
     def send_init(self):

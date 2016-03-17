@@ -170,7 +170,7 @@ class ProgramTable(Gtk.TreeView):
 
     def update_table_cell(self, row, index, val):
         # FIXME prog type 1, 2 change to VIDEO, AUDIO (define types somewhere)
-        prog_type = 1 if index < 14 else 2
+        prog_type = 2 if index < 12 else 1
         if (row[20] & prog_type) != 0:
             data = val
         else:
