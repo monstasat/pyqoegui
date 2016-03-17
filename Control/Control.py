@@ -49,6 +49,7 @@ class Control(GObject.GObject):
         # create tv tuner control
         self.rf_tuner = DVBTunerControl(self.tuner_settings)
         # execute server for receiving messages from gstreamer pipeline
+        self.server = None
         self.start_server(1600)
 
         # create backend
@@ -169,17 +170,21 @@ class Control(GObject.GObject):
         self.rf_tuner.disconnect()
         self.rf_tuner.thread_active = False
 
+        # stop server for recieving messages from gstreamer pipeline
+        if self.server is not None:
+            self.server.stop()
+
         # write message to log
         self.log.write_log_message("application closed")
 
     # start server
     def start_server(self, port):
         # server for recieving messages from gstreamer pipeline
-        server = Gio.SocketService.new()
-        server.add_inet_port(port, None)
+        self.server = Gio.SocketService.new()
+        self.server.add_inet_port(port, None)
         # x - data to be passed to callback
-        server.connect("incoming", self.message_from_pipeline_callback)
-        server.start()
+        self.server.connect("incoming", self.message_from_pipeline_callback)
+        self.server.start()
 
     def start_analysis(self):
 

@@ -134,11 +134,13 @@ class Renderer(Gtk.Grid):
             cr.set_source_rgb(0.0, 0.0, 0.0)
             cr.paint()
 
+            pixbuf.add_alpha(True, 0, 0, 0)
+
             Gdk.cairo_set_source_pixbuf(cr,
                                         pixbuf,
                                         (w - pixbuf.get_width())/2,
                                         (h - pixbuf.get_height())/2)
-            cr.paint()
+            cr.paint_with_alpha(1)
 
         # if draw flag was set
         elif self.draw is True:
