@@ -13,15 +13,9 @@ class Usb(BaseInterface):
         CustomMessages.REMOTE_CLIENTS_NUM_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                                     None, (int,))}
 
-    def __init__(self,
-                 analyzed_progs,
-                 analysis_settings,
-                 tuner_settings):
+    def __init__(self):
 
-        BaseInterface.__init__(self,
-                               analyzed_progs,
-                               analysis_settings,
-                               tuner_settings)
+        BaseInterface.__init__(self)
 
         self.interface_name = 'Usb'
 

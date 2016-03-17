@@ -1,6 +1,8 @@
 from gi.repository import GObject
 
 from Control import CustomMessages
+from Control import AnalysisSettingsIndexes as ai
+from Control import TunerSettingsIndexes as ti
 
 
 class BaseInterface(GObject.GObject):
@@ -18,9 +20,9 @@ class BaseInterface(GObject.GObject):
                                               None, ())}
 
     def __init__(self,
-                 analyzed_prog_list,
-                 analysis_settings_list,
-                 tuner_settings_list):
+                 analyzed_prog_list=[],
+                 analysis_settings_list=ai.DEFAULT_VALUES,
+                 tuner_settings_list=ti.DEFAULT_VALUES):
 
         GObject.GObject.__init__(self)
 
@@ -32,6 +34,16 @@ class BaseInterface(GObject.GObject):
         self.analysis_settings = analysis_settings_list
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
+
+    def factory(type_):
+        if type_ == "Gui":
+            from Gui.Gui import Gui
+            return Gui()
+        if type_ == "Usb":
+            from Usb.Usb import Usb
+            return Usb()
+        assert 0, "Bad interface creation" + type_
+    factory = staticmethod(factory)
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb

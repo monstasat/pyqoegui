@@ -3,10 +3,10 @@ import psutil
 
 from gi.repository import Gio, GObject
 
-from Backend.Backend import Backend
-from Backend import State
 from Gui.Gui import Gui
 from Usb.Usb import Usb
+from Backend.Backend import Backend
+from Backend import State
 from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
 from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
@@ -55,21 +55,17 @@ class Control(GObject.GObject):
         # create backend
         self.backend = Backend(streams=1)
         # create gui
-        fullscreen = app.args.fullscreen
-        self.gui = Gui(app,
-                       app.args.width,
-                       app.args.height,
-                       fullscreen,
-                       self.analyzed_progs,
-                       self.analysis_settings,
-                       self.tuner_settings,
-                       self.config.get_color_theme(),
-                       self.config.get_table_revealer(),
-                       self.config.get_plot_info())
-
-        self.usb = Usb(self.analyzed_progs,
-                       self.analysis_settings,
-                       self.tuner_settings)
+        self.gui = Gui()
+        # create usb
+        self.usb = Usb()
+        # set gui params
+        self.gui.set_gui_params(app,
+                                app.args.width,
+                                app.args.height,
+                                app.args.fullscreen,
+                                self.config.get_color_theme(),
+                                self.config.get_table_revealer(),
+                                self.config.get_plot_info())
 
         # create video error detector
         self.video_error_detector = VideoErrorDetector(

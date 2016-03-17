@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-from gi.repository import Gtk, Gdk, GLib, GObject
+from gi.repository import Gtk, Gdk, GObject
 
 from Gui.ButtonToolbar import ButtonToolbar
 from Gui.CurrentResultsPage.CurrentResultsPage import CurrentResultsPage
@@ -31,33 +30,13 @@ class Gui(BaseInterface):
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                            None, ())}
 
-    def __init__(self,
-                 app,
-                 width,
-                 height,
-                 fullscreen,
-                 analyzed_progs_list,
-                 analysis_settings_list,
-                 tuner_settings_list,
-                 color_theme,
-                 table_revealed,
-                 plot_info):
+    def __init__(self):
 
-        BaseInterface.__init__(self,
-                               analyzed_progs_list,
-                               analysis_settings_list,
-                               tuner_settings_list)
+        BaseInterface.__init__(self)
 
         self.interface_name = 'Gui'
 
-        self.window = Gtk.Window(application=app)
-
-        # set size
-        self.window.set_default_size(width, height)
-
-        # show in fullscreen if necessary
-        if fullscreen is True:
-            self.window.fullscreen()
+        self.window = Gtk.Window()
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
@@ -74,16 +53,16 @@ class Gui(BaseInterface):
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
         # create program tree model for analyzed programs
-        self.analyzed_progs_model = ProgramTreeModel(analyzed_progs_list)
+        self.analyzed_progs_model = ProgramTreeModel(self.analyzed_prog_list)
 
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
         # create tuner settings dialog
         self.tunerDlg = TunerSettingsDialog(self,
-                                            tuner_settings_list)
+                                            self.tuner_settings)
         # create analysis settings dialog
         self.analysisSetDlg = AnalysisSettingsDialog(self,
-                                                     analysis_settings_list)
+                                                     self.analysis_settings)
         # create dump settings dialog
         self.dumpSetDlg = DumpSettingsDialog(self)
 
@@ -100,11 +79,11 @@ class Gui(BaseInterface):
         popover = Gtk.Popover(border_width=Spacing.BORDER)
         popBox = Gtk.HBox(spacing=Spacing.COL_SPACING,
                           orientation=Gtk.Orientation.VERTICAL)
-        darkThemeCheck = Gtk.Switch()
-        darkThemeCheck.connect('state-set', self.on_dark_theme_check)
+        self.darkThemeCheck = Gtk.Switch()
+        self.darkThemeCheck.connect('state-set', self.on_dark_theme_check)
         dark_theme_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                                  spacing=Spacing.COL_SPACING)
-        dark_theme_box.add(darkThemeCheck)
+        dark_theme_box.add(self.darkThemeCheck)
         dark_theme_box.add(Gtk.Label(label='Использовать тёмное оформление'))
         popBox.add(dark_theme_box)
         popBox.add(Gtk.HSeparator())
@@ -193,17 +172,6 @@ class Gui(BaseInterface):
 
         self.window.show_all()
 
-        # set initial gui view
-        if color_theme is True:
-            darkThemeCheck.set_active(True)
-        if table_revealed is True:
-            self.showTableBtn.set_active(table_revealed)
-        for plot in plot_info:
-            colors = []
-            for color in plot[2]:
-                colors.append(Gdk.RGBA(color[0], color[1], color[2], color[3]))
-            self.plot_page.add_plot(plot[0], plot[1], colors)
-
         # code to set some elements initially visible/invisible
         self.cur_results_page.hide_renderer_and_table()
         # if table is invisible, hide the button
@@ -217,6 +185,35 @@ class Gui(BaseInterface):
         btns = self.toolbar.get_children()
         for i, func in enumerate(btnCallbacks):
             btns[i].connect('clicked', func)
+
+    def set_gui_params(self,
+                       app,
+                       width,
+                       height,
+                       fullscreen,
+                       color_theme,
+                       table_revealed,
+                       plot_info):
+
+        self.window.set_property('application', app)
+
+        # set size
+        self.window.set_default_size(width, height)
+        # show in fullscreen if necessary
+        if fullscreen is True:
+            self.window.fullscreen()
+
+        # set initial gui view
+        if color_theme is True:
+            self.darkThemeCheck.set_active(True)
+        if table_revealed is True:
+            self.showTableBtn.set_active(table_revealed)
+        for plot in plot_info:
+            colors = []
+            for color in plot[2]:
+                colors.append(Gdk.RGBA(color[0], color[1], color[2], color[3]))
+            self.plot_page.add_plot(plot[0], plot[1], colors)
+
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb
