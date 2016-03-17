@@ -132,10 +132,6 @@ class Renderer(Gtk.Grid):
                                              Gdk.RGBA(1,1,1,1),
                                              Gdk.RGBA(1,1,1,1),
                                              Gdk.RGBA(1,1,1,1))[0]
-            print(pixbuf)
-           # pixbuf = icon_theme.load_icon(icon,
-           #                               h/2,
-           #                               0)
 
             # fill renderer background
             cr.set_source_rgb(0.0, 0.0, 0.0)

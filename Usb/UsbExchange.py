@@ -59,9 +59,13 @@ class UsbExchange():
         self.dvb_cont_ver = 0
         self.dvb_stat_ver = 0
 
-        cyusb.init()
+        self.is_connected = False
 
-        self.connection = cyusb.Connection()
+        if cyusb.init() is False:
+            self.is_connected = False
+        else:
+            self.is_connected = True
+            self.connection = cyusb.Connection()
 
         self.cpu_load = 0
 
@@ -69,10 +73,17 @@ class UsbExchange():
         cyusb.close()
 
     def read(self):
+        if self.is_connected is False:
+            return b''
+
         buf = self.connection.recv()
         fmt = "H"*int(len(buf)/2) + "B"*(len(buf) & 0x01)
         buf = struct.unpack(fmt, buf)
         return buf
+
+    def write(self, msg):
+        if self.is_connected is True:
+            self.connection.send(msg)
 
     def send_init(self):
         msg_code = (0x0100 | self.START_MSG) | \
@@ -84,7 +95,7 @@ class UsbExchange():
                           self.TYPE,
                           self.VERSION,
                           0)
-        self.connection.send(msg)
+        self.write(msg)
 
     def send_status(self):
         STATUS_MSG = self.HEADER
@@ -122,7 +133,7 @@ class UsbExchange():
         rsrvd = struct.pack("=%sH" % 225, *tmp_zer)
 
         msg = b''.join([b, err, loud, rsrvd])
-        self.connection.send(msg)
+        self.write(msg)
 
     def send_errors(self):
         pass
@@ -162,7 +173,7 @@ class UsbExchange():
                           int(analysis_settings[ai.FREEZE_ERR][5]),
                           0, 0)
 
-        self.connection.send(msg)
+        self.write(msg)
 
     def send_audio_analysis_settings(self,
                                      analysis_settings,
@@ -190,7 +201,7 @@ class UsbExchange():
                           int(analysis_settings[ai.AUDIO_LOSS][2]),
                           0, 0, 0)
 
-        self.connection.send(msg)
+        self.write(msg)
 
     # send prog lists (stream and analyzed) to remote client
     def send_prog_list(self, stream_progs, analyzed_progs,
@@ -361,7 +372,7 @@ class UsbExchange():
             # concatenate header and data
             msg = b''.join([hdr, data])
             # send message
-            self.connection.send(msg)
+            self.write(msg)
 
     def send_tuner_settings(self,
                             tuner_settings,
@@ -402,7 +413,7 @@ class UsbExchange():
                             *[0 for _ in range(95)])
 
         msg = b''.join([msg, rsrvd])
-        self.connection.send(msg)
+        self.write(msg)
 
     def send_tuner_status(self,
                           tuner_status,
@@ -466,5 +477,5 @@ class UsbExchange():
                           ber2,
                           ber3)
 
-        self.connection.send(msg)
+        self.write(msg)
 
