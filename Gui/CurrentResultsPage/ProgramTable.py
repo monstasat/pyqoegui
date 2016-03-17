@@ -227,6 +227,6 @@ class ProgramTable(Gtk.TreeView):
 
             if lufs[0] == data_header:
                 data = sum(lufs[1][1]) / float(len(lufs[1][1]))
-                row[4] = (data - (-59)) / abs(-5 - (-59))*100
+                row[4] = int((data - (-59)) / abs(-5 - (-59))*100)
                 row[5] = '%.2f LUFS' % data
 

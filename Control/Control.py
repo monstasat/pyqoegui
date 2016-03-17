@@ -485,6 +485,9 @@ class Control(GObject.GObject):
                         interface.update_rendering_mode(
                                     False,
                                     compared_prog_list[0])
+                        break
+                else:
+                    xids = [[0, 0, 0]]*self.sprogs_control.get_prog_num()
 
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
