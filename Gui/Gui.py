@@ -298,16 +298,13 @@ class Gui(BaseInterface):
     def update_video_plots_data(self, data):
         self.plot_page.on_incoming_data(data)
 
-    # called by Control to update data in audio plots
-    def update_audio_plots_data(self, data):
-        self.plot_page.on_incoming_data(data)
-
     # called by Control to update drawing mode for renderers
     def update_rendering_mode(self, draw, stream_id):
         self.cur_results_page.rend.set_draw_mode_for_renderers(draw, stream_id)
 
-    # called by Control to update lufs values in program table
+    # called by Control to update lufs values in program table and plots
     def update_lufs(self, lufs):
+        self.plot_page.on_incoming_data(lufs)
         self.cur_results_page.prgtbl.update_lufs(lufs)
 
     # called by Control to mute all programs

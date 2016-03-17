@@ -9,12 +9,12 @@ class AudioErrorDetector(BaseErrorDetector):
     def __init__(self,
                  prog_list,
                  analysis_settings,
-                 gui):
+                 interfaces):
 
         BaseErrorDetector.__init__(self, prog_list, 'audio')
 
-        # main gui window
-        self.gui = gui
+        # interfaces
+        self.interfaces = interfaces
 
         self.is_overload_flag = types.UNKNOWN
         self.is_silence_flag = types.UNKNOWN
@@ -93,7 +93,7 @@ class AudioErrorDetector(BaseErrorDetector):
                              self.is_silence_flag,        # silence flag
                              self.is_overload_flag]])     # overload flag
 
-        self.gui.update_audio_status(results)
+        map(lambda x: x.update_audio_status(results), self.interfaces)
 
         return True
 

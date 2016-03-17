@@ -9,12 +9,12 @@ class VideoErrorDetector(BaseErrorDetector):
     def __init__(self,
                  prog_list,
                  analysis_settings,
-                 gui):
+                 interfaces):
 
         BaseErrorDetector.__init__(self, prog_list, 'video')
 
-        # main gui window
-        self.gui = gui
+        # interfaces
+        self.interfaces = interfaces
 
         self.is_black_flag = types.UNKNOWN
         self.is_freeze_flag = types.UNKNOWN
@@ -128,7 +128,7 @@ class VideoErrorDetector(BaseErrorDetector):
                              self.is_freeze_flag,         # freeze
                              self.is_blocky_flag]])       # blockiness
 
-        self.gui.update_video_status(results)
+        map(lambda x: x.update_video_status(results), self.interfaces)
 
         return True
 

@@ -5,6 +5,7 @@ from gi.repository import Gio, GObject
 
 from Gui.Gui import Gui
 from Usb.Usb import Usb
+from BaseInterface import BaseInterface
 from Backend.Backend import Backend
 from Backend import State
 from Control.TranslateMessages import TranslateMessages
@@ -54,63 +55,66 @@ class Control(GObject.GObject):
 
         # create backend
         self.backend = Backend(streams=1)
-        # create gui
-        self.gui = Gui()
-        # create usb
-        self.usb = Usb()
-        # set gui params
-        self.gui.set_gui_params(app,
-                                app.args.width,
-                                app.args.height,
-                                app.args.fullscreen,
-                                self.config.get_color_theme(),
-                                self.config.get_table_revealer(),
-                                self.config.get_plot_info())
+        interface_names = ['Gui', 'Usb']
+        # create interfaces
+        self.interfaces = list(map(lambda x: BaseInterface.factory(x),
+                                   interface_names))
+        # manage interfaces
+        for interface in self.interfaces:
+            interface.update_analyzed_prog_list(self.analyzed_progs)
+            interface.update_analysis_settings(self.analysis_settings)
+            interface.update_tuner_settings(self.tuner_settings)
+
+            interface.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
+                              self.on_new_analyzed_prog_list)
+            interface.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
+                              self.on_new_analysis_settings)
+            interface.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
+                              self.on_new_tuner_settings)
+            interface.connect(CustomMessages.ACTION_START_ANALYSIS,
+                              self.on_start)
+            interface.connect(CustomMessages.ACTION_STOP_ANALYSIS,
+                              self.on_stop)
+
+            # if interface is of type 'Gui'
+            if self.is_gui(interface) is True:
+                interface.set_gui_params(app,
+                                         app.args.width,
+                                         app.args.height,
+                                         app.args.fullscreen,
+                                         self.config.get_color_theme(),
+                                         self.config.get_table_revealer(),
+                                         self.config.get_plot_info())
+                interface.connect(CustomMessages.VOLUME_CHANGED,
+                                 self.on_volume_changed)
+                interface.connect(CustomMessages.COLOR_THEME,
+                                 self.on_gui_color_theme_changed)
+                interface.connect(CustomMessages.PROG_TABLE_REVEALER,
+                                 self.on_gui_table_revealer)
+                interface.connect(CustomMessages.PLOT_PAGE_CHANGED,
+                                 self.on_gui_plot_page_changed)
+
+                # initially set drawing black background
+                # for corresponding renderers to True
+                for stream in self.analyzed_progs:
+                    interface.update_rendering_mode(True, stream[0])
+                interface.window.queue_draw()
+
+            # if interface is of type 'Usb'
+            elif self.is_usb(interface) is True:
+                interface.connect(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
+                                  self.on_remote_clients_num_changed)
 
         # create video error detector
         self.video_error_detector = VideoErrorDetector(
                                         self.analyzed_progs,
                                         self.analysis_settings,
-                                        self.gui)
+                                        self.interfaces)
         # create audio error detector
         self.audio_error_detector = AudioErrorDetector(
                                         self.analyzed_progs,
                                         self.analysis_settings,
-                                        self.gui)
-
-        # connect to gui signals
-        self.gui.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
-                         self.on_new_analyzed_prog_list)
-        self.gui.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
-                         self.on_new_analysis_settings)
-        self.gui.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
-                         self.on_new_tuner_settings)
-        self.gui.connect(CustomMessages.ACTION_START_ANALYSIS,
-                         self.on_start)
-        self.gui.connect(CustomMessages.ACTION_STOP_ANALYSIS,
-                         self.on_stop)
-        self.gui.connect(CustomMessages.VOLUME_CHANGED,
-                         self.on_volume_changed)
-        self.gui.connect(CustomMessages.COLOR_THEME,
-                         self.on_gui_color_theme_changed)
-        self.gui.connect(CustomMessages.PROG_TABLE_REVEALER,
-                         self.on_gui_table_revealer)
-        self.gui.connect(CustomMessages.PLOT_PAGE_CHANGED,
-                         self.on_gui_plot_page_changed)
-
-        # connect to usb signals
-        self.usb.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
-                         self.on_new_analyzed_prog_list)
-        self.usb.connect(CustomMessages.ANALYSIS_SETTINGS_CHANGED,
-                         self.on_new_analysis_settings)
-        self.usb.connect(CustomMessages.TUNER_SETTINGS_CHANGED,
-                         self.on_new_tuner_settings)
-        self.usb.connect(CustomMessages.ACTION_START_ANALYSIS,
-                         self.on_start)
-        self.usb.connect(CustomMessages.ACTION_STOP_ANALYSIS,
-                         self.on_stop)
-        self.usb.connect(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
-                         self.on_remote_clients_num_changed)
+                                        self.interfaces)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -120,22 +124,10 @@ class Control(GObject.GObject):
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
 
-        # set gui for analyzed programs
-        self.gui.update_analyzed_prog_list(self.analyzed_progs)
-        # set usb for analyzed programs
-        self.usb.update_analyzed_prog_list(self.analyzed_progs)
-
         # write log message
         msg = "initial number of selected programs: %d" % \
               self.aprogs_control.get_prog_num()
         self.log.write_log_message(msg)
-
-        # initially set drawing black background
-        # for corresponding renderers to True
-        for stream in self.analyzed_progs:
-            self.gui.update_rendering_mode(True, stream[0])
-
-        self.gui.window.queue_draw()
 
         GObject.timeout_add(1000, self.on_get_cpu_load)
 
@@ -173,12 +165,23 @@ class Control(GObject.GObject):
         # write message to log
         self.log.write_log_message("application closed")
 
+    def is_gui(self, interface):
+        if type(interface).__name__ == 'Gui':
+            return True
+        else:
+            return False
+
+    def is_usb(self, interface):
+        if type(interface).__name__ == 'Usb':
+            return True
+        else:
+            return False
+
     # start server
     def start_server(self, port):
         # server for recieving messages from gstreamer pipeline
         self.server = Gio.SocketService.new()
         self.server.add_inet_port(port, None)
-        # x - data to be passed to callback
         self.server.connect("incoming", self.message_from_pipeline_callback)
         self.server.start()
 
@@ -186,36 +189,39 @@ class Control(GObject.GObject):
 
         # execute all gstreamer pipelines
         self.backend.start_all_pipelines()
-        self.gui.toolbar.change_start_icon()
 
-        # set volume on all renderers to null
-        self.gui.mute_all_renderers()
+        for interface in self.interfaces:
+            if self.is_gui(interface) is True:
+                interface.toolbar.change_start_icon()
+                # set volume on all renderers to null
+                interface.mute_all_renderers()
 
     def stop_analysis(self):
         # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
-        self.gui.toolbar.change_start_icon()
 
         # clear stream prog list
         self.stream_progs.clear()
 
-        # update stream prog list in Gui and Usb
-        self.gui.update_stream_prog_list([])
-        self.usb.update_stream_prog_list([])
+        for interface in self.interfaces:
+            # update stream prog list all interfaces
+            interface.update_stream_prog_list([])
 
-        # set volume on all renderers to null
-        self.gui.mute_all_renderers()
-
-        # set drawing black background for all renderers to True
-        for stream in self.analyzed_progs:
-            self.gui.update_rendering_mode(True, stream[0])
-        # force redrawing of gui
-        self.gui.window.queue_draw()
+            if self.is_gui(interface) is True:
+                # change toolbar icon
+                interface.toolbar.change_start_icon()
+                # set volume on all renderers to null
+                interface.mute_all_renderers()
+                # set drawing black background for all renderers to True
+                for stream in self.analyzed_progs:
+                    interface.update_rendering_mode(True, stream[0])
+                # force redrawing of gui
+                interface.window.queue_draw()
 
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
-        self.gui.update_cpu_load(load)
-        self.usb.update_cpu_load(load)
+        for interface in self.interfaces:
+            interface.update_cpu_load(load)
         return True
 
     # Interaction with Gui and Usb
@@ -227,10 +233,8 @@ class Control(GObject.GObject):
         self.analyzed_progs = source.get_analyzed_prog_list()
 
         # Configure Gui and Usb according to new analyzed prog list
-        # update gui according to new program list
-        self.gui.update_analyzed_prog_list(self.analyzed_progs)
-        # update usb according to new program list
-        self.usb.update_analyzed_prog_list(self.analyzed_progs)
+        for interface in self.interfaces:
+            interface.update_analyzed_prog_list(self.analyzed_progs)
 
         # Configure error detectors according to new analyzed prog list
         # pass new prog list to error detectors
@@ -255,7 +259,7 @@ class Control(GObject.GObject):
 
         # write message to log
         msg = "new programs selected for analysis " + \
-              "(source: %s)" % source.interface_name
+              "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # new analysis settings received
@@ -264,8 +268,8 @@ class Control(GObject.GObject):
         self.analysis_settings = source.get_analysis_settings()
 
         # Configure Gui and Usb according to new analysis settings
-        self.gui.update_analysis_settings(self.analysis_settings)
-        self.usb.update_analysis_settings(self.analysis_settings)
+        for interface in self.interfaces:
+            interface.update_analysis_settings(self.analysis_settings)
 
         # Configure error detectors according to new analysis settings
         self.video_error_detector.set_analysis_settings(self.analysis_settings)
@@ -279,7 +283,7 @@ class Control(GObject.GObject):
 
         # write message to log
         msg = "new analysis settings selected " + \
-              "(source: %s)" % source.interface_name
+              "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # new tuner settings received
@@ -288,8 +292,8 @@ class Control(GObject.GObject):
         self.tuner_settings = source.get_tuner_settings()
 
         # Configure Gui and Usb according to new analysis settings
-        self.gui.update_tuner_settings(self.tuner_settings)
-        self.usb.update_tuner_settings(self.tuner_settings)
+        for interface in self.interfaces:
+            interface.update_tuner_settings(self.tuner_settings)
 
         # Configure dvb tuner according to new tuner settings
         self.rf_tuner.apply_settings(self.tuner_settings)
@@ -303,7 +307,7 @@ class Control(GObject.GObject):
 
         # write message to log
         msg = "new tuner settings selected " + \
-              "(source: %s)" % source.interface_name
+              "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # Interaction with Gui and Usb
@@ -314,7 +318,7 @@ class Control(GObject.GObject):
         self.start_analysis()
 
         # write message to log
-        msg = "analysis started" + "(source: %s)" % source.interface_name
+        msg = "analysis started" + "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # Gui sent a message about stop button clicked
@@ -322,7 +326,7 @@ class Control(GObject.GObject):
         self.stop_analysis()
 
         # write message to log
-        msg = "analysis stopped" + "(source: %s)" % source.interface_name
+        msg = "analysis stopped" + "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # Gui sent a message about volume level changed
@@ -343,7 +347,9 @@ class Control(GObject.GObject):
     # Gui sent a message about plot was added/deleted
     def on_gui_plot_page_changed(self, source):
         # get current plot info from Gui
-        plot_info = self.gui.get_plot_info()
+        for interface in self.interfaces:
+            if self.is_gui(interface) is True:
+                plot_info = interface.get_plot_info()
         # save current plot info in Config
         self.config.set_plot_info(plot_info)
 
@@ -351,14 +357,16 @@ class Control(GObject.GObject):
     # Methods specific for Usb
 
     def on_remote_clients_num_changed(self, source, clients_num):
-        self.gui.update_remote_clients_num(clients_num)
+        for interface in self.interfaces:
+            if self.is_gui(interface) is True:
+                interface.update_remote_clients_num(clients_num)
 
     # Methods for interaction with dvb tuner control
 
     # Tuner control sent a message with new status
     def on_new_tuner_status(self, source, status, hw_errors, temperature):
-        self.gui.update_tuner_status(status, hw_errors, temperature)
-        self.usb.update_tuner_status(status, hw_errors, temperature)
+        for interface in self.interfaces:
+            interface.update_tuner_status(status, hw_errors, temperature)
 
     # Tuner control sent a message with new measured data
     def on_new_tuner_measured_data(self,
@@ -381,13 +389,13 @@ class Control(GObject.GObject):
                          ber3,
                          ber3_updated]
 
-        self.gui.update_tuner_measured_data(measured_data)
-        self.usb.update_tuner_measured_data(measured_data)
+        for interface in self.interfaces:
+            interface.update_tuner_measured_data(measured_data)
 
     # Tuner control sent a message with new tuner params
     def on_new_tuner_params(self, source, status, modulation, params):
-        self.gui.update_tuner_params(status, modulation, params)
-        self.usb.update_tuner_params(status, modulation, params)
+        for interface in self.interfaces:
+            interface.update_tuner_params(status, modulation, params)
 
     # Methods for interaction with backend
 
@@ -407,8 +415,8 @@ class Control(GObject.GObject):
         self.sprogs_control.add_one_stream([stream_id, []])
 
         # update stream program list in Gui and Usb
-        self.gui.update_stream_prog_list(self.stream_progs)
-        self.usb.update_stream_prog_list(self.stream_progs)
+        for interface in self.interfaces:
+            interface.update_stream_prog_list(self.stream_progs)
 
         # getting state of gstreamer pipeline with corresponding stream id
         state = self.backend.get_pipeline_state(stream_id)
@@ -422,10 +430,13 @@ class Control(GObject.GObject):
             self.log.write_log_message(msg)
             self.backend.restart_pipeline(stream_id)
 
-        # set drawing black background for corresponding renderers to True
-        self.gui.update_rendering_mode(True, stream_id)
-        # force redrawing of gui
-        self.gui.window.queue_draw()
+        for interface in self.interfaces:
+            if self.is_gui(interface) is True:
+                # set drawing black background
+                # for corresponding renderers to True
+                interface.update_rendering_mode(True, stream_id)
+                # force redrawing of gui
+                interface.window.queue_draw()
 
     # Handling messages from backend
     def message_from_pipeline_callback(self, obj, conn, source):
@@ -446,8 +457,8 @@ class Control(GObject.GObject):
                 self.sprogs_control.add_one_stream(prog_list)
 
                 # update stream program list in Gui and Usb
-                self.gui.update_stream_prog_list(self.stream_progs)
-                self.usb.update_stream_prog_list(self.stream_progs)
+                for interface in self.interfaces:
+                    interface.update_stream_prog_list(self.stream_progs)
 
                 # compare received and current analyzed prog lists
                 # (compared list contains only program equal prorams
@@ -455,21 +466,27 @@ class Control(GObject.GObject):
                 compared_prog_list = self.aprogs_control.get_compared_list(
                     prog_list)
 
-                # apply new prog list to backend
-                # get xids from gui
-                xids = self.gui.get_renderers_xids()
+                for interface in self.interfaces:
+                    if self.is_gui(interface) is True:
+                        # get xids from gui
+                        xids = interface.get_renderers_xids()
+
+                        # set drawing black background
+                        # for corresponding renderers to False
+                        # TODO: pass not only stream id, but prog id too,
+                        # to disable drawing in only those renderers, that
+                        # should be drawn by backend
+                        interface.update_rendering_mode(
+                                    False,
+                                    compared_prog_list[0])
+
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
 
                 # apply analysis params to backend
                 self.send_analysis_params_to_backend()
 
-                # set drawing black background
-                # for corresponding renderers to False
-                # TODO: pass not only stream id, but prog id too,
-                # to disable drawing in only those renderers, that
-                # should be drawn by backend
-                self.gui.update_rendering_mode(False, compared_prog_list[0])
+
 
                 # write event to log
                 self.log.write_log_message("new stream prog list received "
@@ -482,7 +499,9 @@ class Control(GObject.GObject):
                 self.video_error_detector.set_data(vparams)
 
                 # update video plot data in gui
-                self.gui.update_video_plots_data(vparams)
+                for interface in self.interfaces:
+                    if self.is_gui(interface) is True:
+                        interface.update_video_plots_data(vparams)
 
             # measured data for audio received from backend
             elif wstr[0] == 'a':
@@ -490,12 +509,10 @@ class Control(GObject.GObject):
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
                 self.audio_error_detector.set_data(aparams)
 
-                #print(wstr)
-
-                # update audio plot data in gui
-                self.gui.update_audio_plots_data(aparams)
-                # update lufs levels in program table in gui
-                self.gui.update_lufs(aparams)
+                # update lufs levels in program table and plots in gui
+                for interface in self.interfaces:
+                    if self.is_gui(interface) is True:
+                        interface.update_lufs(aparams)
 
             # end of stream message received from backend
             elif wstr[0] == 'e':
