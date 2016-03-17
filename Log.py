@@ -9,7 +9,7 @@ TYPE_ERROR = 2
 
 
 class Log():
-    def __init__(self, filename):
+    def __init__(self, filename='log.txt'):
         self.filename = filename
         # create new file or rewrite old file with same name
         f = open(self.filename, 'w')

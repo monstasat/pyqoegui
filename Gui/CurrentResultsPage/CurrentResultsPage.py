@@ -60,9 +60,6 @@ class CurrentResultsPage(Gtk.Grid):
                           pid,
                           value)
 
-    def get_renderers_xid(self):
-        return self.rend.get_renderers_xid()
-
     def on_prog_list_changed(self, prog_list):
         prog_num = 0
         for stream in prog_list:

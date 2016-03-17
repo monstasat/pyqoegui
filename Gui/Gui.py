@@ -316,7 +316,7 @@ class Gui(BaseInterface):
 
     # Control asks to return current xids for video rendering
     def get_renderers_xids(self):
-        return self.cur_results_page.get_renderers_xid()
+        return self.cur_results_page.rend.get_renderers_xid()
 
     # Control asks to return info about currently existing plots
     def get_plot_info(self):

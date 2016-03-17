@@ -4,6 +4,9 @@ import copy
 
 from gi.repository import Gio
 
+from Control import AnalysisSettingsIndexes as ai
+from Control import TunerSettingsIndexes as ti
+
 
 class Config():
     def __init__(self):
@@ -78,8 +81,12 @@ class Config():
     def get_analysis_settings(self):
         self.config.read('config.ini')
         analysis_settings = self.config['user'].get('analysis_settings', '[]')
+        analysis_settings = json.loads(analysis_settings)
 
-        return json.loads(analysis_settings)
+        if len(analysis_settings) < len(ai.DEFAULT_VALUES):
+            analysis_settings = ai.DEFAULT_VALUES
+
+        return analysis_settings
 
     def set_tuner_settings(self, tuner_settings):
         self.config['user']['tuner_settings'] = json.dumps(tuner_settings)
@@ -88,6 +95,10 @@ class Config():
     def get_tuner_settings(self):
         self.config.read('config.ini')
         tuner_settings = self.config['user'].get('tuner_settings', '[]')
+        tuner_settings = json.loads(tuner_settings)
 
-        return json.loads(tuner_settings)
+        if len(tuner_settings) < len(ti.DEFAULT_VALUES):
+            tuner_settings = ti.DEFAULT_VALUES
+
+        return tuner_settings
 

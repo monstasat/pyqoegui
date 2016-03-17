@@ -1,10 +1,7 @@
-import sys
 import psutil
 
 from gi.repository import Gio, GObject
 
-from Gui.Gui import Gui
-from Usb.Usb import Usb
 from BaseInterface import BaseInterface
 from Backend.Backend import Backend
 from Backend import State
@@ -12,12 +9,12 @@ from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
 from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
 from Control.ProgramListControl import ProgramListControl
-from Control import CustomMessages
-from Config.Config import Config
-from Log import Log
 from Control.DVBTunerControl import DVBTunerControl
 from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
+from Control import CustomMessages
+from Config.Config import Config
+from Log import Log
 
 
 class Control(GObject.GObject):
@@ -25,27 +22,16 @@ class Control(GObject.GObject):
     def __init__(self, app):
 
         # create log writer
-        self.log = Log("log.txt")
+        self.log = Log()
         # create config
         self.config = Config()
         # create message translator
         self.msg_translator = TranslateMessages()
 
-        # write message to log
-        self.log.write_log_message("application launched", True)
-
-        # create program list from current streams
         self.sprogs_control = ProgramListControl([])
-        # create program list currently selected by user
         self.aprogs_control = ProgramListControl(self.config.get_prog_list())
-        # create list with analysis settings
         self.analysis_settings = self.config.get_analysis_settings()
-        if len(self.analysis_settings) < len(ai.DEFAULT_VALUES):
-            self.analysis_settings = ai.DEFAULT_VALUES
-        # create tuner settings list
         self.tuner_settings = self.config.get_tuner_settings()
-        if len(self.tuner_settings) < len(ti.DEFAULT_VALUES):
-            self.tuner_settings = ti.DEFAULT_VALUES
 
         # create tv tuner control
         self.rf_tuner = DVBTunerControl(self.tuner_settings)
@@ -55,8 +41,9 @@ class Control(GObject.GObject):
 
         # create backend
         self.backend = Backend(streams=1)
-        interface_names = ['Gui', 'Usb']
+
         # create interfaces
+        interface_names = ['Gui', 'Usb']
         self.interfaces = list(map(lambda x: BaseInterface.factory(x, app),
                                    interface_names))
 
@@ -86,13 +73,13 @@ class Control(GObject.GObject):
                                          self.config.get_table_revealer(),
                                          self.config.get_plot_info())
                 interface.connect(CustomMessages.VOLUME_CHANGED,
-                                 self.on_volume_changed)
+                                  self.on_volume_changed)
                 interface.connect(CustomMessages.COLOR_THEME,
-                                 self.on_gui_color_theme_changed)
+                                  self.on_gui_color_theme_changed)
                 interface.connect(CustomMessages.PROG_TABLE_REVEALER,
-                                 self.on_gui_table_revealer)
+                                  self.on_gui_table_revealer)
                 interface.connect(CustomMessages.PLOT_PAGE_CHANGED,
-                                 self.on_gui_plot_page_changed)
+                                  self.on_gui_plot_page_changed)
 
                 # initially set drawing black background
                 # for corresponding renderers to True
@@ -125,6 +112,7 @@ class Control(GObject.GObject):
                               self.on_new_tuner_params)
 
         # write log message
+        self.log.write_log_message("application launched", True)
         msg = "initial number of selected programs: %d" % \
               self.aprogs_control.get_prog_num()
         self.log.write_log_message(msg)
@@ -192,8 +180,6 @@ class Control(GObject.GObject):
         self.server.start()
 
     def start_analysis(self):
-
-        # execute all gstreamer pipelines
         self.backend.start_all_pipelines()
 
         for interface in self.interfaces:
@@ -203,10 +189,7 @@ class Control(GObject.GObject):
                 interface.mute_all_renderers()
 
     def stop_analysis(self):
-        # execute all gstreamer pipelines
         self.backend.terminate_all_pipelines()
-
-        # clear stream prog list
         self.stream_progs.clear()
 
         for interface in self.interfaces:
@@ -221,7 +204,6 @@ class Control(GObject.GObject):
                 # set drawing black background for all renderers to True
                 for stream in self.analyzed_progs:
                     interface.update_rendering_mode(True, stream[0])
-                # force redrawing of gui
                 interface.window.queue_draw()
 
     def on_get_cpu_load(self):
@@ -251,14 +233,8 @@ class Control(GObject.GObject):
 
         # Configure backend according to new analyzed prog list
         # we need to restart gstreamer pipelines with ids that were selected
-        # so we need to extract these ids from program list
-        stream_ids = []
-        # iterating over stream rows
         for stream in self.analyzed_progs:
-            stream_ids.append(stream[0])
-        # restart pipelines with selected ids
-        for pipeline_id in stream_ids:
-            self.backend.restart_pipeline(pipeline_id)
+            self.backend.restart_pipeline(stream[0])
 
         # Save analyzed prog list in Config
         self.config.set_prog_list(self.analyzed_progs)
@@ -337,17 +313,14 @@ class Control(GObject.GObject):
 
     # Gui sent a message about volume level changed
     def on_volume_changed(self, source, stream_id, prog_id, pid, value):
-        # tell backend to change volume in corresponding pipeline
         self.backend.change_volume(stream_id, prog_id, pid, value)
 
     # Gui sent a message about color theme changed
     def on_gui_color_theme_changed(self, source, color_theme):
-        # save new color theme in Config
         self.config.set_color_theme(color_theme)
 
     # Gui sent a message about program table hidden/revealed
     def on_gui_table_revealer(self, source, table_state):
-        # save program table state in Config
         self.config.set_table_revealer(table_state)
 
     # Gui sent a message about plot was added/deleted
@@ -375,25 +348,16 @@ class Control(GObject.GObject):
             interface.update_tuner_status(status, hw_errors, temperature)
 
     # Tuner control sent a message with new measured data
-    def on_new_tuner_measured_data(self,
-                                   source,
-                                   mer,
-                                   mer_updated,
-                                   ber1,
-                                   ber1_updated,
-                                   ber2,
-                                   ber2_updated,
-                                   ber3,
-                                   ber3_updated):
+    def on_new_tuner_measured_data(self, source,
+                                   mer, mer_updated,
+                                   ber1, ber1_updated,
+                                   ber2, ber2_updated,
+                                   ber3, ber3_updated):
 
-        measured_data = [mer,
-                         mer_updated,
-                         ber1,
-                         ber1_updated,
-                         ber2,
-                         ber2_updated,
-                         ber3,
-                         ber3_updated]
+        measured_data = [mer, mer_updated,
+                         ber1, ber1_updated,
+                         ber2, ber2_updated,
+                         ber3, ber3_updated]
 
         for interface in self.interfaces:
             interface.update_tuner_measured_data(measured_data)
@@ -407,12 +371,8 @@ class Control(GObject.GObject):
 
     # Set new analysis settings to backend
     def send_analysis_params_to_backend(self):
-        # get black pixel value from analysis settings
         black_pixel_val = int(self.analysis_settings[ai.BLACK_PIXEL][2])
-        # get pixel difference value from analysis settings
         pixel_diff = int(self.analysis_settings[ai.PIXEL_DIFF][2])
-
-        # apply parameters to gstreamer pipelines
         self.backend.change_analysis_params(black_pixel_val, pixel_diff)
 
     # Backend sent a message that one of streams has ended
@@ -420,28 +380,20 @@ class Control(GObject.GObject):
         # update stream prog list
         self.sprogs_control.add_one_stream([stream_id, []])
 
-        # update stream program list in Gui and Usb
+        msg = "end of stream (id = %d) received" % stream_id
+        print(msg)
+        # if current state of pipeline with corresponding id is RUNNING
+        # we need to restart this pipeline
+        if self.backend.get_pipeline_state(stream_id) is State.RUNNING:
+            self.backend.restart_pipeline(stream_id)
+            # add event to log
+            self.log.write_log_message(msg)
+
         for interface in self.interfaces:
             interface.update_stream_prog_list(self.stream_progs)
-
-        # getting state of gstreamer pipeline with corresponding stream id
-        state = self.backend.get_pipeline_state(stream_id)
-
-        # if current state is RUNNING
-        # (this means that pipeline currently decoding some programs)
-        # we need to restart this pipeline
-        if state is State.RUNNING:
-            # add event to log
-            msg = "end of stream (id = %d) received" % stream_id
-            self.log.write_log_message(msg)
-            self.backend.restart_pipeline(stream_id)
-
-        for interface in self.interfaces:
             if self.is_gui(interface) is True:
-                # set drawing black background
-                # for corresponding renderers to True
+                # set drawing black background for renderers
                 interface.update_rendering_mode(True, stream_id)
-                # force redrawing of gui
                 interface.window.queue_draw()
 
     # Handling messages from backend
@@ -487,15 +439,16 @@ class Control(GObject.GObject):
                                     compared_prog_list[0])
                         break
                 else:
-                    xids = [[0, 0, 0]]*self.sprogs_control.get_prog_num()
+                    xids = []
+                    for stream in compared_prog_list:
+                        for prog in stream[1]:
+                            xids.append([int(stream[0]), int(prog[0]), 0])
 
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
 
                 # apply analysis params to backend
                 self.send_analysis_params_to_backend()
-
-
 
                 # write event to log
                 self.log.write_log_message("new stream prog list received "
@@ -506,7 +459,6 @@ class Control(GObject.GObject):
                 # translate message from string to list
                 vparams = self.msg_translator.get_vparams_list(wstr[1:])
                 self.video_error_detector.set_data(vparams)
-
                 # update video plot data in gui
                 for interface in self.interfaces:
                     if self.is_gui(interface) is True:
@@ -517,7 +469,6 @@ class Control(GObject.GObject):
                 # translate message from string to list
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
                 self.audio_error_detector.set_data(aparams)
-
                 # update lufs levels in program table and plots in gui
                 for interface in self.interfaces:
                     if self.is_gui(interface) is True:
@@ -526,5 +477,4 @@ class Control(GObject.GObject):
             # end of stream message received from backend
             elif wstr[0] == 'e':
                 self.end_of_stream_received(int(wstr[1:]))
-                print(wstr)
 
