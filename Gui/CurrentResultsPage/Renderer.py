@@ -126,9 +126,16 @@ class Renderer(Gtk.Grid):
 
             # create pixbuf from icon with size height/2
             icon_theme = Gtk.IconTheme.get_default()
-            pixbuf = icon_theme.load_icon(icon,
-                                          h/2,
-                                          0)
+
+            icon_info = icon_theme.choose_icon([icon], h/2, 0)
+            pixbuf = icon_info.load_symbolic(Gdk.RGBA(1,1,1,1),
+                                             Gdk.RGBA(1,1,1,1),
+                                             Gdk.RGBA(1,1,1,1),
+                                             Gdk.RGBA(1,1,1,1))[0]
+            print(pixbuf)
+           # pixbuf = icon_theme.load_icon(icon,
+           #                               h/2,
+           #                               0)
 
             # fill renderer background
             cr.set_source_rgb(0.0, 0.0, 0.0)
