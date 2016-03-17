@@ -129,6 +129,9 @@ class RendererGrid(Gtk.FlowBox):
     def set_draw_mode_for_renderers(self, draw, stream_id):
         for i in range(len(self.get_children())):
             if self.rend_arr[i].stream_id == stream_id:
+                # if this is a radio program, set double buffered by default
+                if (self.rend_arr[i].prog_type & 1) == 0:
+                    draw = True
                 self.rend_arr[i].draw = draw
                 self.rend_arr[i].drawarea.set_double_buffered(draw)
 

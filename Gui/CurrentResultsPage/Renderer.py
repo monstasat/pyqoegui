@@ -106,7 +106,6 @@ class Renderer(Gtk.Grid):
         # TODO: change 1 to VIDEO
         # if renderer corresponds to radio program
         if (self.prog_type & 1) == 0:
-
             # get volume button icons
             icons = self.volbtn.get_property("icons")
 
@@ -133,8 +132,7 @@ class Renderer(Gtk.Grid):
 
             # fill renderer background
             cr.set_source_rgb(0.0, 0.0, 0.0)
-            cr.rectangle(0, 0, w, h)
-            cr.fill()
+            cr.paint()
 
             Gdk.cairo_set_source_pixbuf(cr,
                                         pixbuf,
