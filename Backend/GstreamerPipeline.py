@@ -31,14 +31,16 @@ class GstreamerPipeline():
         self.terminate()
 
         # execute new process
-        ip = "224.1.2." + str(2 + self.stream_id)
+        #ip = "224.1.2." + str(2 + self.stream_id)
         # this is for testing purposes
-        #ip = "127.0.0.1"
+        ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234)
         print(ip)
         print(stream)
         print(port)
+        out = open("backend_log", "w")
+        err = open("backend_err_log", "w")
         self.proc = subprocess.Popen(
                             ["ats3-backend",
                              "--stream",
@@ -46,8 +48,10 @@ class GstreamerPipeline():
                              "--ip",
                              ip,
                              "--port",
-                             port]
-                                    )
+                             port],
+                             stdout=out,
+                             stderr=err)
+
         if self.proc is not None:
             self.state = State.IDLE
         print("executing pipeline")

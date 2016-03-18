@@ -1,8 +1,8 @@
-#ignore python cache
+#ignore file list
 *.pyc
 *.ini
-
-#ignore txt
+backend_err_log
+backend_log
 *.txt
 
 #ignore folders

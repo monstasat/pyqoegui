@@ -9,7 +9,7 @@ TYPE_ERROR = 2
 
 
 class Log():
-    def __init__(self, filename='log.txt'):
+    def __init__(self, filename='log'):
         self.filename = filename
         # create new file or rewrite old file with same name
         f = open(self.filename, 'w')
@@ -39,7 +39,7 @@ class Log():
         # writing log message to a file
         # is file is not empty and 'start from new line' flag is set,
         # write the message with one blank line above
-        if from_new_line and (os.stat('log.txt').st_size != 0):
+        if from_new_line and (os.stat(self.filename).st_size != 0):
             f.write("\n" + time + type_str + msg + "\n")
         else:
             f.write(time + type_str + msg + "\n")
@@ -55,7 +55,7 @@ class Log():
         # writing log submessage to a file
         # is file is not empty and 'start from new line' flag is set,
         # write the message with one blank line above
-        if from_new_line and (os.stat('log.txt').st_size != 0):
+        if from_new_line and (os.stat(self.filename).st_size != 0):
             f.write("\n" + "\t" + msg + "\n")
         else:
             f.write("\t" + msg + "\n")
