@@ -43,7 +43,7 @@ class Control(GObject.GObject):
         self.backend = Backend(streams=1)
 
         # create interfaces
-        interface_names = ['Usb']
+        interface_names = ['Gui', 'Usb']
         self.interfaces = list(map(lambda x: BaseInterface.factory(x, app),
                                    interface_names))
 
