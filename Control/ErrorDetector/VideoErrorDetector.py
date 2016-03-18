@@ -129,7 +129,7 @@ class VideoErrorDetector(BaseErrorDetector):
                              self.is_blocky_flag]])       # blockiness
 
         for interface in self.interfaces:
-            interface.update_video_status(results)
+            interface.update_video_status(list(results))
 
         return True
 

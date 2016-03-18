@@ -1,3 +1,5 @@
+import math
+
 from gi.repository import GObject
 
 from BaseInterface import BaseInterface
@@ -47,8 +49,8 @@ class Usb(BaseInterface):
         if self.init_done is False:
             self.exchange.send_init()
         else:
-            self.exchange.send_status()
-            self.exchange.status_version += 1
+            #self.exchange.send_status()
+            #self.exchange.status_version += 1
             self.exchange.send_errors()
 
         return True
@@ -178,12 +180,44 @@ class Usb(BaseInterface):
 
         return True
 
+    def is_in_prog_list(self, stream_id, prog_id, pid_id):
+        prog_cnt = 0
+        found = False
+        # FIXME: optimize it
+        for stream in self.analyzed_prog_list:
+            if stream_id == int(stream[0]):
+                for prog in stream[1]:
+                    prog_cnt += 1
+                    if prog_id == int(prog[0]):
+                        for pid in prog[4]:
+                            if pid_id == int(pid[0]):
+                                found = True
+                                break
+                    if found is True:
+                        break
+            if found is True:
+                break
+
+        if found is True:
+            if prog_cnt < self.exchange.MAX_PROG_NUM:
+                return prog_cnt - 1
+
+        return None
+
     # Methods for interaction with Control
     # Common methods for Gui and Usb
 
     # called by Control to update stream prog list
     def update_stream_prog_list(self, prog_list):
         BaseInterface.update_stream_prog_list(self, prog_list)
+
+        prog_cnt = 0
+        for stream in prog_list:
+            prog_cnt += len(stream[1])
+        if prog_cnt > 0:
+            self.exchange.status_flags = 0xF0
+        else:
+            self.exchange.status_flags = 0x00
 
         # increment settings version
         self.exchange.settings_version += 1
@@ -230,17 +264,36 @@ class Usb(BaseInterface):
     # called by Error Detector to update video status
     def update_video_status(self, results):
         BaseInterface.update_video_status(self, results)
-        # TODO: set values to status
+        for result in results:
+            prog_idx = self.is_in_prog_list(result[0][0],
+                                            result[0][1],
+                                            result[0][2])
+            if prog_idx is not None:
+                self.exchange.set_video_status(prog_idx, result[1])
+        self.exchange.status_updated |= 1
+        self.exchange.send_status()
 
     # called by Error Detector to update audio status
     def update_audio_status(self, results):
         BaseInterface.update_audio_status(self, results)
-        # TODO: set values to status
+        for result in results:
+            prog_idx = self.is_in_prog_list(result[0][0],
+                                            result[0][1],
+                                            result[0][2])
+            if prog_idx is not None:
+                self.exchange.set_audio_status(prog_idx, result[1])
+        self.exchange.status_updated |= 2
+        self.exchange.send_status()
 
     # called by Control to update lufs values in program table and plots
     def update_lufs(self, lufs):
         BaseInterface.update_lufs(self, lufs)
-        # TODO: set values to status
+        prog_idx = self.is_in_prog_list(lufs[0][0], lufs[0][1], lufs[0][2])
+        if prog_idx is not None:
+            average = sum(lufs[1][1]) / float(len(lufs[1][1]))
+            average = math.ceil(average)
+            average = abs(average)
+            self.exchange.lufs[prog_idx] = average
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):

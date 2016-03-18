@@ -487,8 +487,7 @@ class Control(GObject.GObject):
                 self.audio_error_detector.set_data(aparams)
                 # update lufs levels in program table and plots in gui
                 for interface in self.interfaces:
-                    if self.is_gui(interface) is True:
-                        interface.update_lufs(aparams)
+                    interface.update_lufs(aparams)
 
             # end of stream message received from backend
             elif wstr[0] == 'e':

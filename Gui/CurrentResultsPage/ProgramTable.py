@@ -211,7 +211,7 @@ class ProgramTable(Gtk.TreeView):
 
                     # remove current item from result list
                     # as we don't need it anymore
-                    results.remove(result)
+                    #results.remove(result)
 
     def update_video(self, results):
         self.update(results, 'video')

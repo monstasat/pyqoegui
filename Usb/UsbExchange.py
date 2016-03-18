@@ -7,6 +7,7 @@ from Usb import UsbMessageTypes as usb_msgs
 from Control import ProgramListControl
 from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
+from Control.ErrorDetector import StatusTypes
 
 
 class UsbExchange():
@@ -58,6 +59,11 @@ class UsbExchange():
         self.settings_version = 0
         self.dvb_cont_ver = 0
         self.dvb_stat_ver = 0
+        self.lufs = [0]*self.MAX_PROG_NUM
+        self.errs = [0]*self.MAX_PROG_NUM
+        self.status_flags = 0
+
+        self.status_updated = 0
 
         self.is_connected = False
 
@@ -98,7 +104,49 @@ class UsbExchange():
                           0)
         self.write(msg)
 
+    def set_video_status(self, prog_idx, results):
+        status = 0
+        if results[0] is StatusTypes.ERR:
+            status = 0x01
+        elif results[1] is StatusTypes.ERR:
+            status = 0x02
+        elif results[2] is StatusTypes.ERR:
+            status = 0x03
+        elif results[3] is StatusTypes.ERR:
+            status = 0x04
+        elif results[1] is StatusTypes.WARN:
+            status = 0x05
+        elif results[2] is StatusTypes.WARN:
+            status = 0x06
+        elif results[3] is StatusTypes.WARN:
+            status = 0x07
+        else:
+            status = 0x00
+
+        self.errs[prog_idx] |= status
+
+    def set_audio_status(self, prog_idx, results):
+        status = 0
+        if results[0] is StatusTypes.ERR:
+            status = 0x10
+        elif results[1] is StatusTypes.ERR:
+            status = 0x20
+        elif results[2] is StatusTypes.ERR:
+            status = 0x30
+        elif results[1] is StatusTypes.WARN:
+            status = 0x40
+        elif results[2] is StatusTypes.WARN:
+            status = 0x50
+        else:
+            status = 0x00
+
+        self.errs[prog_idx] |= status
+
     def send_status(self):
+        # FIXME 3
+        if self.status_updated != 3:
+            return
+
         STATUS_MSG = self.HEADER
         # reserved, ts count, reserved
         STATUS_MSG += "HHBBB"
@@ -111,8 +159,6 @@ class UsbExchange():
         LOUD_MSG = "%sB" % self.MAX_PROG_NUM
         VOID_MSG = "%sH" % 225
 
-        tmp_err = [0 for _ in range(self.MAX_PROG_NUM)]
-        tmp_lou = [0 for _ in range(self.MAX_PROG_NUM)]
         tmp_zer = [0 for _ in range(225)]
 
         msg_code = (0x0300 | self.START_MSG) | \
@@ -122,19 +168,24 @@ class UsbExchange():
                         usb_msgs.PREFIX,
                         msg_code,
                         0, 0, 0, 1, 0,
-                        0,
+                        self.status_flags,
                         self.status_version & 0xff,
                         self.settings_version & 0xff,
                         int(self.cpu_load/100*255 + 0.5), 0,
                         self.dvb_stat_ver & 0xff,
                         self.dvb_cont_ver & 0xff)
 
-        err = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_err)
-        loud = struct.pack("=%sB" % self.MAX_PROG_NUM, *tmp_lou)
+        err = struct.pack("=%sB" % self.MAX_PROG_NUM, *self.errs)
+        loud = struct.pack("=%sB" % self.MAX_PROG_NUM, *self.lufs)
         rsrvd = struct.pack("=%sH" % 225, *tmp_zer)
 
         msg = b''.join([b, err, loud, rsrvd])
         self.write(msg)
+
+        self.lufs = [0]*self.MAX_PROG_NUM
+        self.errs = [0]*self.MAX_PROG_NUM
+        self.status_version += 1
+        self.status_updated = 0
 
     def send_errors(self):
         pass
