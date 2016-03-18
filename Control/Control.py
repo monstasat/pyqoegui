@@ -90,8 +90,19 @@ class Control(GObject.GObject):
 
             # if interface is of type 'Usb'
             elif self.is_usb(interface) is True:
+                if interface.exchange.is_connected is False:
+                    print("Usb interface is not connected. "
+                          "Deleting interface...")
+                    interface.__destroy__()
+                    self.interfaces.remove(interface)
+                    continue
                 interface.connect(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
                                   self.on_remote_clients_num_changed)
+
+        if len(self.interfaces) == 0:
+            print("There are no interfaces available, terminating...")
+            self.__destroy__()
+            return
 
         # create video error detector
         self.video_error_detector = VideoErrorDetector(
