@@ -37,10 +37,10 @@ class BaseInterface(GObject.GObject):
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
 
-        #self.app.hold()
+        self.app.hold()
 
     def __destroy__(self):
-        #self.app.release()
+        self.app.release()
         pass
 
     def factory(type_, app):

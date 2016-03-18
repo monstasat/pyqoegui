@@ -43,7 +43,7 @@ class Control(GObject.GObject):
         self.backend = Backend(streams=1)
 
         # create interfaces
-        interface_names = ['Gui', 'Usb']
+        interface_names = ['Usb']
         self.interfaces = list(map(lambda x: BaseInterface.factory(x, app),
                                    interface_names))
 
@@ -80,6 +80,7 @@ class Control(GObject.GObject):
                                   self.on_gui_table_revealer)
                 interface.connect(CustomMessages.PLOT_PAGE_CHANGED,
                                   self.on_gui_plot_page_changed)
+                interface.window.connect("delete-event", self.on_gui_delete)
 
                 # initially set drawing black background
                 # for corresponding renderers to True
@@ -332,6 +333,9 @@ class Control(GObject.GObject):
         # save current plot info in Config
         self.config.set_plot_info(plot_info)
 
+    def on_gui_delete(self, source, event):
+        self.__destroy__()
+
     # Interaction with Gui and Usb
     # Methods specific for Usb
 
@@ -440,9 +444,10 @@ class Control(GObject.GObject):
                         break
                 else:
                     xids = []
-                    for stream in compared_prog_list:
-                        for prog in stream[1]:
-                            xids.append([int(stream[0]), int(prog[0]), 0])
+                    for prog in compared_prog_list[1]:
+                        xids.append([int(compared_prog_list[0]),
+                                     int(prog[0]),
+                                     0])
 
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)

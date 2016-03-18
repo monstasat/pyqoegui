@@ -34,7 +34,7 @@ class Gui(BaseInterface):
 
         BaseInterface.__init__(self, app)
 
-        self.window = Gtk.Window(application=app)
+        self.window = Gtk.Window()
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
