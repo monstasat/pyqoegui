@@ -7,9 +7,10 @@ from Gui import Spacing
 from Control import CustomMessages
 
 
-class CurrentResultsPage(Gtk.Grid):
+class CurrentResultsPage(Gtk.Box):
     def __init__(self, parent):
-        Gtk.Grid.__init__(self)
+        Gtk.Grid.__init__(self, orientation=Gtk.Orientation.VERTICAL,
+                          spacing=Spacing.ROW_SPACING)
 
         # main window
         self.mainWnd = parent
@@ -21,44 +22,31 @@ class CurrentResultsPage(Gtk.Grid):
 
         # creating renderers overlay
         overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
-                              hexpand=True,
-                              vexpand=True)
+                              hexpand=True, vexpand=True)
         overlay.add(self.rend)
         self.holder = Placeholder("face-smirk-symbolic",
                                   'Нет анализируемых программ :('
                                   '\nНо их можно добавить в меню '
                                   '"Выбор программ для анализа"!',
                                   72)
-
         overlay.add_overlay(self.holder)
 
         # creating prog table
         self.prgtbl = ProgramTable()
-
         # creating prog table revealer
         self.tableRevealer = Gtk.Revealer(
                     reveal_child=True,
                     valign=Gtk.Align.END,
                     transition_type=Gtk.RevealerTransitionType.SLIDE_UP)
-
         self.tableRevealer.add(self.prgtbl)
 
-        # attach - left, top, width, height
-        self.attach(overlay, 0, 0, 1, 1)
-        self.attach(self.tableRevealer, 0, 1, 1, 1)
-
-        # set grid alignment and spacing
-        self.set_valign(Gtk.Align.FILL)
-        self.set_column_spacing(Spacing.COL_SPACING)
-        self.set_row_spacing(Spacing.ROW_SPACING)
+        self.add(overlay)
+        self.add(self.tableRevealer)
 
     # when user changes volume of renderer
     def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
         self.mainWnd.emit(CustomMessages.VOLUME_CHANGED,
-                          stream_id,
-                          prog_id,
-                          pid,
-                          value)
+                          stream_id, prog_id, pid, value)
 
     def on_prog_list_changed(self, prog_list):
         prog_num = 0
@@ -80,7 +68,7 @@ class CurrentResultsPage(Gtk.Grid):
 
     def hide_renderer_and_table(self):
         # if table does not have any rows, hide it
-        if len(self.prgtbl.get_model()) < 1:
+        if len(self.prgtbl.get_model()) == 0:
             self.prgtbl.hide()
         # if rows added, hide renderers overlay
         else:
@@ -90,6 +78,5 @@ class CurrentResultsPage(Gtk.Grid):
         return self.tableRevealer
 
     def mute_all_renderers(self):
-        for rend in self.rend.rend_arr:
-            rend.set_volume(0)
+        map(lambda x: x.set_volume(0), self.rend.rend_arr)
 

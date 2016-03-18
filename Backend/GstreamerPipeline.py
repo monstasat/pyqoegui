@@ -8,23 +8,9 @@ from Backend import State
 
 class GstreamerPipeline():
     def __init__(self, stream_id):
-        # backend process id
         self.stream_id = stream_id
         self.proc = None
-
-        # process state
         self.state = State.TERMINATED
-
-        # constants to construct prog list message
-        self.BYTE_STREAM_DIVIDER = 0xABBA0000
-        self.BYTE_PROG_DIVIDER = 0xACDC0000
-        self.HEADER_PROG_LIST = 0xDEADBEEF
-
-        self.HEADER_SOUND = 0x0EFA1922
-
-        self.HEADER_VIDEO_PARAMS = 0xCDDA1307
-        self.TYPE_BLACK_PIX = 0xBA1306BA
-        self.TYPE_PIXEL_DIFF = 0xDA0476AD
 
     def execute(self):
         # terminate previously executed process if any
@@ -33,7 +19,7 @@ class GstreamerPipeline():
         # execute new process
         ip = "224.1.2." + str(2 + self.stream_id)
         # this is for testing purposes
-        # ip = "127.0.0.1"
+        #ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234)
         print("executing pipeline")
@@ -44,14 +30,10 @@ class GstreamerPipeline():
         err = open("backend_err_log", "w")
         self.proc = subprocess.Popen(
                             ["ats3-backend",
-                             "--stream",
-                             stream,
-                             "--ip",
-                             ip,
-                             "--port",
-                             port],
-                             stdout=out,
-                             stderr=err)
+                             "--stream", stream,
+                             "--ip", ip,
+                             "--port", port],
+                            stdout=out, stderr=err)
 
         if self.proc is not None:
             self.state = State.IDLE
@@ -64,39 +46,44 @@ class GstreamerPipeline():
             self.state = State.TERMINATED
         print("terminating pipeline")
 
-    def apply_new_program_list(self, progList):
+    def apply_new_program_list(self, prog_list):
         print("applying new prog list for pipeline")
+        # constants to construct prog list message
+        STREAM_DIVIDER = 0xABBA0000
+        PROG_DIVIDER = 0xACDC0000
+        HEADER = 0xDEADBEEF
 
-        msg_parts = []
+        msg = pack("II", HEADER, STREAM_DIVIDER)
 
-        # add message header and divider
-        msg_parts.append(pack('I', self.HEADER_PROG_LIST))
-        msg_parts.append(pack('I', self.BYTE_STREAM_DIVIDER))
+        for prog in prog_list[1]:
+            prg = pack('IIII',
+                       prog_list[0], PROG_DIVIDER, int(prog[0]), prog[4])
+            msg = b''.join([msg, prg])
+            for pid in prog[5]:
+                msg = b''.join([msg, pack('I', int(pid[0]))])
 
-        # read some list params
-        stream_id = progList[0]
-        progs = progList[1]
+        msg = b''.join([msg, pack('I', HEADER)])
 
-        # checking if settings are really for this particular process
-        if self.stream_id == stream_id:
-            # pack stream id
-            msg_parts.append(pack('I', stream_id))
+        # send message to gstreamer pipeline
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+        self.state = State.RUNNING
 
-            for i, prog in enumerate(progs):
-                msg_parts.append(pack('I', self.BYTE_PROG_DIVIDER))
-                msg_parts.append(pack('I', int(prog[0])))
-                msg_parts.append(pack('I', prog[4]))
-                pids = prog[5]
+    def change_volume(self, prog_id, pid, value):
+        HEADER = 0x0EFA1922
+        msg = pack("IIIII", HEADER, prog_id, pid, value, HEADER)
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 
-                for pid in pids:
-                    msg_parts.append(pack('I', int(pid[0])))
+    # apply new analysis parameters
+    def change_analysis_params(self, black_pixel, diff_level):
+        HEADER = 0xCDDA1307
+        BLACK_PIX = 0xBA1306BA
+        PIXEL_DIFF = 0xDA0476AD
 
-            # add message ending
-            msg_parts.append(pack('I', self.HEADER_PROG_LIST))
-            msg = b"".join(msg_parts)
-            # send message to gstreamer pipeline
-            self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
-            self.state = State.RUNNING
+        msg = pack("IIII", HEADER, BLACK_PIX, black_pixel, HEADER)
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
+        msg = pack("IIII", HEADER, PIXEL_DIFF, diff_level, HEADER)
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 
     def send_message_to_pipeline(self, msg, destination):
         # open connection with gstreamer pipeline
@@ -104,59 +91,8 @@ class GstreamerPipeline():
         if self.state is not State.TERMINATED:
             client = Gio.SocketClient.new()
             connection = client.connect_to_host("localhost", destination, None)
-            istream = connection.get_input_stream()
-            ostream = connection.get_output_stream()
             # send message
-            ostream.write(msg)
+            connection.get_output_stream().write(msg)
             # close connection
             connection.close(None)
-
-    def change_volume(self, prog_id, pid, value):
-        msg_parts = []
-
-        # add message header
-        msg_parts.append(pack('I', self.HEADER_SOUND))
-
-        # add message parameters
-        msg_parts.append(pack('I', prog_id))
-        msg_parts.append(pack('I', pid))
-        msg_parts.append(pack('I', value))
-
-        # add message ending
-        msg_parts.append(pack('I', self.HEADER_SOUND))
-        msg = b"".join(msg_parts)
-
-        # send message to gstreamer pipeline
-        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
-
-    # apply new analysis parameters
-    def change_analysis_params(self, black_pixel, diff_level):
-
-        msg_parts = []
-
-        # add message header
-        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
-        # add param type and param
-        msg_parts.append(pack('I', self.TYPE_BLACK_PIX))
-        msg_parts.append(pack('I', black_pixel))
-        # add message ending
-        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
-        msg = b"".join(msg_parts)
-
-        # send message to gstreamer pipeline
-        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
-
-        msg_parts = []
-
-        # add message header
-        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
-        # add param type and param
-        msg_parts.append(pack('I', self.TYPE_PIXEL_DIFF))
-        msg_parts.append(pack('I', diff_level))
-        # add message ending
-        msg_parts.append(pack('I', self.HEADER_VIDEO_PARAMS))
-        msg = b"".join(msg_parts)
-
-        # send message to gstreamer pipeline
-        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 

@@ -70,18 +70,14 @@ class UsbMessageParser():
         return messages
 
     def parse_message(self, buf):
-        msg_code = buf[1]
-        msg_data = buf[2:]
-
-        return [msg_code, msg_data]
+        # msg code, msg data
+        return [buf[1], buf[2:]]
 
     def parse_analyzed_prog_list(self, data):
 
         def decode_string(data, i):
             bytes = struct.pack(13*"H", *data[i:(i + 13)])
-            string = str(bytes.decode('cp1251', 'replace'))
-            string = string.rstrip(' \t\r\n\0')
-            return string
+            return str(bytes.decode('cp1251', 'replace')).rstrip(' \t\r\n\0')
 
         prog_info = []
 

@@ -8,22 +8,20 @@ VERSION = "0.5.0b"
 # about ats analyzer dialog based on Gtk.AboutDialog
 class AboutDialog(Gtk.AboutDialog):
     def __init__(self, aboutParent):
-        Gtk.AboutDialog.__init__(self, parent=aboutParent)
-        # about dialog should be modal - no other windows are active
-        self.set_modal(True)
+        comments = "Анализ качества изображения и звука " \
+                   "в цифровых ТВ программах"
+        Gtk.AboutDialog.__init__(self, parent=aboutParent, modal=True,
+                                 program_name='Анализатор АТС-3-QoE',
+                                 version="Версия " + VERSION,
+                                 copyright='© 2016 АО "НИИ телевидения"',
+                                 comments=comments)
 
         # adding information to about dialog
-        self.set_property("program-name", 'Анализатор АТС-3-QoE')
-        self.set_property("version", "Версия " + VERSION)
         self.add_credit_section("Разработчики",
                                 ["Инженеры отдела НТК-18:",
                                  "Булавин Евгений",
                                  "Максименков Фёдор",
                                  "Янин Александр"])
-        self.set_property("comments",
-                          "Анализ качества изображения и звука "
-                          "в цифровых ТВ программах")
-        self.set_property("copyright", '© 2016 АО "НИИ телевидения"')
 
         try:
             logo = GdkPixbuf.Pixbuf.new_from_file(

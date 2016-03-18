@@ -14,7 +14,10 @@ from Control import CustomMessages
 class PlotPage(Gtk.Box):
 
     def __init__(self, mainWnd):
-        Gtk.Box.__init__(self)
+        Gtk.Box.__init__(self, hexpand=True, vexpand=True,
+                         halign=Gtk.Align.FILL, valign=Gtk.Align.CENTER,
+                         spacing=Spacing.ROW_SPACING,
+                         orientation=Gtk.Orientation.VERTICAL)
 
         # max plots on page
         self.MAX_PLOTS = 4
@@ -25,39 +28,23 @@ class PlotPage(Gtk.Box):
         # child array
         self.plots = []
 
-        # plot page is a box with vertical orientation
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-
-        # page must be expandable
-        self.set_vexpand(True)
-        self.set_hexpand(True)
-        # set alignment
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.CENTER)
-        # set spacing
-        self.set_spacing(Spacing.ROW_SPACING)
-
         # create add plot button
-        self.addBtn = Gtk.Button(label="Добавить график")
+        self.addBtn = Gtk.Button(label="Добавить график",
+                                 halign=Gtk.Align.CENTER)
         self.addBtn.get_style_context().add_class(
             Gtk.STYLE_CLASS_SUGGESTED_ACTION)
-        self.addBtn.set_halign(Gtk.Align.CENTER)
+        self.addBtn.connect('clicked', self.on_plot_add_dialog)
 
         self.placeholder = Placeholder(
             "list-add-symbolic",
-            "Для добавления нового графика нажмите кнопку",
-            72)
+            "Для добавления нового графика нажмите кнопку", 72)
         self.placeholder.set_valign(Gtk.Align.CENTER)
 
         # placeholder box (with add button)
-        self.placeholder_box = Gtk.Box()
-        self.placeholder_box.set_orientation(Gtk.Orientation.VERTICAL)
-        self.placeholder_box.set_spacing(Spacing.ROW_SPACING)
+        self.placeholder_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
+                                       spacing=Spacing.ROW_SPACING)
         self.placeholder_box.add(self.placeholder)
         self.placeholder_box.add(self.addBtn)
-
-        # connect buttons to callbacks
-        self.addBtn.connect('clicked', self.on_plot_add_dialog)
 
         # initially add only placeholder
         self.add(self.placeholder_box)
@@ -67,7 +54,6 @@ class PlotPage(Gtk.Box):
 
         # show plot selection dialog
         plotTypeDlg = PlotTypeSelectDialog(self.mainWnd)
-        plotTypeDlg.show_all()
         responce = plotTypeDlg.run()
 
         # if user selected a dialog
@@ -81,8 +67,6 @@ class PlotPage(Gtk.Box):
 
             # add plot to plot page
             self.add_plot(plot_info, selected_progs, [])
-
-            # emit message about plot num change to control
             self.mainWnd.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
         # hide plot selection dialog
@@ -107,11 +91,6 @@ class PlotPage(Gtk.Box):
 
         self.add_plot_intervals(plot, self.mainWnd.analysis_settings)
 
-        # plot.add_interval(0.25, GraphTypes.ERROR, True)
-        # plot.add_interval(0.05, GraphTypes.WARNING)
-        # plot.add_interval(0.4, GraphTypes.NORMAL)
-        # plot.add_interval(0.05, GraphTypes.WARNING)
-        # plot.add_interval(0.25, GraphTypes.ERROR)
         plot.set_min_max(plot_range[0], plot_range[1])
         plot.set_y_axis_unit(plot_unit)
         # connect plot to changed signal

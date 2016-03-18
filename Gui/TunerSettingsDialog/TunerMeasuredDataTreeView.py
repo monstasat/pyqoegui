@@ -6,36 +6,27 @@ from Control import TunerSettingsIndexes as ti
 # tree view that displays tuner measured data
 class TunerMeasuredDataTreeView(Gtk.TreeView):
     def __init__(self, parent):
-        Gtk.TreeView.__init__(self)
+        Gtk.TreeView.__init__(self, hexpand=True, vexpand=False,
+                              halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
+                              show_expanders=True, enable_tree_lines=True)
 
-        self.set_hexpand(True)
-        self.set_vexpand(False)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        self.set_show_expanders(True)
-        self.set_enable_tree_lines(False)
-        sel = self.get_selection()
-        sel.set_mode(Gtk.SelectionMode.NONE)
+        self.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
         # current measured data
         self.measured_data = [0, False, 0, False, 0, False, 0, False]
 
-        self.main_wnd = parent
+        self.device = parent.device
 
         self.store = Gtk.ListStore(str, str)
 
         self.unknown = "неизвестно"
 
         # append values
-        self.store.append(["MER",
-                           self.unknown])
-        self.store.append(["BER",
-                           self.unknown])
-        self.store.append(["BER",
-                           self.unknown])
-        self.store.append(["BER",
-                           self.unknown])
+        self.store.append(["MER", self.unknown])
+        self.store.append(["BER", self.unknown])
+        self.store.append(["BER", self.unknown])
+        self.store.append(["BER", self.unknown])
 
         # creating store filter
         self.store_filter = self.store.filter_new()
@@ -69,9 +60,9 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.append_column(self.column_value)
 
     def param_filter_func(self, model, iter_, data):
-        if self.main_wnd.device == 0xff:
+        if self.device == 0xff:
             return False
-        elif (self.main_wnd.device) == ti.DVBC and \
+        elif (self.device) == ti.DVBC and \
              (str(model.get_path(iter_)) == '3'):
             return False
         else:
@@ -97,7 +88,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.store[iter_][1] = str(self.measured_data[0])
 
         # set ber
-        if self.main_wnd.device == ti.DVBC:
+        if self.device == ti.DVBC:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера Рида-Соломона"
@@ -108,7 +99,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
             self.store[iter_][0] = "BER после декодера Рида-Соломона"
             self.store[iter_][1] = "%e" % self.measured_data[4]
 
-        elif self.main_wnd.device == ti.DVBT:
+        elif self.device == ti.DVBT:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера Витерби"
@@ -124,7 +115,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
             self.store[iter_][0] = "BER после декодера Рида-Соломона"
             self.store[iter_][1] = "%e" % self.measured_data[6]
 
-        elif self.main_wnd.device == ti.DVBT2:
+        elif self.device == ti.DVBT2:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера LDPC"

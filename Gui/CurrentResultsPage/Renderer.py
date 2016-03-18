@@ -14,18 +14,16 @@ class Renderer(Gtk.Grid):
         CustomMessages.VOLUME_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                         None, (int, int, int, int,))}
 
-    def __init__(self,
-                 stream_id,
-                 prog_id,
-                 prog_name,
-                 prog_type,
-                 video_pid,
-                 audio_pid):
+    def __init__(self, stream_id, prog_id, prog_name, prog_type,
+                 video_pid, audio_pid):
 
-        Gtk.Grid.__init__(self)
+        Gtk.Grid.__init__(self, hexpand=True, halign=Gtk.Align.FILL,
+                          valign=Gtk.Align.FILL)
 
         # is renderer enlarged by user?
         self.is_enlarged = False
+        # do we need to draw in drawarea?
+        self.draw = False
 
         self.stream_id = stream_id
         # program id from PMT
@@ -39,34 +37,16 @@ class Renderer(Gtk.Grid):
         # audio pid
         self.audio_pid = audio_pid
 
-        # should be horizontally expandable and fill all available space
-        self.set_hexpand_set(True)
-        self.set_hexpand(True)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
-
         # creating renderer window - drawing area
         self.drawarea = Gtk.DrawingArea(hexpand=True, vexpand=True)
         self.drawarea.set_events(Gdk.EventMask.EXPOSURE_MASK)
         self.drawarea.set_app_paintable(False)
-        # set default renderer size (4:3)
-        self.drawarea.set_size_request(100, 75)
-        # this is to remove flickering
         self.drawarea.set_double_buffered(False)
-        # connect 'draw' event with callback
         self.drawarea.connect("draw", self.on_drawingarea_draw)
-        # do we need to draw black background?
-        self.draw = False
-
-        screen = self.drawarea.get_screen()
-        visual = screen.get_system_visual()
-        if visual is not None:
-            self.drawarea.set_visual(visual)
 
         # creating volume button at the right edge of a renderer instance
         self.volbtn = Gtk.VolumeButton(halign=Gtk.Align.END,
-                                       hexpand=False,
-                                       vexpand=False)
+                                       hexpand=False, vexpand=False)
 
         self.volbtn.connect('value-changed', self.volume_changed)
         # if program to this renderer do no contain audio,
@@ -78,8 +58,7 @@ class Renderer(Gtk.Grid):
         # creating a program label
         progname = Gtk.Label(label=self.progName,
                              halign=Gtk.Align.END,
-                             hexpand=False,
-                             vexpand=False)
+                             hexpand=False, vexpand=False)
 
         # attach elements to grid
         self.attach(self.drawarea, 0, 0, 2, 1)
@@ -88,14 +67,8 @@ class Renderer(Gtk.Grid):
 
     def volume_changed(self, widget, value):
         self.emit(CustomMessages.VOLUME_CHANGED,
-                  int(self.stream_id),
-                  int(self.prog_id),
-                  int(self.audio_pid),
-                  int(value * 100))
-        # TODO: change 1 to VIDEO
-        # redraw if renderer corresponds to radio program
-        if (self.prog_type & 1) == 0:
-            self.drawarea.queue_draw()
+                  int(self.stream_id), int(self.prog_id),
+                  int(self.audio_pid), int(value * 100))
 
     # return xid for the drawing area
     def get_drawing_area_xid(self):
@@ -128,30 +101,23 @@ class Renderer(Gtk.Grid):
             icon_theme = Gtk.IconTheme.get_default()
 
             icon_info = icon_theme.choose_icon([icon], h/2, 0)
-            pixbuf = icon_info.load_symbolic(Gdk.RGBA(1,1,1,1),
-                                             Gdk.RGBA(1,1,1,1),
-                                             Gdk.RGBA(1,1,1,1),
-                                             Gdk.RGBA(1,1,1,1))[0]
+            white = Gdk.RGBA(1,1,1,1)
+            pixbuf = icon_info.load_symbolic(white, white, white, white)[0]
 
             # fill renderer background
             cr.set_source_rgb(0.0, 0.0, 0.0)
             cr.paint()
 
-            pixbuf.add_alpha(True, 0, 0, 0)
-
-            Gdk.cairo_set_source_pixbuf(cr,
-                                        pixbuf,
+            Gdk.cairo_set_source_pixbuf(cr, pixbuf,
                                         (w - pixbuf.get_width())/2,
                                         (h - pixbuf.get_height())/2)
             cr.paint_with_alpha(1)
 
         # if draw flag was set
         elif self.draw is True:
-            cr.set_source_rgb(0, 0, 0)
-            w = self.drawarea.get_allocated_width()
-            h = self.drawarea.get_allocated_height()
-            cr.rectangle(0, 0, w, h)
-            cr.fill()
+            # fill renderer background
+            cr.set_source_rgb(0.0, 0.0, 0.0)
+            cr.paint()
 
     def set_volume(self, value):
         self.volbtn.set_value(value)

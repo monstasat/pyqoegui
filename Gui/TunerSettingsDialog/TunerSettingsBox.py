@@ -12,12 +12,9 @@ from Gui import Spacing
 class TunerSettingsBox(Gtk.Box):
 
     def __init__(self, standard):
-        Gtk.Box.__init__(self)
-
-        # modify box view
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-        self.set_spacing(Spacing.ROW_SPACING)
-        self.set_border_width(Spacing.BORDER)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL,
+                         spacing=Spacing.ROW_SPACING,
+                         border_width=Spacing.BORDER)
 
         # save tv standard
         self.standard = standard
@@ -35,21 +32,17 @@ class TunerSettingsBox(Gtk.Box):
             self.freq_model = CableFrequencyModel()
 
         # create frequency combo box
-        self.frequency_box = ComboBox("Частота ТВ канала",
-                                      self.freq_model)
-        # set size
+        self.frequency_box = ComboBox("Частота ТВ канала", self.freq_model)
         self.frequency_box.combobox.set_size_request(170, -1)
 
         # create bandwidth combo box
         self.bw_box = ComboBox("Ширина полосы", bw_model)
-        # set size
         self.bw_box.combobox.set_size_request(170, -1)
 
         # create plp id spin box
         self.plp_box = SettingEntry(0, "PLP ID", 0, 255)
         self.plp_box.spinBtn.set_increments(1, 10)
         self.plp_box.spinBtn.set_digits(0)
-        # set size
         self.plp_box.spinBtn.set_size_request(170, -1)
 
         # add widgets depending on standard
@@ -64,16 +57,14 @@ class TunerSettingsBox(Gtk.Box):
     # frequency getter
     @property
     def frequency(self):
-        freq = 0
         freq_idx = self.frequency_box.combobox.get_active()
         # if no active item,
         # choose 586 MHz by default
         if freq_idx == -1:
-            freq = 586000000
+            return 586000000
         else:
             iter_ = self.freq_model.get_iter(str(freq_idx))
-            freq = self.freq_model[iter_][2]
-        return freq
+            return self.freq_model[iter_][2]
 
     # frequency setter
     @frequency.setter
@@ -86,11 +77,8 @@ class TunerSettingsBox(Gtk.Box):
     @property
     def bandwidth(self):
         bw = self.bw_box.combobox.get_active()
-        # if no active item,
-        # choose 8 MHz by default
-        if bw == -1:
-            bw = tm.BW8
-        return bw
+        # if no active item, choose 8 MHz by default
+        return bw if (bw != -1) else tm.BW8
 
     # bandwidth setter
     @bandwidth.setter

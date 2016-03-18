@@ -157,8 +157,7 @@ class Control(GObject.GObject):
         # terminate all gstreamer pipelines
         self.backend.terminate_all_pipelines()
 
-        for interface in self.interfaces:
-            interface.__destroy__()
+        list(map(lambda x: x.__destroy__(), self.interfaces))
         self.interfaces.clear()
 
         # stop server for recieving messages from gstreamer pipeline
@@ -173,16 +172,10 @@ class Control(GObject.GObject):
         self.log.write_log_message("application closed")
 
     def is_gui(self, interface):
-        if type(interface).__name__ == 'Gui':
-            return True
-        else:
-            return False
+        return type(interface).__name__ == 'Gui'
 
     def is_usb(self, interface):
-        if type(interface).__name__ == 'Usb':
-            return True
-        else:
-            return False
+        return type(interface).__name__ == 'Usb'
 
     # start server
     def start_server(self, port):
@@ -205,10 +198,9 @@ class Control(GObject.GObject):
         self.backend.terminate_all_pipelines()
         self.stream_progs.clear()
 
-        for interface in self.interfaces:
-            # update stream prog list all interfaces
-            interface.update_stream_prog_list([])
+        list(map(lambda x: x.update_stream_prog_list([]), self.interfaces))
 
+        for interface in self.interfaces:
             if self.is_gui(interface) is True:
                 # change toolbar icon
                 interface.toolbar.change_start_icon()
@@ -221,8 +213,7 @@ class Control(GObject.GObject):
 
     def on_get_cpu_load(self):
         load = psutil.cpu_percent(interval=0)
-        for interface in self.interfaces:
-            interface.update_cpu_load(load)
+        list(map(lambda x: x.update_cpu_load(load), self.interfaces))
         return True
 
     # Interaction with Gui and Usb
@@ -234,8 +225,8 @@ class Control(GObject.GObject):
         self.analyzed_progs = source.get_analyzed_prog_list()
 
         # Configure Gui and Usb according to new analyzed prog list
-        for interface in self.interfaces:
-            interface.update_analyzed_prog_list(self.analyzed_progs)
+        list(map(lambda x: x.update_analyzed_prog_list(self.analyzed_progs),
+                 self.interfaces))
 
         # Configure error detectors according to new analyzed prog list
         # pass new prog list to error detectors
@@ -246,8 +237,8 @@ class Control(GObject.GObject):
 
         # Configure backend according to new analyzed prog list
         # we need to restart gstreamer pipelines with ids that were selected
-        for stream in self.analyzed_progs:
-            self.backend.restart_pipeline(stream[0])
+        list(map(lambda stream: self.backend.restart_pipeline(stream[0]),
+                 self.analyzed_progs))
 
         # Save analyzed prog list in Config
         self.config.set_prog_list(self.analyzed_progs)
@@ -263,8 +254,8 @@ class Control(GObject.GObject):
         self.analysis_settings = source.get_analysis_settings()
 
         # Configure Gui and Usb according to new analysis settings
-        for interface in self.interfaces:
-            interface.update_analysis_settings(self.analysis_settings)
+        list(map(lambda x: x.update_analysis_settings(self.analysis_settings),
+                 self.interfaces))
 
         # Configure error detectors according to new analysis settings
         self.video_error_detector.set_analysis_settings(self.analysis_settings)
@@ -287,8 +278,8 @@ class Control(GObject.GObject):
         self.tuner_settings = source.get_tuner_settings()
 
         # Configure Gui and Usb according to new analysis settings
-        for interface in self.interfaces:
-            interface.update_tuner_settings(self.tuner_settings)
+        list(map(lambda x: x.update_tuner_settings(self.tuner_settings),
+                 self.interfaces))
 
         # Configure dvb tuner according to new tuner settings
         self.rf_tuner.apply_settings(self.tuner_settings)
@@ -311,16 +302,12 @@ class Control(GObject.GObject):
     # Gui sent a message about start button clicked
     def on_start(self, source):
         self.start_analysis()
-
-        # write message to log
         msg = "analysis started" + "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
     # Gui sent a message about stop button clicked
     def on_stop(self, source):
         self.stop_analysis()
-
-        # write message to log
         msg = "analysis stopped" + "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
 
@@ -364,19 +351,15 @@ class Control(GObject.GObject):
             interface.update_tuner_status(status, hw_errors, temperature)
 
     # Tuner control sent a message with new measured data
-    def on_new_tuner_measured_data(self, source,
-                                   mer, mer_updated,
-                                   ber1, ber1_updated,
-                                   ber2, ber2_updated,
+    def on_new_tuner_measured_data(self, source, mer, mer_updated,
+                                   ber1, ber1_updated, ber2, ber2_updated,
                                    ber3, ber3_updated):
 
-        measured_data = [mer, mer_updated,
-                         ber1, ber1_updated,
-                         ber2, ber2_updated,
-                         ber3, ber3_updated]
+        measured_data = [mer, mer_updated, ber1, ber1_updated,
+                         ber2, ber2_updated, ber3, ber3_updated]
 
-        for interface in self.interfaces:
-            interface.update_tuner_measured_data(measured_data)
+        list(map(lambda x: x.update_tuner_measured_data(measured_data),
+                 self.interfaces))
 
     # Tuner control sent a message with new tuner params
     def on_new_tuner_params(self, source, status, modulation, params):
@@ -415,7 +398,6 @@ class Control(GObject.GObject):
     # Handling messages from backend
     def message_from_pipeline_callback(self, obj, conn, source):
         istream = conn.get_input_stream()
-        ostream = conn.get_output_stream()
         buffer = istream.read_bytes(1000)
         data = buffer.get_data()
 
@@ -451,15 +433,13 @@ class Control(GObject.GObject):
                         # to disable drawing in only those renderers, that
                         # should be drawn by backend
                         interface.update_rendering_mode(
-                                    False,
-                                    compared_prog_list[0])
+                                    False, compared_prog_list[0])
                         break
                 else:
                     xids = []
                     for prog in compared_prog_list[1]:
                         xids.append([int(compared_prog_list[0]),
-                                     int(prog[0]),
-                                     0])
+                                     int(prog[0]), 0])
 
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
@@ -487,8 +467,7 @@ class Control(GObject.GObject):
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
                 self.audio_error_detector.set_data(aparams)
                 # update lufs levels in program table and plots in gui
-                for interface in self.interfaces:
-                    interface.update_lufs(aparams)
+                list(map(lambda x: x.update_lufs(aparams), self.interfaces))
 
             # end of stream message received from backend
             elif wstr[0] == 'e':

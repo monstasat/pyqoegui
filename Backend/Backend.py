@@ -12,9 +12,7 @@ class Backend():
 
     # check if stream id parameter is valid
     def is_pipeline(self, stream_id):
-        if (stream_id + 1) > len(self.gs_pipelines):
-            return False
-        return True
+        return not (stream_id + 1) > len(self.gs_pipelines)
 
     # restart selected pipeline
     def restart_pipeline(self, stream_id):
@@ -33,13 +31,11 @@ class Backend():
 
     # execute all pipelines
     def start_all_pipelines(self):
-        for pipeline in self.gs_pipelines:
-            pipeline.execute()
+        list(map(lambda x: x.execute(), self.gs_pipelines))
 
     # terminate all pipelines
     def terminate_all_pipelines(self):
-        for pipeline in self.gs_pipelines:
-            pipeline.terminate()
+        list(map(lambda x: x.terminate(), self.gs_pipelines))
 
     def get_pipeline_state(self, stream_id):
         if self.is_pipeline(stream_id) is True:
@@ -53,7 +49,7 @@ class Backend():
         combined_list = self.combine_prog_list_with_xids(prog_list, xids)
 
         # if stream with sent number exist and program num is not null
-        if (self.is_pipeline(combined_list[0]) is True):
+        if self.is_pipeline(combined_list[0]) is True:
             # determine number of programs in this stream
             # to get necessary number of xids
             self.gs_pipelines[combined_list[0]].apply_new_program_list(

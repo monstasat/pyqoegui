@@ -35,14 +35,8 @@ class DVBTunerControl(GObject.GObject):
                                           None, (int, int, int)),
         CustomMessages.NEW_TUNER_MEASURED_DATA: (GObject.SIGNAL_RUN_FIRST,
                                                  None,
-                                                 (float,
-                                                  bool,
-                                                  float,
-                                                  bool,
-                                                  float,
-                                                  bool,
-                                                  float,
-                                                  bool)),
+                                                 (float, bool, float, bool,
+                                                  float, bool, float, bool)),
         CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
                                           None, (int, int, int))}
 
@@ -58,9 +52,7 @@ class DVBTunerControl(GObject.GObject):
         self.params = []
 
         self.thread_active = True
-        thread = threading.Thread(
-            target=self.read_from_port,
-            args=())
+        thread = threading.Thread(target=self.read_from_port, args=())
         thread.start()
 
         GObject.timeout_add(1000, self.on_pass_data)
@@ -92,15 +84,13 @@ class DVBTunerControl(GObject.GObject):
         return True
 
     def read(self, size):
-        buf = b""
         if self.serial.isOpen() is True:
             try:
-                buf = self.serial.read(size=size)
+                return self.serial.read(size=size)
             except:
-                buf = b''
                 self.serial.close()
-
-        return buf
+                return b''
+        return b''
 
     def write(self, msg):
         if self.serial.isOpen() is True:
@@ -133,23 +123,15 @@ class DVBTunerControl(GObject.GObject):
             return True
 
     def disconnect(self):
-        # close com port
         self.serial.close()
 
     def check_start_byte(self, byte):
-        if byte == START_BYTE:
-            return True
-        else:
-            return False
+        return byte == START_BYTE
 
     def tuner_get_status(self):
-
         # construct message``
         msg = struct.pack("=BBHB",
-                          START_BYTE,
-                          SOURCE,
-                          2,
-                          COD_COMAND_GET_STATUS)
+                          START_BYTE, SOURCE, 2, COD_COMAND_GET_STATUS)
 
         # compute and append crc to message
         crc = self.compute_crc(msg[1:])
@@ -157,7 +139,6 @@ class DVBTunerControl(GObject.GObject):
 
         # send message to tuner
         self.write(msg)
-
         # read tuner answer
         buf = self.read(20)
 
@@ -281,20 +262,13 @@ class DVBTunerControl(GObject.GObject):
 
         # send message to tuner
         self.write(msg)
-
-        # read tuner answer
-        buf = self.read(7)
-
-        # return received data
-        return buf
+        # return tuner answer
+        return self.read(7)
 
     def tuner_get_params(self):
         # construct message
         msg = struct.pack("=BBHB",
-                          START_BYTE,
-                          SOURCE,
-                          2,
-                          COD_COMAND_GET_PARAMS)
+                          START_BYTE, SOURCE, 2, COD_COMAND_GET_PARAMS)
 
         # compute and append crc to message
         crc = self.compute_crc(msg[1:])
@@ -302,7 +276,6 @@ class DVBTunerControl(GObject.GObject):
 
         # send message to tuner
         self.write(msg)
-
         # read tuner answer
         buf = self.read(15)
 
@@ -325,10 +298,7 @@ class DVBTunerControl(GObject.GObject):
 
         # construct message
         msg = struct.pack("=BBHB",
-                          START_BYTE,
-                          SOURCE,
-                          2,
-                          COD_COMAND_GET_MER_BER)
+                          START_BYTE, SOURCE, 2, COD_COMAND_GET_MER_BER)
 
         # compute and append crc to message
         crc = self.compute_crc(msg[1:])
@@ -336,7 +306,6 @@ class DVBTunerControl(GObject.GObject):
 
         # send message to tuner
         self.write(msg)
-
         # read tuner answer
         buf = self.read(17)
 
@@ -387,10 +356,8 @@ class DVBTunerControl(GObject.GObject):
                             get_mantissa(buf_list[10]) * 2**(buf_list[11]-127))
 
                 # fill data list
-                data = [mer, mer_updated,
-                        ber1, ber1_updated,
-                        ber2, ber2_updated,
-                        ber3, ber3_updated]
+                data = [mer, mer_updated, ber1, ber1_updated,
+                        ber2, ber2_updated, ber3, ber3_updated]
 
         # return received data list
         return data
@@ -413,10 +380,7 @@ class DVBTunerControl(GObject.GObject):
         self.write(msg)
 
         # read tuner answer
-        buf = self.read(30)
-
-        # return received data
-        return buf
+        return self.read(30)
 
     def tuner_reset(self):
 
@@ -435,12 +399,8 @@ class DVBTunerControl(GObject.GObject):
 
         # send message to tuner
         self.write(msg)
-
-        # read tuner answer
-        buf = self.read(7)
-
-        # return received data
-        return buf
+        # return tuner answer
+        return self.read(7)
 
     # computes message crc
     def compute_crc(self, msg):
@@ -466,10 +426,8 @@ class DVBTunerControl(GObject.GObject):
 
     def apply_settings(self, settings):
         self.settings = settings
-
-        thread = threading.Thread(
-            target=self.tuner_set_params,
-            args=(settings,))
+        thread = threading.Thread(target=self.tuner_set_params,
+                                  args=(settings,))
         thread.start()
 
     def read_from_port(self):

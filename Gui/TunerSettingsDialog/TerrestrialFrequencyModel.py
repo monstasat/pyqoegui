@@ -5,18 +5,10 @@ from gi.repository import Gtk
 class TerrestrialFrequencyModel(Gtk.ListStore):
     def __init__(self):
         Gtk.ListStore.__init__(self, str, int, int)
-
-        # fill the model with values
         self.fill_model()
 
     # fill model with frequency values
     def fill_model(self):
-
-        # tv channel number
-        ch = 0
-        # tv channel frequency
-        freq = 0
-
         for index in range(1, 57):
             if index == 0:
                 ch = 0
