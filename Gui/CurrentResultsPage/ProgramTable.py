@@ -12,9 +12,10 @@ class ProgramTable(Gtk.TreeView):
 
         # prog table column names
         self.heading_labels = [
-            "№", "Программа", "Громкость",
+            "№", "Программа",
+            "Нет видео", "Чёрный кадр", "Заморозка", "Блочность",
             "Нет аудио", "Тихо", "Громко",
-            "Нет видео", "Чёрный кадр", "Заморозка", "Блочность"]
+             "Громкость"]
 
         # associates status code with a cell color
         self.clrs = {types.NO_ERR: '#80FF80',
@@ -46,14 +47,14 @@ class ProgramTable(Gtk.TreeView):
         # attaching list store to tree view widget
         self.store = Gtk.ListStore(int, str,        # n
                                    str, str,        # prog name
-                                   int, str,        # lufs
-                                   str, str,        # audio loss
-                                   str, str,        # silence
-                                   str, str,        # loudness
                                    str, str,        # video loss
                                    str, str,        # black frame
                                    str, str,        # freeze
                                    str, str,        # blockiness
+                                   str, str,        # audio loss
+                                   str, str,        # silence
+                                   str, str,        # loudness
+                                   int, str,        # lufs
                                    int,             # prog type
                                    int,             # stream id
                                    int,             # prog id
@@ -70,7 +71,7 @@ class ProgramTable(Gtk.TreeView):
             color = i + 1
 
             # 3rd column is a progress bar for lufs levels
-            if i == 4:
+            if i == 18:
                 renderer = Gtk.CellRendererProgress()
 
                 column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)],
@@ -83,7 +84,7 @@ class ProgramTable(Gtk.TreeView):
                 renderer = Gtk.CellRendererText()
                 renderer.set_alignment(0.5, 0.5)
                 # setting parameters for artifact columns
-                if i > 4:
+                if 2 < i < 18:
                     # setting column text color - black
                     renderer.set_property("foreground", "black")
                     column = Gtk.TreeViewColumn(self.heading_labels[int(i/2)],
@@ -140,8 +141,6 @@ class ProgramTable(Gtk.TreeView):
                     [prog_cnt, '#FFFFFF',
                      # prog name
                      prog_name, '#FFFFFF',
-                     # lufs level
-                     0, '0',
                      # audio loss
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # silence
@@ -156,6 +155,8 @@ class ProgramTable(Gtk.TreeView):
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
                      # blockiness
                      self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
+                      # lufs level
+                     0, '0',
                      # start of invisible part
                      # prog type
                      prog_type,
@@ -170,7 +171,7 @@ class ProgramTable(Gtk.TreeView):
 
     def update_table_cell(self, row, index, val):
         # FIXME prog type 1, 2 change to VIDEO, AUDIO (define types somewhere)
-        prog_type = 2 if index < 12 else 1
+        prog_type = 2 if index > 11 else 1
         if (row[20] & prog_type) != 0:
             data = val
         else:
@@ -182,11 +183,11 @@ class ProgramTable(Gtk.TreeView):
         # set values for some variables dependent on content type
         if param_type == 'audio':
             pid_index = 24
-            shift = 6
+            shift = 12
             cell_num = 6
         elif param_type == 'video':
             pid_index = 23
-            shift = 12
+            shift = 4
             cell_num = 8
 
         # iterating over programs in table
@@ -233,6 +234,6 @@ class ProgramTable(Gtk.TreeView):
                     data = max_
                 elif data < min_:
                     data = min_
-                row[4] = int(((data - min_) / 54)*100)
-                row[5] = '%.2f LUFS' % data
+                row[18] = int(((data - min_) / 54)*100)
+                row[19] = '%.2f LUFS' % data
 
