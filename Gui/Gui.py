@@ -192,12 +192,17 @@ class Gui(BaseInterface):
                        width,
                        height,
                        fullscreen,
+                       debug,
                        color_theme,
                        table_revealed,
                        plot_info):
 
+        # show/hide title bar and resizing cursors
+        self.window.set_decorated(debug)
+
         # set size
-        self.window.set_default_size(width, height)
+        self.window.set_size_request(width, height)
+
         # show in fullscreen if necessary
         if fullscreen is True:
             self.window.fullscreen()

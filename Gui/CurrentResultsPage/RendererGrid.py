@@ -173,6 +173,10 @@ class RendererGrid(Gtk.FlowBox):
     # decide on number of renderers per one line
     def on_resize(self):
         rect = self.get_allocation()
+        prnt = self.get_parent().get_parent()
+        rect_tbl = prnt.prgtbl.get_allocation()
+        print("fb", rect.width, rect.height)
+        print("tbl", rect_tbl.width, rect_tbl.height)
         if rect.width is 0:
             aspect_fb = 0
         else:

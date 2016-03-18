@@ -62,6 +62,10 @@ class AtsApp(Gtk.Application):
                             '--fullscreen',
                             action='store_true',
                             help="show main window in fullscreen mode")
+        parser.add_argument('-d',
+                            '--debug',
+                            action='store_true',
+                            help="show main window in debug mode")
         # parse the command line stored in args,
         # but skip the first element (the filename)
         self.args = parser.parse_args(args.get_arguments()[1:])

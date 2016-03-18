@@ -69,6 +69,7 @@ class Control(GObject.GObject):
                 interface.set_gui_params(app.args.width,
                                          app.args.height,
                                          app.args.fullscreen,
+                                         app.args.debug,
                                          self.config.get_color_theme(),
                                          self.config.get_table_revealer(),
                                          self.config.get_plot_info())

@@ -72,8 +72,8 @@ class CurrentResultsPage(Gtk.Grid):
             self.holder.hide()
             self.prgtbl.show_all()
 
-        self.rend.draw_renderers(prog_list)
         self.prgtbl.add_rows(prog_list)
+        self.rend.draw_renderers(prog_list)
 
     def get_prog_table_visible(self):
         return self.prgtbl.get_visible()

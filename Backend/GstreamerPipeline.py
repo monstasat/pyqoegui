@@ -33,12 +33,13 @@ class GstreamerPipeline():
         # execute new process
         ip = "224.1.2." + str(2 + self.stream_id)
         # this is for testing purposes
-        #ip = "127.0.0.1"
+        # ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234)
-        print(ip)
-        print(stream)
-        print(port)
+        print("executing pipeline")
+        print("ip: ", ip)
+        print("stream: ", stream)
+        print("port: ", port)
         out = open("backend_log", "w")
         err = open("backend_err_log", "w")
         self.proc = subprocess.Popen(
@@ -54,7 +55,6 @@ class GstreamerPipeline():
 
         if self.proc is not None:
             self.state = State.IDLE
-        print("executing pipeline")
 
     def terminate(self):
         if self.proc is not None:
