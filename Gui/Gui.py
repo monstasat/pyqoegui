@@ -47,6 +47,8 @@ class Gui(BaseInterface):
         self.window.set_decorated(False)
         # place window at the center of the screen
         self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        # disable resizing
+        self.window.set_resizable(False)
 
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
@@ -199,6 +201,7 @@ class Gui(BaseInterface):
 
         # show/hide title bar and resizing cursors
         self.window.set_decorated(debug)
+        self.window.set_resizable(debug)
 
         # set size
         self.window.set_size_request(width, height)
