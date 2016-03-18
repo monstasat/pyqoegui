@@ -98,7 +98,9 @@ class Plot(Gtk.Box):
             self.progs.append(prog_info)
 
         # buffers for storing input data before it is shown on graph
-        self.buffer = [[]]*len(self.progs)
+        self.buffer = []
+        for i in range(len(self.progs)):
+            self.buffer.append([])
 
         # drawing area parameters
         # draw area width
