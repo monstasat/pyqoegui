@@ -233,6 +233,6 @@ class ProgramTable(Gtk.TreeView):
                     data = max_
                 elif data < min_:
                     data = min_
-                row[4] = int(((data - min_) / abs(max_ - min_))*100)
+                row[4] = int(((data - min_) / 54)*100)
                 row[5] = '%.2f LUFS' % data
 

@@ -149,7 +149,7 @@ class UsbExchange():
 
         STATUS_MSG = self.HEADER
         # reserved, ts count, reserved
-        STATUS_MSG += "HHBBB"
+        STATUS_MSG += "IHB"
         # flags, stat ver, sett ver, video load, aud load,
         # dvbt2 stat ver, dvbt2 cont ver
         STATUS_MSG += "BBBBBBB"
@@ -167,7 +167,7 @@ class UsbExchange():
         b = struct.pack("="+STATUS_MSG,
                         usb_msgs.PREFIX,
                         msg_code,
-                        0, 0, 0, 1, 0,
+                        0, 1, 0,
                         self.status_flags,
                         self.status_version & 0xff,
                         self.settings_version & 0xff,
@@ -188,7 +188,17 @@ class UsbExchange():
         self.status_updated = 0
 
     def send_errors(self):
-        pass
+        # header, length, TS index, TS num, reserved, err num
+
+        # index, count, err code, err ext, pid, packet, param1, params
+        ERR_INFO = "HHBBHIII"
+        msg = struct.pack("="+self.ERR_MSG,      #+ERR_INFO,
+                          usb_msgs.PREFIX,
+                          0x0401 | self.STOP_MSG | self.EXIT_RECEIVE,
+                          5, 0, 0, 0, 1)
+                          #0, 1, 0x11, 0, 2011, 0, 0, 0)
+
+        self.write(msg)
 
     def send_video_analysis_settings(self,
                                      analysis_settings,

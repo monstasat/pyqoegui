@@ -3,6 +3,7 @@
 *.ini
 backend_err_log
 backend_log
+log
 *.txt
 
 #ignore folders
