@@ -21,6 +21,7 @@ class AudioErrorDetector(BaseErrorDetector):
         self.is_loss_flag = types.UNKNOWN
 
         self.audio_loss = 0
+        self.loss_cnt = 0
 
         self.overload_err = 0
         self.overload_warn = 0
@@ -42,12 +43,12 @@ class AudioErrorDetector(BaseErrorDetector):
         self.silence_err = analysis_settings[ai.SILENCE_ERR][2]
         self.silence_warn = analysis_settings[ai.SILENCE_WARN][2]
 
-    def is_loss(self, is_overload, is_silence, storage):
+    def is_loss(self, is_overload, is_silence):
         if is_overload is types.UNKNOWN or \
                     is_silence is types.UNKNOWN:
             # TODO: see if this value should ever overflow and become 0
-            storage.loss_cnt += 1
-            if storage.loss_cnt >= self.audio_loss:
+            self.loss_cnt += 1
+            if self.loss_cnt >= self.audio_loss:
                 return types.ERR
             else:
                 if self.is_loss_flag == types.UNKNOWN:
@@ -56,7 +57,7 @@ class AudioErrorDetector(BaseErrorDetector):
                 else:
                     return types.NO_ERR
         else:
-            storage.loss_cnt = 0
+            self.loss_cnt = 0
             return types.NO_ERR
 
     def is_loud_or_is_silent(self, audio_level):
@@ -77,16 +78,13 @@ class AudioErrorDetector(BaseErrorDetector):
         results = []
         for storage in self.storage_list:
             av_momentary = storage.momentary_average
-            av_short_term = storage.short_term_average
-
-            loud_result = self.is_loud_or_is_silent(av_short_term)
+            loud_result = self.is_loud_or_is_silent(storage.short_term_average)
 
             self.is_overload_flag = loud_result[0]
             self.is_silence_flag = loud_result[1]
 
             self.is_loss_flag = self.is_loss(self.is_overload_flag,
-                                             self.is_silence_flag,
-                                             storage)
+                                             self.is_silence_flag)
 
             results.append([storage.prog_info,
                             [self.is_loss_flag,           # audio loss

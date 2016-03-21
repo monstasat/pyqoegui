@@ -10,8 +10,6 @@ class VideoDataStorage():
         self.av_luma = deque()
         self.av_diff = deque()
 
-        self.loss_cnt = 0
-
     # extend deques with new data
     def push_new_data(self, data):
         self.black_num.extend(data[0])
