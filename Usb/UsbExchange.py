@@ -185,12 +185,26 @@ class UsbExchange():
 
         # index, count, err code, err ext, pid, packet, param1, params
         ERR_INFO = "HHBBHIII"
-        msg = struct.pack("="+self.ERR_MSG,      #+ERR_INFO,
+        msg = struct.pack("="+self.ERR_MSG, #+ERR_INFO,
                           usb_msgs.PREFIX,
                           0x0401 | self.STOP_MSG | self.EXIT_RECEIVE,
-                          5, 0, 0, 0, 1)
-                          #0, 1, 0x11, 0, 2011, 0, 0, 0)
+                          5, 0, 0, 0, 0)
+                          #0, 1, 0x12, 0, 2011, 0, 0, 0)
 
+        self.write(msg)
+
+        self.send_exit_errors()
+
+    def send_exit_errors(self):
+        msg_code = (0xFD00 | self.START_MSG) | \
+                   (self.STOP_MSG | self.EXIT_RECEIVE)
+
+        msg = struct.pack("="+self.MSG_12,
+                          usb_msgs.PREFIX,
+                          msg_code,
+                          1,
+                          1,
+                          1)
         self.write(msg)
 
     def send_video_analysis_settings(self,

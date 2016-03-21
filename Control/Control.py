@@ -379,11 +379,11 @@ class Control(GObject.GObject):
         # update stream prog list
         self.sprogs_control.add_one_stream([stream_id, []])
 
-        msg = "end of stream (id = %d) received" % stream_id
-        print(msg)
         # if current state of pipeline with corresponding id is RUNNING
         # we need to restart this pipeline
         if self.backend.get_pipeline_state(stream_id) is State.RUNNING:
+            msg = "end of stream (id = %d) received" % stream_id
+            print(msg)
             self.backend.restart_pipeline(stream_id)
             # add event to log
             self.log.write_log_message(msg)
