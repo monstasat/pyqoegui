@@ -22,6 +22,7 @@ class VideoErrorDetector(BaseErrorDetector):
         self.is_loss_flag = types.UNKNOWN
 
         self.video_loss = 0
+        self.loss_cnt = 0
 
         self.black_err = 0
         self.black_warn = 0
