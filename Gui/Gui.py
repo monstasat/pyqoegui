@@ -34,7 +34,7 @@ class Gui(BaseInterface):
 
         BaseInterface.__init__(self, app)
 
-        self.window = Gtk.Window()
+        self.window = Gtk.Window(decorated=False, resizable=False)
 
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
@@ -43,12 +43,8 @@ class Gui(BaseInterface):
         settings.set_property("gtk-font-name", "Cantarell 11")
         # don't show menu on mouse right-click
         settings.set_property("gtk-titlebar-right-click", 'none')
-        # don't show title bar and resizing cursors
-        self.window.set_decorated(False)
         # place window at the center of the screen
         self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        # disable resizing
-        self.window.set_resizable(False)
 
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
@@ -58,118 +54,95 @@ class Gui(BaseInterface):
         # create prog selection dialog
         self.progDlg = ProgramSelectDialog(self)
         # create tuner settings dialog
-        self.tunerDlg = TunerSettingsDialog(self,
-                                            self.tuner_settings)
+        self.tunerDlg = TunerSettingsDialog(self, self.tuner_settings)
         # create analysis settings dialog
         self.analysisSetDlg = AnalysisSettingsDialog(self,
                                                      self.analysis_settings)
         # create dump settings dialog
         self.dumpSetDlg = DumpSettingsDialog(self)
 
-        # add header bar to the window
-        hb = Gtk.HeaderBar()
-
         # add menu button to header bar
-        menuBtn = Gtk.MenuButton(name="menu",
-                                 always_show_image=True,
-                                 has_tooltip=True,
-                                 tooltip_text="Меню",
+        menuBtn = Gtk.MenuButton(name="menu", always_show_image=True,
+                                 has_tooltip=True, tooltip_text="Меню",
                                  image=Icon("open-menu-symbolic"))
 
         popover = Gtk.Popover(border_width=Spacing.BORDER)
         popBox = Gtk.HBox(spacing=Spacing.COL_SPACING,
                           orientation=Gtk.Orientation.VERTICAL)
-        self.darkThemeCheck = Gtk.Switch()
-        self.darkThemeCheck.connect('state-set', self.on_dark_theme_check)
+
         dark_theme_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                                  spacing=Spacing.COL_SPACING)
+        self.darkThemeCheck = Gtk.Switch()
+        self.darkThemeCheck.connect('state-set', self.on_dark_theme_check)
         dark_theme_box.add(self.darkThemeCheck)
         dark_theme_box.add(Gtk.Label(label='Использовать тёмное оформление'))
         popBox.add(dark_theme_box)
         popBox.add(Gtk.HSeparator())
+
+        self.cpu_load_val = Gtk.Label(label="")
         cpu_load_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         cpu_load_box.add(Gtk.Label(label="Загрузка процессора: "))
-        self.cpu_load_val = Gtk.Label(label="")
         cpu_load_box.add(self.cpu_load_val)
         cpu_load_box.set_halign(Gtk.Align.END)
         popBox.add(cpu_load_box)
+
+        self.remote_clients_num_val = Gtk.Label(label="0")
         remote_clients_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         remote_clients_box.add(Gtk.Label(label="Удалённых подключений: "))
-        self.remote_clients_num_val = Gtk.Label(label="0")
         remote_clients_box.add(self.remote_clients_num_val)
         remote_clients_box.set_halign(Gtk.Align.END)
         popBox.add(remote_clients_box)
+
         popBox.show_all()
         popover.add(popBox)
         menuBtn.set_popover(popover)
-        hb.pack_end(menuBtn)
 
         # create stack pages
         self.cur_results_page = CurrentResultsPage(self)
         self.plot_page = PlotPage(self)
         self.all_results_page = AllResultsPage()
-        pages = []
-        pages.append((self.cur_results_page,
-                      "cur_results",
-                      "Текущие результаты"))
-        pages.append((self.plot_page,
-                      "plots",
-                      "Графики"))
-        pages.append((self.all_results_page,
-                      "all_results",
-                      "Общие результаты"))
+        pages = [(self.cur_results_page, "cur_results", "Текущие результаты"),
+                 (self.plot_page, "plots", "Графики"),
+                 (self.all_results_page, "all_results", "Общие результаты")]
 
         # create stack
-        self.myStack = Gtk.Stack()
-        self.myStack.set_transition_duration(200)
-        self.myStack.set_transition_type(Gtk.StackTransitionType.NONE)
+        self.myStack = Gtk.Stack(transition_duration=200,
+                                 transition_type=Gtk.StackTransitionType.NONE)
         # add callback when page is switched
         self.myStack.connect("notify::visible-child", self.page_switched)
         # add pages to stack
-        for page in pages:
-            self.myStack.add_titled(page[0], page[1], page[2])
+        list(map(lambda x: self.myStack.add_titled(x[0], x[1], x[2]), pages))
 
         # create stack switcher
         switch = Gtk.StackSwitcher(stack=self.myStack)
-        # add stack switcher to the header bar
-        hb.set_custom_title(switch)
 
         # creating left side bar with buttons
         self.toolbar = ButtonToolbar()
 
-        # main window box (with vertical orientation)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # add header bar at the top
-        vbox.add(hb)
-
-        # box that includes left-side button bar and page stack
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        hbox.add(self.toolbar)
-        hbox.add(self.myStack)
-        hbox.set_border_width(Spacing.BORDER)
-        hbox.set_spacing(Spacing.COL_SPACING)
-
-        # add hbox to main box
-        vbox.add(hbox)
-
-        # add main box to window
-        self.window.add(vbox)
-
-        # add prgtbl button to header bar
+        # create prog table button
         self.showTableBtn = Gtk.ToggleButton(always_show_image=True,
-                                             name="table_btn",
-                                             active=False,
+                                             name="table_btn", active=False,
                                              has_tooltip=True,
                                              image=Icon("pan-down-symbolic"))
-
         # connect to the callback function of the tooltip
         self.showTableBtn.connect("query-tooltip", self.tooltip_callback)
-        self.showTableBtn.connect("clicked",
-                                  self.reveal_child,
-                                  self.cur_results_page.get_table_revealer()
-                                  )
-        hb.pack_end(self.showTableBtn)
+        self.showTableBtn.connect("clicked", self.reveal_child,
+                                  self.cur_results_page.get_table_revealer())
 
+        # create header bar
+        hb = Gtk.HeaderBar(custom_title=switch)
+        list(map(lambda x: hb.pack_end(x), [menuBtn, self.showTableBtn]))
+
+        # box that includes left-side button bar and page stack
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                       border_width=Spacing.BORDER,
+                       spacing=Spacing.COL_SPACING)
+        list(map(lambda x: hbox.add(x), [self.toolbar, self.myStack]))
+
+        # main window box (with vertical orientation)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        list(map(lambda x: vbox.add(x), [hb, hbox]))
+        self.window.add(vbox)
         self.window.show_all()
 
         # code to set some elements initially visible/invisible
@@ -182,22 +155,15 @@ class Gui(BaseInterface):
         btnCallbacks = [self.on_start_clicked, self.on_prog_select_clicked,
                         self.on_rf_set_clicked, self.on_analysis_set_clicked,
                         self.on_dump_clicked, self.on_about_clicked]
-        btns = self.toolbar.get_children()
-        for i, func in enumerate(btnCallbacks):
-            btns[i].connect('clicked', func)
+        list(map(lambda btn, func: btn.connect('clicked', func),
+                 self.toolbar.get_children(), btnCallbacks))
 
     def __destroy__(self):
         BaseInterface.__destroy__(self)
         self.window.destroy()
 
-    def set_gui_params(self,
-                       width,
-                       height,
-                       fullscreen,
-                       debug,
-                       color_theme,
-                       table_revealed,
-                       plot_info):
+    def set_gui_params(self, width, height, fullscreen, debug, color_theme,
+                       table_revealed, plot_info):
 
         # show/hide title bar and resizing cursors
         self.window.set_decorated(debug)
@@ -220,7 +186,6 @@ class Gui(BaseInterface):
             for color in plot[2]:
                 colors.append(Gdk.RGBA(color[0], color[1], color[2], color[3]))
             self.plot_page.add_plot(plot[0], plot[1], colors)
-
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb
@@ -333,10 +298,8 @@ class Gui(BaseInterface):
         for plot in self.plot_page.plots:
             colors = []
             for color in plot.colors:
-                colors.append([color.red,
-                               color.green,
-                               color.blue,
-                               color.alpha])
+                colors.append([color.red, color.green,
+                               color.blue, color.alpha])
             plot_info.append([list(plot.plot_type), plot.plot_progs, colors])
         return plot_info
 
@@ -363,18 +326,16 @@ class Gui(BaseInterface):
 
     # called to hide header bar button if table is invisible
     def manage_table_revealer_button_visibility(self):
-        if(self.myStack.get_visible_child_name() != "cur_results"):
+        if self.myStack.get_visible_child_name() != "cur_results":
             self.showTableBtn.set_visible(False)
         else:
-            if self.cur_results_page.get_prog_table_visible():
-                self.showTableBtn.set_visible(True)
-            else:
-                self.showTableBtn.set_visible(False)
+            self.showTableBtn.set_visible(
+                self.cur_results_page.get_prog_table_visible())
 
     # dark theme switch button was activated
     def on_dark_theme_check(self, widget, gparam):
-        settings = Gtk.Settings.get_default()
-        settings.set_property("gtk-application-prefer-dark-theme",
+        Gtk.Settings.get_default().set_property(
+                              "gtk-application-prefer-dark-theme",
                               widget.get_active())
         self.emit(CustomMessages.COLOR_THEME, widget.get_active())
 
@@ -390,56 +351,35 @@ class Gui(BaseInterface):
 
     # prog select button was clicked
     def on_prog_select_clicked(self, widget):
-        # run the dialog
         responce = self.progDlg.run()
-
-        # if new program list was chosen
         if responce == Gtk.ResponseType.APPLY:
-            # emit signal from gui to control about new programs
             self.emit(CustomMessages.NEW_SETTINS_PROG_LIST)
-
         self.progDlg.hide()
 
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
-        # run the dialog
         responce = self.tunerDlg.run()
-
-        # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
-            # emit signal from gui to control about new tuner params
             self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
-
         self.tunerDlg.hide()
 
     # analysis settings button was clicked
     def on_analysis_set_clicked(self, widget):
-        # run the dialog
         responce = self.analysisSetDlg.run()
-
-        # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
-            # emit signal from gui to control about new analysis params
             self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
-
         self.analysisSetDlg.hide()
 
     # dump button was clicked
     def on_dump_clicked(self, widget):
-        # run the dialog
         responce = self.dumpSetDlg.run()
-
-        # if new settings applied
         if responce == Gtk.ResponseType.APPLY:
             pass
-
         self.dumpSetDlg.hide()
 
     # about button was clicked
     def on_about_clicked(self, widget):
         aboutDlg = AboutDialog(self.window)
-        responce = aboutDlg.run()
-        if responce == Gtk.ResponseType.DELETE_EVENT or \
-           responce == Gtk.ResponseType.CANCEL:
-            aboutDlg.destroy()
+        aboutDlg.run()
+        aboutDlg.destroy()
 

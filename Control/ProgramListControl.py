@@ -42,6 +42,7 @@ class ProgramListControl():
                 # if not, append prog list to the end
                 self.prog_list.append(prog_list)
 
+    # FIXME: optimize
     # compare two prog lists and make new list with only equal programs
     def get_compared_list(self, gs_prog_list):
         # new prog list after comparison

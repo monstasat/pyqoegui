@@ -6,18 +6,13 @@ from Control import CustomMessages
 
 class PlotBottomBarChild(Gtk.Box):
     def __init__(self, progName, color, index):
-        Gtk.Box.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL,
+                         spacing=Spacing.ROW_SPACING)
 
         # value unit
         self.unit = ""
-
         # child index in bottom bar
         self.index = index
-
-        # set horizontal orientation
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        # set spacing
-        self.set_spacing(Spacing.ROW_SPACING)
 
         # plot color button
         self.color_btn = Gtk.ColorButton.new_with_rgba(color)
@@ -50,7 +45,12 @@ class PlotBottomBar(Gtk.FlowBox):
                                            None, ())}
 
     def __init__(self, selected_progs, colors):
-        Gtk.FlowBox.__init__(self)
+        Gtk.FlowBox.__init__(self, margin_start=57, hexpand=True,
+                             halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
+                             homogeneous=True,
+                             orientation=Gtk.Orientation.HORIZONTAL,
+                             column_spacing=Spacing.COL_SPACING,
+                             row_spacing=Spacing.ROW_SPACING)
 
         self.default_colors = (
             Gdk.RGBA(0.529412, 0.807843, 0.921569, 1.0),  # skyblue
@@ -77,26 +77,8 @@ class PlotBottomBar(Gtk.FlowBox):
         # bottom bar child list
         self.children = []
 
-        # set left margin
-        self.set_property('margin-start', 57)
-
-        # should be horizontally expandable and fill all available space
-        self.set_hexpand(True)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
-
         # set selection mode to None
         self.set_selection_mode(Gtk.SelectionMode.NONE)
-
-        # set rows and cols homogeneous
-        self.set_homogeneous(True)
-
-        # flow box should have horizontal orientation
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
-
-        # set some space between renderers
-        self.set_column_spacing(Spacing.COL_SPACING)
-        self.set_row_spacing(Spacing.ROW_SPACING)
 
         # init colors with default_colors
         self.colors = colors
@@ -106,10 +88,10 @@ class PlotBottomBar(Gtk.FlowBox):
 
     def add_children(self, selected_progs):
         # remove previous children from flow box
-        for child in self.children:
-            self.remove(child)
+        list(map(lambda child: self.remove(child), self.children))
         # clear children list
         self.children.clear()
+
         # add new children
         for i, prog in enumerate(selected_progs):
             try:
@@ -128,14 +110,12 @@ class PlotBottomBar(Gtk.FlowBox):
 
     # set value unit
     def set_unit(self, unit):
-        for child in self.children:
-            child.set_unit(unit)
+        list(map(lambda child: child.set_unit(unit), self.children))
 
     # if color was chosen
     def on_color_chosen(self, color_btn):
         index = color_btn.get_parent().index
-        rgba = color_btn.get_rgba()
-        self.colors[index] = rgba
+        self.colors[index] = color_btn.get_rgba()
         self.emit(CustomMessages.PLOT_PAGE_CHANGED)
 
     def set_value(self, value, index):

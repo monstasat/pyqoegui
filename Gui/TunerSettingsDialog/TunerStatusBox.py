@@ -9,10 +9,9 @@ from Gui import Spacing
 # box with widgets for status displaying
 class TunerStatusBox(Gtk.Box):
     def __init__(self):
-        Gtk.Box.__init__(self)
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-        self.set_spacing(Spacing.ROW_SPACING)
-        self.set_border_width(Spacing.BORDER)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL,
+                         spacing=Spacing.ROW_SPACING,
+                         border_width=Spacing.BORDER)
 
         # current tv standard
         self.device = 0xff

@@ -1,6 +1,5 @@
 import cyusb
 import struct
-import random
 import math
 
 from Usb import UsbMessageTypes as usb_msgs
@@ -17,8 +16,6 @@ class UsbExchange():
     EXIT_RECEIVE = 0x40
     START_MSG = 0x10
     STOP_MSG = 0x20
-    MSG_VAR_LEN = 0x01
-    MSG_CRC = 0x02
     SEND_PERS_BUF = 0x0901
     # TODO: change prog num
     MAX_PROG_NUM = 20
@@ -67,10 +64,8 @@ class UsbExchange():
 
         self.is_connected = False
 
-        if cyusb.init() is False:
-            self.is_connected = False
-        else:
-            self.is_connected = True
+        self.is_connected = cyusb.init()
+        if self.is_connected is True:
             self.connection = cyusb.Connection()
 
         self.cpu_load = 0
@@ -84,9 +79,7 @@ class UsbExchange():
             return b''
 
         buf = self.connection.recv()
-        fmt = "H"*int(len(buf)/2) + "B"*(len(buf) & 0x01)
-        buf = struct.unpack(fmt, buf)
-        return buf
+        return struct.unpack("H"*int(len(buf)/2) + "B"*(len(buf) & 0x01), buf)
 
     def write(self, msg):
         if self.is_connected is True:
@@ -534,10 +527,7 @@ class UsbExchange():
                           tuner_settings[ti.DEVICE][0],
                           0,
                           status,
-                          mer,
-                          ber1,
-                          ber2,
-                          ber3)
+                          mer, ber1, ber2, ber3)
 
         self.write(msg)
 

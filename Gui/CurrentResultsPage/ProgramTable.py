@@ -8,38 +8,26 @@ from Control.ErrorDetector import StatusTypes as types
 class ProgramTable(Gtk.TreeView):
 
     def __init__(self):
-        Gtk.TreeView.__init__(self)
+        Gtk.TreeView.__init__(self, hexpand=True, halign=Gtk.Align.FILL,
+                              vexpand=False, valign=Gtk.Align.END)
 
         # prog table column names
         self.heading_labels = [
             "№", "Программа",
             "Нет видео", "Чёрный кадр", "Заморозка", "Блочность",
-            "Нет аудио", "Тихо", "Громко",
-             "Громкость"]
+            "Нет аудио", "Тихо", "Громко", "Громкость"]
 
         # associates status code with a cell color
-        self.clrs = {types.NO_ERR: '#80FF80',
-                     types.WARN: '#FFFF80',
-                     types.ERR: '#FF7878',
-                     types.UNKNOWN: '#CCCCCC'}
+        self.clrs = {types.NO_ERR: '#80FF80', types.WARN: '#FFFF80',
+                     types.ERR: '#FF7878', types.UNKNOWN: '#CCCCCC'}
 
         # associates status code with a cell text (temporary)
-        self.stattxt = {types.UNKNOWN: "",
-                        types.NO_ERR: "",
-                        types.WARN: "Опасно",
-                        types.ERR: "Брак"}
-
-        # our table should be horizontally expandable
-        self.set_hexpand(True)
-        self.set_halign(Gtk.Align.FILL)
+        self.stattxt = {types.UNKNOWN: "", types.NO_ERR: "",
+                        types.WARN: "Опасно", types.ERR: "Брак"}
 
         # remove any selections
         sel = self.get_selection()
         sel.set_mode(Gtk.SelectionMode.NONE)
-
-        # our table should be attached to the bottom of main app window
-        self.set_vexpand(False)
-        self.set_valign(Gtk.Align.END)
 
         # table should be with horizontal and vertical lines that divide cells
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)

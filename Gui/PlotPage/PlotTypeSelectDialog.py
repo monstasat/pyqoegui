@@ -43,11 +43,8 @@ class PlotTypeSelectDialog(BaseDialog):
 
         # fill page list with created pages
         pages = []
-        pages.append((self.type_select_page,
-                      "type_select",
-                      "Тип графика"))
-        pages.append((self.prog_select_page,
-                      "prog_select",
+        pages.append((self.type_select_page, "type_select", "Тип графика"))
+        pages.append((self.prog_select_page, "prog_select",
                       "Программы на графике"))
 
         # create stack
@@ -56,16 +53,12 @@ class PlotTypeSelectDialog(BaseDialog):
         # add callback when page is switched
         self.stack.connect("notify::visible-child", self.on_page_switched)
         # add pages to stack
-        for page in pages:
-            self.stack.add_titled(page[0], page[1], page[2])
+        list(map(lambda x: self.stack.add_titled(x[0], x[1], x[2]), pages))
 
         # create stack sidebar
-        self.stackSidebar = Gtk.StackSidebar(
-            vexpand=True,
-            hexpand=False,
-            halign=Gtk.Align.START)
-        self.stackSidebar.set_stack(self.stack)
-        self.stackSidebar.show()
+        self.stackSidebar = Gtk.StackSidebar(vexpand=True, hexpand=False,
+                                             halign=Gtk.Align.START,
+                                             stack=self.stack)
 
         # set initial label of 'apply' button
         self.applyBtn.set_property('label', Gtk.STOCK_GO_FORWARD)
@@ -84,7 +77,6 @@ class PlotTypeSelectDialog(BaseDialog):
         parent.analyzed_progs_model.connect('row-inserted',
                                             self.on_row_inserted)
 
-        self.show_all()
         # set dialog view
         self.set_dialog_view()
 
@@ -96,14 +88,16 @@ class PlotTypeSelectDialog(BaseDialog):
         else:
             BaseDialog.on_btn_clicked_apply(self, widget)
 
+    # decide on apply button sensitivity
+    def set_apply_btn_sensitivity(self):
+        # if nothing is selected, deactivate suggested button
+        # if smth is selected, activate button
+        sensitivity = not (len(self.get_selected_programs()) is 0)
+        self.applyBtn.set_sensitive(sensitivity)
+
     # when user selects/deselects programs from list
     def on_program_selection_changed(self, widget, path):
-        # if nothing is selected, deactivate suggested button
-        if len(self.get_selected_programs()) is 0:
-            self.applyBtn.set_sensitive(False)
-        # if smth is selected, activate button
-        else:
-            self.applyBtn.set_sensitive(True)
+        self.set_apply_btn_sensitivity()
 
     # when dialog page is switched (to plot type select or progs select)
     def on_page_switched(self, stack, gparam):
@@ -139,10 +133,7 @@ class PlotTypeSelectDialog(BaseDialog):
             # change text on suggested button
             self.applyBtn.set_property('label', Gtk.STOCK_APPLY)
             # if no programs selected, deactivate suggested button
-            if len(self.get_selected_programs()) is 0:
-                self.applyBtn.set_sensitive(False)
-            else:
-                self.applyBtn.set_sensitive(True)
+            self.set_apply_btn_sensitivity()
 
     # get information about selected plot type
     def get_selected_plot_type_info(self, row):

@@ -27,36 +27,27 @@ class Plot(Gtk.Box):
                                            None, ())}
 
     def __init__(self, plot_type, plot_progs, colors):
-        Gtk.Box.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL,
+                         spacing=Spacing.ROW_SPACING)
 
         # save incoming parameters
         self.plot_type = plot_type
         self.plot_progs = plot_progs
 
-        # main widget of a plot - box with vertical orientation
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-
         # add plot label at the top
-        self.label = Gtk.Label(halign=Gtk.Align.END,
-                               hexpand=True,
-                               vexpand=False,
-                               label="")
+        self.label = Gtk.Label(halign=Gtk.Align.END, hexpand=True,
+                               vexpand=False, label="")
+
         self.close_button = Gtk.Button(image=Icon("window-close"))
         self.close_button.set_relief(Gtk.ReliefStyle.NONE)
-        self.label_box = Gtk.Box()
-        self.label_box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.label_box.set_spacing(Spacing.COL_SPACING)
+        self.label_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                 spacing=Spacing.COL_SPACING)
         self.label_box.add(self.label)
         self.label_box.add(self.close_button)
 
         # add drawing area in the middle
-        self.da = Gtk.DrawingArea()
-        self.da.set_hexpand(True)
-        self.da.set_vexpand(True)
-        self.da.set_halign(Gtk.Align.FILL)
-        self.da.set_valign(Gtk.Align.FILL)
-        self.da.set_size_request(250, 40)
-        # connect drawing area to some signals
+        self.da = Gtk.DrawingArea(hexpand=True, halign=Gtk.Align.FILL,
+                                  vexpand=True, valign=Gtk.Align.FILL)
         self.da.connect('draw', self.graph_draw)
         self.da.connect('configure_event', self.graph_configure)
         self.da.connect('destroy', self.graph_destroy)
@@ -74,7 +65,6 @@ class Plot(Gtk.Box):
         self.add(self.label_box)
         self.add(self.da)
         self.add(self.bottom_bar)
-        self.set_spacing(Spacing.ROW_SPACING)
 
         # graph points number
         self.NUM_POINTS = 160 + 2
@@ -160,6 +150,7 @@ class Plot(Gtk.Box):
         self.data = []
         for i in range(self.prog_num):
             self.data.append(deque([-1] * self.NUM_POINTS, self.NUM_POINTS))
+
         self.prev_data = []
         for i in range(self.prog_num):
             self.prev_data.append(self.min)
@@ -205,8 +196,7 @@ class Plot(Gtk.Box):
         if selt.timer_index is not None:
             GObject.source_remove(self.timer_index)
             self.timer_index = GObject.timeout_add(
-                self.speed / self.frames_per_unit. self.update,
-                None)
+                self.speed / self.frames_per_unit. self.update, None)
 
         self.clear_background()
 

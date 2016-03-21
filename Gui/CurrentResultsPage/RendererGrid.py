@@ -15,34 +15,18 @@ class RendererGrid(Gtk.FlowBox):
                                         None, (int, int, int, int,))}
 
     def __init__(self):
-        Gtk.FlowBox.__init__(self)
+        Gtk.FlowBox.__init__(self, hexpand=True, vexpand=True,
+                             halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
+                             homogeneous=True,
+                             orientation=Gtk.Orientation.HORIZONTAL,
+                             column_spacing=Spacing.COL_SPACING,
+                             row_spacing=Spacing.ROW_SPACING,
+                             selection_mode=Gtk.SelectionMode.NONE,
+                             activate_on_single_click=False)
 
         self.rend_arr = []
 
-        # should be horizontally expandable and fill all available space
-        self.set_hexpand(True)
-        self.set_vexpand(True)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
-
-        # set selection mode to None
-        self.set_selection_mode(Gtk.SelectionMode.NONE)
-
-        # set rows and cols homogeneous
-        self.set_homogeneous(True)
-
-        # flow box should have horizontal orientation
-        self.set_orientation(Gtk.Orientation.HORIZONTAL)
-
-        # set some space between renderers
-        self.set_column_spacing(Spacing.COL_SPACING)
-        self.set_row_spacing(Spacing.ROW_SPACING)
-
-        self.set_activate_on_single_click(False)
-
-        # connect to draw signal
         self.connect('draw', self.on_draw)
-        # connect to child activated signal
         self.connect('child-activated', self.on_child_activated)
 
     # draw necessary number of renderers
@@ -50,9 +34,6 @@ class RendererGrid(Gtk.FlowBox):
 
         # first of all delete all previous renderers
         self.remove_renderers()
-        for rend in self.rend_arr:
-            rend.destroy
-        self.rend_arr.clear()
 
         # add renderers to grid
         for stream in prog_list:
@@ -75,12 +56,8 @@ class RendererGrid(Gtk.FlowBox):
                         prog_type = prog_type | 0x02
 
                 # create renderer
-                renderer = Renderer(stream_id,
-                                    prog_id,
-                                    prog_name,
-                                    prog_type,
-                                    video_pid,
-                                    audio_pid)
+                renderer = Renderer(stream_id, prog_id, prog_name,
+                                    prog_type, video_pid, audio_pid)
 
                 self.rend_arr.append(renderer)
 
@@ -101,14 +78,13 @@ class RendererGrid(Gtk.FlowBox):
 
     def on_volume_changed(self, wnd, stream_id, prog_id, pid, value):
         self.emit(CustomMessages.VOLUME_CHANGED,
-                  stream_id,
-                  prog_id,
-                  pid,
-                  value)
+                  stream_id, prog_id, pid, value)
 
     # delete all renderers
     def remove_renderers(self):
         children = self.get_children()
+        for rend in self.rend_arr:
+            rend.destroy()
         for child in children:
             child.destroy()
         self.rend_arr.clear()
@@ -117,12 +93,9 @@ class RendererGrid(Gtk.FlowBox):
     def get_renderers_xid(self):
         xids = []
         for i in range(len(self.get_children())):
-            rend = self.rend_arr[i]
-            rend.drawarea.realize()
-            xids.append([rend.stream_id,
-                         rend.prog_id,
-                         rend.drawarea.get_window().get_xid()]
-                        )
+            xids.append([self.rend_arr[i].stream_id,
+                         self.rend_arr[i].prog_id,
+                         self.rend_arr[i].drawarea.get_window().get_xid()])
         return xids
 
     # setting if renderers should draw black bakground
@@ -143,9 +116,8 @@ class RendererGrid(Gtk.FlowBox):
 
     # filtering function for flow box when one renderer is enlarged
     def filter_func(self, child, user_data):
-        index = child.get_index()
         # if renderer is enlarged - show it
-        return self.rend_arr[index].is_enlarged
+        return self.rend_arr[child.get_index()].is_enlarged
 
     # if user double-clicks renderer
     def on_child_activated(self, widget, child):
@@ -173,41 +145,25 @@ class RendererGrid(Gtk.FlowBox):
     # decide on number of renderers per one line
     def on_resize(self):
         rect = self.get_allocation()
-        prnt = self.get_parent().get_parent()
-        rect_tbl = prnt.prgtbl.get_allocation()
-        print("fb", rect.width, rect.height)
-        print("tbl", rect_tbl.width, rect_tbl.height)
-        if rect.width is 0:
-            aspect_fb = 0
-        else:
-            aspect_fb = rect.height / rect.width
+        aspect_fb = 0 if (rect.width is 0) else (rect.height/rect.width)
 
-        # see if any of renderers is enlarged
+        # if one of renderers is enlarged - set 1 child per row
         is_enlarged = False
         for child in self.rend_arr:
             if child.is_enlarged is True:
-                is_enlarged = True
-        children = self.get_children()
-
-        # if one of renderers is enlarged - set 1 child per row
-        if is_enlarged is True:
-            cols = 1
-        # in other way (if all renderers are shown)
+                cols = 1
+                break
         # decide on optimal number of renderers per line
         else:
-            renderer_aspect = 0
-            if len(children) is not 0:
+            if len(self.rend_arr) is not 0:
                 # get renderer ratio (height/width)
                 rect = self.rend_arr[0].get_allocation()
-                if rect.width is 0:
-                    ratio = 0
-                else:
-                    ratio = rect.height / rect.width
+                ratio = 0 if (rect.width is 0) else (rect.height/rect.width)
             else:
                 ratio = 0
             cols = self.get_max_renderers_per_row(aspect_fb,
                                                   ratio,
-                                                  len(children))
+                                                  len(self.rend_arr))
         # set max renderers per line
         self.set_max_children_per_line(cols)
 
@@ -220,17 +176,13 @@ class RendererGrid(Gtk.FlowBox):
 
         for rows in range(1, rend_num + 1):
             columns = math.ceil(rend_num / float(rows))
-            S_1 = 0.0
-
             if (W / columns * rend_div * rows) <= H:
                 S_1 = W / columns * (W / columns * rend_div)
             else:
                 S_1 = H / rows * (H / rows / rend_div)
-
             S_useful = S_1 * rend_num
             S_rects = S_1 * rows * columns
             space_rate = S_useful / S_rects
-
             aspect_list.append([rows, columns, S_useful, S_rects, space_rate])
 
         # sort by s_useful and space rate

@@ -1,42 +1,23 @@
 from gi.repository import Gtk
 
 
-# Base class for prog list display
-# Child class should add attributes for second column
 class ProgramTreeView(Gtk.TreeView):
 
     def __init__(self, store):
+        Gtk.TreeView.__init__(self, hexpand=True, vexpand=True, model=store,
+                              halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
+                              enable_tree_lines=True, show_expanders=True)
 
-        self.PROG_PARAMS = {"number": 0,
-                            "prog_name": 1,
-                            "prov_name": 2,
-                            "pids_num": 3}
-
-        # dividers for string with program parameters
-        self.STREAM_DIVIDER = ':$:'
-        self.PROG_DIVIDER = ':*:'
-        self.PARAM_DIVIDER = '^:'
-
-        Gtk.TreeView.__init__(self)
-        self.set_hexpand(True)
-        self.set_vexpand(True)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        self.set_show_expanders(True)
-        self.set_enable_tree_lines(True)
         sel = self.get_selection()
         sel.set_mode(Gtk.SelectionMode.NONE)
 
-        # set the model
-        self.set_model(store)
         # remember the model
         self.store = store
 
         # the cellrenderer for the first column - icon
         self.renderer_icon = Gtk.CellRendererPixbuf()
         self.renderer_icon.set_alignment(0.5, 0.5)
-
         # the cellrenderer for the first column - text
         self.renderer_text = Gtk.CellRendererText()
 
@@ -53,7 +34,6 @@ class ProgramTreeView(Gtk.TreeView):
         self.column_prog.pack_start(self.renderer_text, True)
         self.column_prog.add_attribute(self.renderer_icon, "icon-name", 0)
         self.column_prog.add_attribute(self.renderer_text, "text", 1)
-
         # append first column
         self.append_column(self.column_prog)
 
@@ -68,9 +48,6 @@ class ProgramTreeView(Gtk.TreeView):
         self.append_column(self.column_check)
 
         self.show_all()
-
-    def on_store_changed(self):
-        pass
 
     def on_toggled(self, widget, path):
         # the boolean value of the selected row
@@ -278,10 +255,7 @@ class ProgramTreeView(Gtk.TreeView):
 
             pidIter = self.store.iter_next(pidIter)
 
-        return [video_found,
-                audio_found,
-                video_selected,
-                audio_selected,
-                selected_video_pid,
-                selected_audio_pid]
+        return [video_found, audio_found,
+                video_selected, audio_selected,
+                selected_video_pid, selected_audio_pid]
 

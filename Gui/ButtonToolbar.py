@@ -7,42 +7,32 @@ from Gui.Icon import Icon
 class ButtonToolbar(Gtk.Toolbar):
 
     # button labels
-    toolbar_buttons_text = ["Старт",
-                            "Выбор программ",
-                            "Настройки тюнера",
-                            "Настройки анализа",
-                            "Запись потока",
-                            "О программе"
-                            ]
+    toolbar_buttons_text = ["Старт", "Выбор программ", "Настройки тюнера",
+                            "Настройки анализа", "Запись потока",
+                            "О программе"]
 
     # button tooltip text
-    tooltip_arr = ["Запустить анализ",
-                   "Выбор программ для анализа",
-                   "Настройки ТВ тюнера",
-                   "Настройки алгоритмов определения "
+    tooltip_arr = ["Запустить анализ", "Выбор программ для анализа",
+                   "Настройки ТВ тюнера", "Настройки алгоритмов определения "
                    "искажений изображения и звука",
                    "Запись потока на внутренний диск или съемный носитель",
-                   "О программе"
-                   ]
+                   "О программе"]
 
     # themed icon names
-    ico_arr = ["media-playback-start-symbolic",
-               "tv-symbolic",
-               "network-wireless-symbolic",
-               "emblem-system-symbolic",
-               "drive-harddisk-symbolic",
-               "help-about-symbolic"
-               ]
+    ico_arr = ["media-playback-start-symbolic", "tv-symbolic",
+               "network-wireless-symbolic", "emblem-system-symbolic",
+               "drive-harddisk-symbolic", "help-about-symbolic"]
 
     # create a toolbar
     def __init__(self):
-        Gtk.Toolbar.__init__(self)
+        Gtk.Toolbar.__init__(self, hexpand=False, vexpand=True,
+                             orientation=Gtk.Orientation.VERTICAL,
+                             toolbar_style=Gtk.ToolbarStyle.ICONS)
         # setting this toolbar as primary for the window
         self.get_style_context().add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
 
-        self.btn_arr = []
-
         # create tool buttons
+        self.btn_arr = []
         for i in range(len(self.ico_arr)):
             self.btn_arr.append(Gtk.ToolButton.new(
                 Icon(self.ico_arr[i]),
@@ -51,21 +41,6 @@ class ButtonToolbar(Gtk.Toolbar):
             self.btn_arr[i].set_has_tooltip(True)
             self.btn_arr[i].set_tooltip_text(self.tooltip_arr[i])
             self.insert(self.btn_arr[i], i)
-            self.btn_arr[i].show()
-
-        # how to show buttons in toolbar
-        self.set_style(Gtk.ToolbarStyle.ICONS)
-
-        # we want a vertical toolbar
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-
-        # toolbar shouldn't expand horizontally
-        self.set_hexpand(False)
-        # toolbar should expand vertically
-        self.set_vexpand(True)
-
-        # show the toolbar
-        self.show()
 
     # change text and tooltip for start button
     def change_start_icon(self):

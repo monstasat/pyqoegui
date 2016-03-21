@@ -6,61 +6,32 @@ from Control import TunerSettingsIndexes as ti
 # tree view that displays tuner status
 class TunerStatusTreeView(Gtk.TreeView):
     def __init__(self, parent):
-        Gtk.TreeView.__init__(self)
+        Gtk.TreeView.__init__(self, hexpand=True, vexpand=True,
+                              halign=Gtk.Align.FILL, valign=Gtk.Align.FILL,
+                              show_expanders=True, enable_tree_lines=True)
 
-        self.set_hexpand(True)
-        self.set_vexpand(False)
-        self.set_halign(Gtk.Align.FILL)
-        self.set_valign(Gtk.Align.FILL)
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        self.set_show_expanders(True)
-        self.set_enable_tree_lines(False)
-        sel = self.get_selection()
-        sel.set_mode(Gtk.SelectionMode.NONE)
+        self.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
         self.store = Gtk.ListStore(str, str, int)
 
-        self.main_wnd = parent
+        self.device = parent.device
 
         self.unknown = "неизвестно"
 
         # append values
-        self.store.append(["Стандарт сигнала",
-                           self.unknown,
-                           0xff])
-        self.store.append(["Модуляция",
-                           self.unknown,
-                           0xff])
-        self.store.append(["Символьная скорость канала",
-                           self.unknown,
-                           ti.DVBC])
-        self.store.append(["Число поднесущих канала",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Защитный интервал",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Режим иерархии",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Спектр",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Скорость кода LP",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Скорость кода HP",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["Ширина канала",
-                           self.unknown,
-                           ti.DVBT])
-        self.store.append(["PLP ID",
-                           self.unknown,
-                           ti.DVBT2])
-        self.store.append(["Ширина канала",
-                           self.unknown,
-                           ti.DVBT2])
+        self.store.append(["Стандарт сигнала", self.unknown, 0xff])
+        self.store.append(["Модуляция", self.unknown, 0xff])
+        self.store.append(["Символьная скорость", self.unknown, ti.DVBC])
+        self.store.append(["Число поднесущих канала", self.unknown, ti.DVBT])
+        self.store.append(["Защитный интервал", self.unknown, ti.DVBT])
+        self.store.append(["Режим иерархии", self.unknown, ti.DVBT])
+        self.store.append(["Спектр", self.unknown, ti.DVBT])
+        self.store.append(["Скорость кода LP", self.unknown, ti.DVBT])
+        self.store.append(["Скорость кода HP", self.unknown, ti.DVBT])
+        self.store.append(["Ширина канала", self.unknown, ti.DVBT])
+        self.store.append(["PLP ID", self.unknown, ti.DVBT2])
+        self.store.append(["Ширина канала", self.unknown, ti.DVBT2])
 
         # creating store filter
         self.store_filter = self.store.filter_new()
@@ -79,7 +50,6 @@ class TunerStatusTreeView(Gtk.TreeView):
         self.column_name.set_expand(True)
         self.column_name.pack_start(self.parameter_name, True)
         self.column_name.add_attribute(self.parameter_name, "text", 0)
-
         # append first column
         self.append_column(self.column_name)
 
@@ -89,23 +59,19 @@ class TunerStatusTreeView(Gtk.TreeView):
         self.column_value.set_expand(True)
         self.column_value.pack_start(self.parameter_value, True)
         self.column_value.add_attribute(self.parameter_value, "text", 1)
-
         # append second column
         self.append_column(self.column_value)
 
     def param_filter_func(self, model, iter_, data):
-        if (model[iter_][2] == 0xff) or \
-           (model[iter_][2] == self.main_wnd.device):
-            return True
-        else:
-            return False
+        return (model[iter_][2] == 0xff) or \
+               (model[iter_][2] == self.device)
 
     def set_signal_params(self, modulation, params):
 
         # DVB-C
         if 3 <= modulation <= 3:
             # set device
-            self.main_wnd.device = ti.DVBC
+            self.device = ti.DVBC
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-C"
 
@@ -125,7 +91,7 @@ class TunerStatusTreeView(Gtk.TreeView):
         # DVB-T
         elif 4 <= modulation <= 8:
             # set device
-            self.main_wnd.device = ti.DVBT
+            self.device = ti.DVBT
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-T"
 
@@ -233,7 +199,7 @@ class TunerStatusTreeView(Gtk.TreeView):
         # DVB-T2
         elif modulation == 9:
             # set device
-            self.main_wnd.device = ti.DVBT2
+            self.device = ti.DVBT2
             iter_ = self.store.get_iter_from_string('0')
             self.store[iter_][1] = "DVB-T2"
 
@@ -271,13 +237,10 @@ class TunerStatusTreeView(Gtk.TreeView):
         # unknown
         else:
             # set device
-            iter_ = self.store.get_iter_from_string('0')
-            self.store[iter_][1] = self.unknown
-            self.main_wnd.device = 0xff
-
+            self.device = 0xff
+            self.store[self.store.get_iter_from_string('0')][1] = self.unknown
             # set modulation
-            iter_ = self.store.get_iter_from_string('1')
-            self.store[iter_][1] = self.unknown
+            self.store[self.store.get_iter_from_string('1')][1] = self.unknown
 
             self.store_filter.refilter()
 

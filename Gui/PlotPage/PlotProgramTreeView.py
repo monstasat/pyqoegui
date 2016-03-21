@@ -3,13 +3,11 @@ from gi.repository import Gtk
 
 class PlotProgramTreeView(Gtk.TreeView):
     def __init__(self, store):
-        Gtk.TreeView.__init__(self)
+        Gtk.TreeView.__init__(self, show_expanders=True,
+                              enable_tree_lines=True)
 
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
-        self.set_show_expanders(True)
-        self.set_enable_tree_lines(True)
-        sel = self.get_selection()
-        sel.set_mode(Gtk.SelectionMode.NONE)
+        self.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
         # what programs to display?
         self.filter_type = ''

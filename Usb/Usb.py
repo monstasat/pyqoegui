@@ -61,9 +61,6 @@ class Usb(BaseInterface):
         self.msg_parser.extend(buf)
         messages = self.msg_parser.parse_queue()
 
-        client_id = 0
-        request_id = 0
-
         for msg in messages:
             msg_type = msg[0]
             msg_data = msg[1]
@@ -130,28 +127,22 @@ class Usb(BaseInterface):
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_video_analysis_settings(
-                        self.analysis_settings,
-                        client_id,
-                        request_id)
+                        self.analysis_settings, client_id, request_id)
 
             # remote client asks to return audio analysis settings
             elif msg_type == usb_msgs.GET_AUDIO_ANALYSIS_SETTINGS:
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_audio_analysis_settings(
-                        self.analysis_settings,
-                        client_id,
-                        request_id)
+                        self.analysis_settings, client_id, request_id)
 
             # remote client asks to return stream and analyzed prog list
             elif msg_type == usb_msgs.GET_ANALYZED_PROG_LIST:
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_prog_list(
-                        self.stream_prog_list,
-                        self.analyzed_prog_list,
-                        client_id,
-                        request_id)
+                        self.stream_prog_list, self.analyzed_prog_list,
+                        client_id, request_id)
 
             # remote client asks to reset the device
             elif msg_type == usb_msgs.RESET:
@@ -163,20 +154,15 @@ class Usb(BaseInterface):
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_tuner_settings(
-                        self.tuner_settings,
-                        client_id,
-                        request_id)
+                        self.tuner_settings, client_id, request_id)
 
             elif msg_type == usb_msgs.GET_TUNER_STATUS:
                 client_id = msg_data[0]
                 request_id = msg_data[2]
                 self.exchange.send_tuner_status(
-                        self.tuner_status,
-                        self.tuner_params,
-                        self.tuner_measured_data,
-                        self.tuner_settings,
-                        client_id,
-                        request_id)
+                        self.tuner_status, self.tuner_params,
+                        self.tuner_measured_data, self.tuner_settings,
+                        client_id, request_id)
 
         return True
 
@@ -291,9 +277,7 @@ class Usb(BaseInterface):
         prog_idx = self.is_in_prog_list(lufs[0][0], lufs[0][1], lufs[0][2])
         if prog_idx is not None:
             average = sum(lufs[1][1]) / float(len(lufs[1][1]))
-            average = math.ceil(average)
-            average = abs(average)
-            self.exchange.lufs[prog_idx] = average
+            self.exchange.lufs[prog_idx] = math.ceil(abs(average))
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):

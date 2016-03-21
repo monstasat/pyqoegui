@@ -32,9 +32,6 @@ class ProgramTreeModel(Gtk.TreeStore):
                 citer = self.iter_next(citer)
             piter = self.iter_next(piter)
 
-    def clear_model(self):
-        self.clear()
-
     # get full list of all streams from model
     # no matter selected or not
     def get_list(self):
@@ -99,7 +96,7 @@ class ProgramTreeModel(Gtk.TreeStore):
     # apply new list of streams to model
     def add_all_streams(self, prog_list):
 
-        self.clear_model()
+        self.clear()
 
         for stream in prog_list:
             if len(stream[1]) > 0:
@@ -109,17 +106,13 @@ class ProgramTreeModel(Gtk.TreeStore):
     def update_stream_info(self, prog_list):
         piter = self.append(None, [self.TREE_ICONS['ts'],
                                    "Поток №" + str(prog_list[0] + 1),
-                                   False,
-                                   False,
-                                   prog_list[0],
+                                   False, False, prog_list[0],
                                    json.dumps(prog_list)])
 
         for prog in prog_list[1]:
             citer = self.append(piter, [self.TREE_ICONS['program'],
                                         prog[1],
-                                        False,
-                                        False,
-                                        prog_list[0],
+                                        False, False, prog_list[0],
                                         json.dumps(prog)])
             pids = prog[4]
 
@@ -129,8 +122,6 @@ class ProgramTreeModel(Gtk.TreeStore):
                     pid_str = "PID " + str(pid[0]) + ", " + str(pid[2])
                     self.append(citer, [self.TREE_ICONS[pid_type],
                                         pid_str,
-                                        False,
-                                        False,
-                                        prog_list[0],
+                                        False, False, prog_list[0],
                                         json.dumps(pid)])
 
