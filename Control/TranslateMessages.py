@@ -101,7 +101,8 @@ class TranslateMessages():
             # split params string to separate parameters
             audio_params = params_single_frame.split(PARAM_DIVIDER)
             for i, param in enumerate(audio_params):
-                audio_params_pack[i].append(float(param))
+                if param.lower() != "nan":
+                    audio_params_pack[i].append(float(param))
 
         # append parameter list to aparam list
         param_list.append(audio_params_pack)
