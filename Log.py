@@ -10,7 +10,15 @@ TYPE_ERROR = 2
 
 class Log():
     def __init__(self, filename='log'):
-        self.filename = filename
+        home = os.environ.get("HOME")
+        user_name = os.environ.get("USER")
+        self.dir = home + '/.var/log/' + user_name + '/analyzer/'
+        self.filename = self.dir + filename
+
+         # create directory if no exist
+        if os.path.isdir(self.dir) is False:
+            os.makedirs(self.dir)
+
         # create new file or rewrite old file with same name
         f = open(self.filename, 'w')
 

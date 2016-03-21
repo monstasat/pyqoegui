@@ -1,6 +1,7 @@
 import json
 import configparser
 import copy
+import os
 
 from gi.repository import Gio
 
@@ -11,8 +12,16 @@ from Control import TunerSettingsIndexes as ti
 class Config():
     def __init__(self):
         self.config = configparser.ConfigParser()
+        home = os.environ.get("HOME")
+        self.dir = home + '/.config/analyzer'
+        self.filename = self.dir + '/config.ini'
+
+        # create directory if no exist
+        if os.path.isdir(self.dir) is False:
+            os.makedirs(self.dir)
+
         try:
-            f = open('config.ini', 'r')
+            f = open(self.filename, 'r')
         except:
             self.config['DEFAULT'] = {'prog_list': '[]',
                                       'dark_theme': 'False',
@@ -26,21 +35,24 @@ class Config():
             self.write_ini()
 
     def write_ini(self):
-        with open('config.ini', 'w') as configfile:
+        with open(self.filename, 'w') as configfile:
             self.config.write(configfile)
+
+    def read_ini(self):
+        self.config.read(self.filename)
 
     def set_prog_list(self, progList):
         self.config['user']['prog_list'] = json.dumps(progList)
         self.write_ini()
 
     def get_prog_list(self):
-        self.config.read('config.ini')
+        self.read_ini()
         progList = self.config['user'].get('prog_list', '[]')
 
         return json.loads(progList)
 
     def get_color_theme(self):
-        self.config.read('config.ini')
+        self.read_ini()
         dark_theme = self.config['user'].getboolean('dark_theme')
         return bool(dark_theme)
 
@@ -53,7 +65,7 @@ class Config():
         self.write_ini()
 
     def get_table_revealer(self):
-        self.config.read('config.ini')
+        self.read_ini()
         table_revealer = self.config['user'].getboolean('table_revealer')
         return bool(table_revealer)
 
@@ -65,7 +77,7 @@ class Config():
         self.write_ini()
 
     def get_plot_info(self):
-        self.config.read('config.ini')
+        self.read_ini()
         plot_info = self.config['user'].get('plot_info', '[]')
 
         return json.loads(plot_info)
@@ -78,7 +90,7 @@ class Config():
         self.write_ini()
 
     def get_analysis_settings(self):
-        self.config.read('config.ini')
+        self.read_ini()
         analysis_settings = self.config['user'].get('analysis_settings', '[]')
         analysis_settings = json.loads(analysis_settings)
 
@@ -92,7 +104,7 @@ class Config():
         self.write_ini()
 
     def get_tuner_settings(self):
-        self.config.read('config.ini')
+        self.read_ini()
         tuner_settings = self.config['user'].get('tuner_settings', '[]')
         tuner_settings = json.loads(tuner_settings)
 
