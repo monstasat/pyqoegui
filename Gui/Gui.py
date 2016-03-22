@@ -210,6 +210,9 @@ class Gui(BaseInterface):
         BaseInterface.update_analysis_settings(self, analysis_settings)
         # update analysis settings dialog
         self.analysisSetDlg.update_values(self.analysis_settings)
+        for plot in self.plot_page.plots:
+            self.plot_page.add_plot_intervals(plot,
+                                              self.analysis_settings)
 
     # called by Control to update tuner settings
     def update_tuner_settings(self, tuner_settings):
