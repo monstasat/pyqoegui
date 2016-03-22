@@ -1,4 +1,5 @@
 import math
+from statistics import mean
 
 from gi.repository import GObject
 
@@ -276,8 +277,16 @@ class Usb(BaseInterface):
         BaseInterface.update_lufs(self, lufs)
         prog_idx = self.is_in_prog_list(lufs[0][0], lufs[0][1], lufs[0][2])
         if prog_idx is not None:
-            average = sum(lufs[1][1]) / float(len(lufs[1][1]))
-            self.exchange.lufs[prog_idx] = math.ceil(abs(average))
+            try:
+                av_short_term = mean(lufs[1][1])
+            except:
+                pass
+            else:
+                data = abs(math.ceil(av_short_term))
+                if 0 <= data <= 255:
+                    self.exchange.lufs[prog_idx] = data
+                else:
+                    print("LUFS value exceed byte range: ", data)
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):

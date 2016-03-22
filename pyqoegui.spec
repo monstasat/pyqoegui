@@ -1,3 +1,5 @@
+%define debug_package %{nil}
+
 Summary:        ats-analyzer gui
 Name:           pyqoegui
 Version:        0.5.0b
@@ -9,7 +11,7 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}
 
 BuildRequires:  python3-pyserial
-BuildRequires:  psutil
+BuildRequires:  python3-psutil
 
 %description
 
@@ -32,7 +34,6 @@ cp -R ./%{name}/Backend %{buildroot}/opt/
 cp -R ./%{name}/Usb %{buildroot}/opt/
 
 %files
-%{_bindir}/
 /usr/bin/ats.sh
 /opt/BaseInterface.py
 /opt/Log.py

@@ -1,3 +1,5 @@
+from statistics import mean
+
 from gi.repository import Gtk
 
 from Control.ErrorDetector import StatusTypes as types
@@ -215,13 +217,17 @@ class ProgramTable(Gtk.TreeView):
             data_header = [row[21], row[22], row[24]]
 
             if lufs[0] == data_header:
-                data = sum(lufs[1][1]) / float(len(lufs[1][1]))
-                min_ = -59
-                max_ = -5
-                if data > max_:
-                    data = max_
-                elif data < min_:
-                    data = min_
-                row[18] = int(((data - min_) / 54)*100)
-                row[19] = '%.2f LUFS' % data
+                try:
+                    data = mean(lufs[1][1])
+                except:
+                    pass
+                else:
+                    min_ = -59
+                    max_ = -5
+                    if data > max_:
+                        data = max_
+                    elif data < min_:
+                        data = min_
+                    row[18] = int(((data - min_) / 54)*100)
+                    row[19] = '%.2f LUFS' % data
 

@@ -93,9 +93,11 @@ class RendererGrid(Gtk.FlowBox):
     def get_renderers_xid(self):
         xids = []
         for i in range(len(self.get_children())):
-            xids.append([self.rend_arr[i].stream_id,
-                         self.rend_arr[i].prog_id,
-                         self.rend_arr[i].drawarea.get_window().get_xid()])
+            rend = self.rend_arr[i]
+            rend.drawarea.realize()
+            xids.append([rend.stream_id,
+                         rend.prog_id,
+                         rend.drawarea.get_window().get_xid()])
         return xids
 
     # setting if renderers should draw black bakground

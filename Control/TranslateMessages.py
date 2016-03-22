@@ -102,11 +102,13 @@ class TranslateMessages():
             audio_params = params_single_frame.split(PARAM_DIVIDER)
             for i, param in enumerate(audio_params):
                 lowercase = param.lower()
-                if (lowercase != "nan" and lowercase != "inf") and \
-                        (lowercase != "-nan" and lowercase != "-inf"):
+                if lowercase == "-inf":
+                    audio_params_pack[i].append(-70.0)
+                elif (lowercase != "nan" and lowercase != "-nan") and \
+                        lowercase != "inf":
                     audio_params_pack[i].append(float(param))
                 else:
-                    print(aparams_string)
+                    print("Bad LUFS values: ", aparams_string)
 
         # append parameter list to aparam list
         param_list.append(audio_params_pack)
