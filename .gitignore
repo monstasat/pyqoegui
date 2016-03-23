@@ -5,6 +5,7 @@ backend_err_log
 backend_log
 log
 *.txt
+*.tar.gz
 
 #ignore folders
 **/__pycache__
