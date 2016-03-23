@@ -1,8 +1,11 @@
+import os
+import inspect
+
 from gi.repository import Gtk, GdkPixbuf
 
 # version number
 # major, minor, revision
-VERSION = "0.5.0b"
+VERSION = "0.5.1b"
 
 
 # about ats analyzer dialog based on Gtk.AboutDialog
@@ -24,8 +27,10 @@ class AboutDialog(Gtk.AboutDialog):
                                  "Янин Александр"])
 
         try:
+            filename = inspect.getfile(inspect.currentframe())
+            path = os.path.dirname(os.path.abspath(filename))
             logo = GdkPixbuf.Pixbuf.new_from_file(
-                './Gui/AboutDialog/logo_square.png')
+                path + '/logo_square.png')
             logo = logo.scale_simple(128, 128, GdkPixbuf.InterpType.BILINEAR)
             self.set_property("logo", logo)
         except:
