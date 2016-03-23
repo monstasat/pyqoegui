@@ -15,7 +15,7 @@ class TunerStatusTreeView(Gtk.TreeView):
 
         self.store = Gtk.ListStore(str, str, int)
 
-        self.device = parent.device
+        self.device = 0xff
 
         self.unknown = "неизвестно"
 

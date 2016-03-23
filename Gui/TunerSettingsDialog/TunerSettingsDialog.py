@@ -87,6 +87,9 @@ class TunerSettingsDialog(BaseDialog):
         # update tuner settings list
         self.tuner_settings = tuner_settings
 
+        # update device in status box
+        self.status_box.device = tuner_settings[ti.DEVICE][0]
+
         self.standard_combo.combobox.set_active(
                                         tuner_settings[ti.DEVICE][0])
         self.dvbt2_box.frequency = tuner_settings[ti.T2_FREQ][0]

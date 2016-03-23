@@ -16,7 +16,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         # current measured data
         self.measured_data = [0, False, 0, False, 0, False, 0, False]
 
-        self.device = parent.device
+        self.device = 0xff
 
         self.store = Gtk.ListStore(str, str)
 
