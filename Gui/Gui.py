@@ -39,6 +39,8 @@ class Gui(BaseInterface):
 
         self.window = Gtk.Window(decorated=False, resizable=False)
 
+        self.monitor_list = []
+
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
         settings.set_property("gtk-titlebar-double-click", 'none')
@@ -165,8 +167,13 @@ class Gui(BaseInterface):
         BaseInterface.__destroy__(self)
         self.window.destroy()
 
-    def set_resolution(self, width, height):
-        os.popen("xrandr -s " + str(width) + 'x' + str(height))
+    def set_resolution(self, monitor, width, height, auto=False):
+        if auto is True:
+            command = "xrandr --output " + str(monitor) + " --auto"
+        else:
+            command = "xrandr --output " + str(monitor) + \
+                      " --mode " + str(width) + 'x' + str(height)
+        os.popen(command)
 
     def set_monitor_mode(self):
 
@@ -178,57 +185,41 @@ class Gui(BaseInterface):
         monitor_info = []
         for d in connected:
             if d[0] is not ' ':
-                if len(monitor_info) != 0:
-                    active_monitors.append(monitor_info)
-                monitor_info = [d.split()[0], []]
-            else:
-                if len(monitor_info) != 0:
-                    monitor_info[1].append(d.split()[0].split('x'))
+                disp = d.split()[0]
+                try:
+                    self.monitor_list.index(disp)
+                except:
+                    self.set_resolution(disp, 0, 0, auto=True)
+                active_monitors.append(disp)
 
-        if len(monitor_info) != 0:
-            active_monitors.append(monitor_info)
+        self.monitor_list = active_monitors
 
         screen = self.window.get_screen()
         if screen is None:
             return True
 
+        max_m = 0
+        max_w = 0
         monitors = []
         nmons = screen.get_n_monitors()
-        max_disp_num = 0
-        x = 0
-        max_w = 0
-        max_h = 0
-        #print("there are %d monitors" % nmons)
         for m in range(nmons):
             mg = screen.get_monitor_geometry(m)
             name = screen.get_monitor_plug_name(m)
-            for d in active_monitors:
-                if d[0] == name:
-                    width = int(d[1][0][0])
-                    height = int(d[1][0][1])
-                    if width > max_w:
-                        max_disp_num = m
-                        max_w = width
-                        max_h = height
-                        if m > 0:
-                            x += width
-                    if mg.width != width or mg.height != height:
-                        self.set_resolution(width, height)
+            if mg.width > max_w:
+                max_m = m
+                max_w = mg.width
             monitors.append(mg)
 
-        # current monitor
         gui_rect = self.window.get_allocation()
         if gui_rect is None:
             return True
 
-        mon_rect = monitors[max_disp_num]
+        mon_rect = monitors[max_m]
 
-        print(x, max_w, max_h)
-
-        if (gui_rect.width < max_w) or (gui_rect.height < max_h):
-                self.window.set_size_request(mon_rect.width, mon_rect.height)
-                self.window.resize(mon_rect.width, mon_rect.height)
-                self.window.move(x, 0)
+        if (gui_rect.width != mon_rect.width) or \
+           (gui_rect.height != mon_rect.height):
+            self.window.set_size_request(mon_rect.width, mon_rect.height)
+            self.window.resize(mon_rect.width, mon_rect.height)
 
         return True
 
