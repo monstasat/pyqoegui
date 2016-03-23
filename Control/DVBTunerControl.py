@@ -47,6 +47,8 @@ class DVBTunerControl(GObject.GObject):
         # remember user settings
         self.settings = settings
 
+        self.serial_ports()
+
         self.status = []
         self.measured_data = []
         self.params = []
@@ -99,28 +101,57 @@ class DVBTunerControl(GObject.GObject):
             except:
                 self.serial.close()
 
-    def connect_to_port(self):
-        # configure com port
-        try:
-            self.serial.baudrate = 115200
-            self.serial.port = '/dev/ttyS1'
-            self.serial.parity = serial.PARITY_NONE
-            self.serial.bytesize = serial.EIGHTBITS
-            self.serial.stopbits = serial.STOPBITS_ONE
-            self.serial.timeout = 1
-        except:
-            self.serial.close()
-            return False
+    # return list of available com ports (lightened code from stackoverflow)
+    def serial_ports(self):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
 
-        # open com port
-        try:
-            self.serial.open()
-        # couldn't open port
-        except serial.SerialException:
-            self.serial.close()
-            return False
-        else:
-            return True
+        result = []
+        for port in ports:
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+
+        return result
+
+    def connect_to_port(self):
+        found = False
+        ports = self.serial_ports()
+        for port in ports:
+            # configure com port
+            try:
+                self.serial.baudrate = 115200
+                self.serial.port = port
+                self.serial.parity = serial.PARITY_NONE
+                self.serial.bytesize = serial.EIGHTBITS
+                self.serial.stopbits = serial.STOPBITS_ONE
+                self.serial.timeout = 1
+            except:
+                self.serial.close()
+                continue
+
+            # open com port
+            try:
+                self.serial.open()
+            # couldn't open port
+            except serial.SerialException:
+                self.serial.close()
+                continue
+            else:
+                for i in range(3):
+                    status = self.tuner_get_status()
+                    if len(status) != 0:
+                        found = True
+                        break
+                if found is True:
+                    break
+                else:
+                    self.serial.close()
+
+        return found
 
     def disconnect(self):
         self.serial.close()
@@ -408,21 +439,6 @@ class DVBTunerControl(GObject.GObject):
         for byte in msg:
             crc ^= byte
         return crc
-
-    # return list of available com ports (lightened code from stackoverflow)
-    def serial_ports(self):
-        # this excludes your current terminal "/dev/tty"
-        ports = glob.glob('/dev/tty[A-Za-z]*')
-
-        result = []
-        for port in ports:
-            try:
-                s = serial.Serial(port)
-                s.close()
-                result.append(port)
-            except (OSError, serial.SerialException):
-                pass
-        return result
 
     def apply_settings(self, settings):
         self.settings = settings
