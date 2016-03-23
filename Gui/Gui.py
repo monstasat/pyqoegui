@@ -1,3 +1,6 @@
+import os
+import re
+
 from gi.repository import Gtk, Gdk, GObject
 
 from Gui.ButtonToolbar import ButtonToolbar
@@ -44,7 +47,7 @@ class Gui(BaseInterface):
         # don't show menu on mouse right-click
         settings.set_property("gtk-titlebar-right-click", 'none')
         # place window at the center of the screen
-        self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        #self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
@@ -162,12 +165,83 @@ class Gui(BaseInterface):
         BaseInterface.__destroy__(self)
         self.window.destroy()
 
+    def set_resolution(self, width, height):
+        os.popen("xrandr -s " + str(width) + 'x' + str(height))
+
+    def set_monitor_mode(self):
+
+        # get connected monitors
+        xrandr = 'xrandr | '
+        grep = 'grep -E -w "connected|  "'
+        connected = os.popen(xrandr + grep).readlines()
+        active_monitors = []
+        monitor_info = []
+        for d in connected:
+            if d[0] is not ' ':
+                if len(monitor_info) != 0:
+                    active_monitors.append(monitor_info)
+                monitor_info = [d.split()[0], []]
+            else:
+                if len(monitor_info) != 0:
+                    monitor_info[1].append(d.split()[0].split('x'))
+
+        if len(monitor_info) != 0:
+            active_monitors.append(monitor_info)
+
+        screen = self.window.get_screen()
+        if screen is None:
+            return True
+
+        monitors = []
+        nmons = screen.get_n_monitors()
+        max_disp_num = 0
+        x = 0
+        max_w = 0
+        max_h = 0
+        #print("there are %d monitors" % nmons)
+        for m in range(nmons):
+            mg = screen.get_monitor_geometry(m)
+            name = screen.get_monitor_plug_name(m)
+            for d in active_monitors:
+                if d[0] == name:
+                    width = int(d[1][0][0])
+                    height = int(d[1][0][1])
+                    if width > max_w:
+                        max_disp_num = m
+                        max_w = width
+                        max_h = height
+                        if m > 0:
+                            x += width
+                    if mg.width != width or mg.height != height:
+                        self.set_resolution(width, height)
+            monitors.append(mg)
+
+        # current monitor
+        gui_rect = self.window.get_allocation()
+        if gui_rect is None:
+            return True
+
+        mon_rect = monitors[max_disp_num]
+
+        print(x, max_w, max_h)
+
+        if (gui_rect.width < max_w) or (gui_rect.height < max_h):
+                self.window.set_size_request(mon_rect.width, mon_rect.height)
+                self.window.resize(mon_rect.width, mon_rect.height)
+                self.window.move(x, 0)
+
+        return True
+
     def set_gui_params(self, width, height, fullscreen, debug, color_theme,
                        table_revealed, plot_info):
 
         # show/hide title bar and resizing cursors
         self.window.set_decorated(debug)
         self.window.set_resizable(debug)
+
+        if debug is False:
+            self.set_monitor_mode()
+            GObject.timeout_add(2000, self.set_monitor_mode)
 
         # set size
         self.window.set_size_request(width, height)

@@ -1,7 +1,7 @@
 import subprocess
 from struct import pack
 
-from gi.repository import Gio
+from gi.repository import Gio, GObject
 
 from Backend import State
 
@@ -11,6 +11,8 @@ class GstreamerPipeline():
         self.stream_id = stream_id
         self.proc = None
         self.state = State.TERMINATED
+
+        self.polling_flag = False
 
     def execute(self):
         # terminate previously executed process if any
@@ -37,6 +39,20 @@ class GstreamerPipeline():
 
         if self.proc is not None:
             self.state = State.IDLE
+            self.polling_flag = True
+            GObject.timeout_add(1000, self.poll_pipeline)
+
+    def poll_pipeline(self):
+        if self.state != State.TERMINATED:
+            if self.proc is not None:
+                # poll process
+                res = self.proc.poll()
+                # if process is terminated, restart
+                if res is not None:
+                    self.terminate()
+                    self.execute()
+
+        return self.polling_flag
 
     def terminate(self):
         if self.proc is not None:
@@ -44,6 +60,7 @@ class GstreamerPipeline():
             self.proc.communicate()
             self.proc = None
             self.state = State.TERMINATED
+        self.polling_flag = False
         print("terminating pipeline")
 
     def apply_new_program_list(self, prog_list):
