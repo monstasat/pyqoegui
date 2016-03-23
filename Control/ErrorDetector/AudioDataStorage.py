@@ -6,6 +6,7 @@ class AudioDataStorage():
         self.prog_info = prog_info
         self.momentary = deque()
         self.short_term = deque()
+        self.loss_cnt = 0
 
     # extend deques with new data
     def push_new_data(self, data):

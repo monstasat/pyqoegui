@@ -22,7 +22,6 @@ class VideoErrorDetector(BaseErrorDetector):
         self.is_loss_flag = types.UNKNOWN
 
         self.video_loss = 0
-        self.loss_cnt = 0
 
         self.black_err = 0
         self.black_warn = 0
@@ -54,13 +53,13 @@ class VideoErrorDetector(BaseErrorDetector):
         self.block_err = analysis_settings[ai.BLOCK_ERR][2]
         self.block_warn = analysis_settings[ai.BLOCK_WARN][2]
 
-    def is_loss(self, is_black, is_freeze, is_blocky):
+    def is_loss(self, is_black, is_freeze, is_blocky, storage):
         if is_black is types.UNKNOWN or \
                     is_freeze is types.UNKNOWN or \
                     is_blocky is types.UNKNOWN:
             # TODO: see if this value should ever overflow and become 0
-            self.loss_cnt += 1
-            if self.loss_cnt >= self.video_loss:
+            storage.loss_cnt += 1
+            if storage.loss_cnt >= self.video_loss:
                 return types.ERR
             else:
                 if self.is_loss_flag == types.UNKNOWN:
@@ -69,7 +68,7 @@ class VideoErrorDetector(BaseErrorDetector):
                 else:
                     return types.NO_ERR
         else:
-            self.loss_cnt = 0
+            storage.loss_cnt = 0
             return types.NO_ERR
 
     def is_blocky(self, blocky_level):
@@ -120,7 +119,8 @@ class VideoErrorDetector(BaseErrorDetector):
             self.is_blocky_flag = self.is_blocky(av_block)
             self.is_loss_flag = self.is_loss(self.is_black_flag,
                                              self.is_freeze_flag,
-                                             self.is_blocky_flag)
+                                             self.is_blocky_flag,
+                                             storage)
 
             results.append([storage.prog_info,
                             [self.is_loss_flag,           # video loss

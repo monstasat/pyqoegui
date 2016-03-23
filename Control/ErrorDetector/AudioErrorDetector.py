@@ -21,7 +21,6 @@ class AudioErrorDetector(BaseErrorDetector):
         self.is_loss_flag = types.UNKNOWN
 
         self.audio_loss = 0
-        self.loss_cnt = 0
 
         self.overload_err = 0
         self.overload_warn = 0
@@ -43,12 +42,12 @@ class AudioErrorDetector(BaseErrorDetector):
         self.silence_err = analysis_settings[ai.SILENCE_ERR][2]
         self.silence_warn = analysis_settings[ai.SILENCE_WARN][2]
 
-    def is_loss(self, is_overload, is_silence):
+    def is_loss(self, is_overload, is_silence, storage):
         if is_overload is types.UNKNOWN or \
                     is_silence is types.UNKNOWN:
             # TODO: see if this value should ever overflow and become 0
-            self.loss_cnt += 1
-            if self.loss_cnt >= self.audio_loss:
+            storage.loss_cnt += 1
+            if storage.loss_cnt >= self.audio_loss:
                 return types.ERR
             else:
                 if self.is_loss_flag == types.UNKNOWN:
@@ -57,7 +56,7 @@ class AudioErrorDetector(BaseErrorDetector):
                 else:
                     return types.NO_ERR
         else:
-            self.loss_cnt = 0
+            storage.loss_cnt = 0
             return types.NO_ERR
 
     def is_loud_or_is_silent(self, audio_level):
@@ -84,7 +83,8 @@ class AudioErrorDetector(BaseErrorDetector):
             self.is_silence_flag = loud_result[1]
 
             self.is_loss_flag = self.is_loss(self.is_overload_flag,
-                                             self.is_silence_flag)
+                                             self.is_silence_flag,
+                                             storage)
 
             results.append([storage.prog_info,
                             [self.is_loss_flag,           # audio loss
