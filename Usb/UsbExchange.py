@@ -215,20 +215,20 @@ class UsbExchange():
         # header, length data, client id, msg cod, req id, length msg
         VIDEO_ANALYSIS_MSG = self.HEADER + "HHHHH"
         # level black warn, level black, level freeze warn, level freeze
-        # level diff warn, time to video loss, level luma warn
-        LEVELS = "fffffBB"
-        # num of black frames, black level, pixel diff, num of freeze frames
-        PARAMS = "BBBB"
-        RESERVED = "HI"
+        # level diff warn, time to video loss, level luma warn,
+        # num of black frames, black level, pixel diff, num of freeze frames,
+        # block level warn, block level err, num of block frames
+        LEVELS = "fffffBBBBBBffB"
+        RESERVED = "B"
 
-        msg = struct.pack("="+VIDEO_ANALYSIS_MSG+LEVELS+PARAMS+RESERVED,
+        msg = struct.pack("="+VIDEO_ANALYSIS_MSG+LEVELS+RESERVED,
                           usb_msgs.PREFIX,
                           self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          20,
+                          22,
                           client_id,
                           0xc514,
                           request_id,
-                          16,
+                          18,
                           float(analysis_settings[ai.BLACK_WARN][2]),
                           float(analysis_settings[ai.BLACK_ERR][2]),
                           float(analysis_settings[ai.FREEZE_WARN][2]),
@@ -240,7 +240,10 @@ class UsbExchange():
                           int(analysis_settings[ai.BLACK_PIXEL][2]),
                           int(analysis_settings[ai.PIXEL_DIFF][2]),
                           int(analysis_settings[ai.FREEZE_ERR][5]),
-                          0, 0)
+                          float(analysis_settings[ai.BLOCK_WARN][2]),
+                          float(analysis_settings[ai.BLOCK_ERR][2]),
+                          int(analysis_settings[ai.BLOCK_ERR][5]),
+                          0)
 
         self.write(msg)
 

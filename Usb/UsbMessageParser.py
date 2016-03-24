@@ -158,6 +158,9 @@ class UsbMessageParser():
         settings[ai.BLACK_PIXEL][2] = int(data[14] >> 8)
         settings[ai.PIXEL_DIFF][2] = int(data[15] & 0x00ff)
         settings[ai.FREEZE_ERR][5] = int(data[15] >> 8)
+        settings[ai.BLOCK_WARN][2] = words_to_float(data[16], data[17])
+        settings[ai.BLOCK_ERR][2] = words_to_float(data[18], data[19])
+        settings[ai.BLOCK_ERR][5] = int(data[20] & 0x00ff)
 
         return settings
 
