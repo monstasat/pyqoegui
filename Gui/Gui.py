@@ -39,8 +39,6 @@ class Gui(BaseInterface):
 
         self.window = Gtk.Window(decorated=False, resizable=False)
 
-        self.monitor_list = []
-
         settings = Gtk.Settings.get_default()
         # can't resize window by double click on header bar
         settings.set_property("gtk-titlebar-double-click", 'none')
@@ -167,33 +165,7 @@ class Gui(BaseInterface):
         BaseInterface.__destroy__(self)
         self.window.destroy()
 
-    def set_resolution(self, monitor, width, height, auto=False):
-        if auto is True:
-            command = "xrandr --output " + str(monitor) + " --auto"
-        else:
-            command = "xrandr --output " + str(monitor) + \
-                      " --mode " + str(width) + 'x' + str(height)
-        os.popen(command)
-
     def set_monitor_mode(self):
-
-        # get connected monitors
-        xrandr = 'xrandr | '
-        grep = 'grep -E -w "connected|  "'
-        connected = os.popen(xrandr + grep).readlines()
-        active_monitors = []
-        monitor_info = []
-        for d in connected:
-            if d[0] is not ' ':
-                disp = d.split()[0]
-                try:
-                    self.monitor_list.index(disp)
-                except:
-                    self.set_resolution(disp, 0, 0, auto=True)
-                active_monitors.append(disp)
-
-        self.monitor_list = active_monitors
-
         screen = self.window.get_screen()
         if screen is None:
             return True

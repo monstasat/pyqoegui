@@ -16,7 +16,10 @@ class GstreamerPipeline():
 
     def execute(self):
         # terminate previously executed process if any
-        self.terminate()
+        try:
+            self.terminate()
+        except:
+            pass
 
         # execute new process
         ip = "224.1.2." + str(2 + self.stream_id)
@@ -49,7 +52,6 @@ class GstreamerPipeline():
                 res = self.proc.poll()
                 # if process is terminated, restart
                 if res is not None:
-                    self.terminate()
                     self.execute()
 
         return self.polling_flag

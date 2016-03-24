@@ -20,18 +20,15 @@ class AboutDialog(Gtk.AboutDialog):
                                  comments=comments)
 
         # adding information to about dialog
-        self.add_credit_section("Разработчики",
-                                ["Инженеры отдела НТК-18:",
-                                 "Булавин Евгений",
-                                 "Максименков Фёдор",
-                                 "Янин Александр"])
+        self.add_credit_section("Разработчики:",
+                                ["Инженеры отдела НТК-18"])
 
         try:
             filename = inspect.getfile(inspect.currentframe())
             path = os.path.dirname(os.path.abspath(filename))
             logo = GdkPixbuf.Pixbuf.new_from_file(
                 path + '/logo_square.png')
-            logo = logo.scale_simple(128, 128, GdkPixbuf.InterpType.BILINEAR)
+            logo = logo.scale_simple(128, 128, GdkPixbuf.InterpType.TILES)
             self.set_property("logo", logo)
         except:
             self.set_property("logo-icon-name", "help-about")
