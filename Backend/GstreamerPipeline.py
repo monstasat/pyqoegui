@@ -72,11 +72,11 @@ class GstreamerPipeline():
         PROG_DIVIDER = 0xACDC0000
         HEADER = 0xDEADBEEF
 
-        msg = pack("II", HEADER, STREAM_DIVIDER)
+        msg = pack("III", HEADER, STREAM_DIVIDER, prog_list[0])
 
         for prog in prog_list[1]:
-            prg = pack('IIII',
-                       prog_list[0], PROG_DIVIDER, int(prog[0]), prog[4])
+            prg = pack('III',
+                       PROG_DIVIDER, int(prog[0]), prog[4])
             msg = b''.join([msg, prg])
             for pid in prog[5]:
                 msg = b''.join([msg, pack('I', int(pid[0]))])

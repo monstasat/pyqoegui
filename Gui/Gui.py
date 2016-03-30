@@ -117,7 +117,7 @@ class Gui(BaseInterface):
         list(map(lambda x: self.myStack.add_titled(x[0], x[1], x[2]), pages))
 
         # create stack switcher
-        switch = Gtk.StackSwitcher(stack=self.myStack)
+        switch = Gtk.StackSwitcher(stack=self.myStack, homogeneous=True)
 
         # creating left side bar with buttons
         self.toolbar = ButtonToolbar()
@@ -169,8 +169,6 @@ class Gui(BaseInterface):
         if screen is None:
             return True
 
-        print("screen: ", screen)
-
         max_m = 0
         max_w = 0
         monitors = []
@@ -184,9 +182,6 @@ class Gui(BaseInterface):
             monitors.append(mg)
 
         mon_rect = monitors[max_m]
-
-        print(mon_rect.width, mon_rect.height)
-        print(self.window)
 
         self.window.realize()
         self.window.set_size_request(mon_rect.width, mon_rect.height)

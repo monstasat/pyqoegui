@@ -21,7 +21,6 @@ class Backend():
     # execute selected pipeline
     def start_pipeline(self, stream_id):
         if self.is_pipeline(stream_id) is True:
-            self.gs_pipelines[stream_id].terminate()
             self.gs_pipelines[stream_id].execute()
 
     # terminate selected pipeline
