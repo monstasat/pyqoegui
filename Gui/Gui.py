@@ -105,8 +105,8 @@ class Gui(BaseInterface):
         self.plot_page = PlotPage(self)
         self.all_results_page = AllResultsPage()
         pages = [(self.cur_results_page, "cur_results", "Текущие результаты"),
-                 (self.plot_page, "plots", "Графики"),
-                 (self.all_results_page, "all_results", "Общие результаты")]
+                 (self.plot_page, "plots", "Графики")]#,
+                 #(self.all_results_page, "all_results", "Общие результаты")]
 
         # create stack
         self.myStack = Gtk.Stack(transition_duration=200,
@@ -165,10 +165,11 @@ class Gui(BaseInterface):
         BaseInterface.__destroy__(self)
         self.window.destroy()
 
-    def set_monitor_mode(self):
-        screen = self.window.get_screen()
+    def set_monitor_mode(self, screen):
         if screen is None:
             return True
+
+        print("screen: ", screen)
 
         max_m = 0
         max_w = 0
@@ -182,18 +183,14 @@ class Gui(BaseInterface):
                 max_w = mg.width
             monitors.append(mg)
 
-        gui_rect = self.window.get_allocation()
-        if gui_rect is None:
-            return True
-
         mon_rect = monitors[max_m]
 
-        if (gui_rect.width != mon_rect.width) or \
-           (gui_rect.height != mon_rect.height):
-            self.window.set_size_request(mon_rect.width, mon_rect.height)
-            self.window.resize(mon_rect.width, mon_rect.height)
+        print(mon_rect.width, mon_rect.height)
+        print(self.window)
 
-        return True
+        self.window.realize()
+        self.window.set_size_request(mon_rect.width, mon_rect.height)
+        self.window.resize(mon_rect.width, mon_rect.height)
 
     def set_gui_params(self, width, height, fullscreen, debug, color_theme,
                        table_revealed, plot_info):
@@ -203,11 +200,10 @@ class Gui(BaseInterface):
         self.window.set_resizable(debug)
 
         if debug is False:
-            self.set_monitor_mode()
-            GObject.timeout_add(2000, self.set_monitor_mode)
-
-        # set size
-        self.window.set_size_request(width, height)
+            screen = self.window.get_screen()
+            self.set_monitor_mode(screen)
+            screen.connect("size-changed", self.set_monitor_mode)
+            screen.connect("monitors-changed", self.set_monitor_mode)
 
         # show in fullscreen if necessary
         if fullscreen is True:
@@ -223,6 +219,10 @@ class Gui(BaseInterface):
             for color in plot[2]:
                 colors.append(Gdk.RGBA(color[0], color[1], color[2], color[3]))
             self.plot_page.add_plot(plot[0], plot[1], colors)
+
+        # temporary hide dump button
+        toolbtns = self.toolbar.get_children()
+        toolbtns[-2].hide()
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb
