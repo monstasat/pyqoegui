@@ -8,18 +8,24 @@ from Backend import State
 
 class GstreamerPipeline():
     def __init__(self, stream_id):
+        # corresponding stream id
         self.stream_id = stream_id
+        # current backend process
         self.proc = None
+        # current backend state
         self.state = State.TERMINATED
-
-        self.polling_flag = False
+        # current polling function id
+        self.poll_id = None
+        # volume values for analyzed programs
+        # (stored in list if volume value is more that null)
+        self.volumes = []
 
     def execute(self):
         # terminate previously executed process if any
         try:
             self.terminate()
         except:
-            pass
+            print("failed terminating process")
 
         # execute new process
         ip = "224.1.2." + str(2 + self.stream_id)
@@ -40,10 +46,8 @@ class GstreamerPipeline():
                              "--port", port],
                             stdout=out, stderr=err)
 
-        if self.proc is not None:
-            self.state = State.IDLE
-            self.polling_flag = True
-            GObject.timeout_add(1000, self.poll_pipeline)
+        self.state = State.IDLE
+        self.poll_id = GObject.timeout_add(1000, self.poll_pipeline)
 
     def poll_pipeline(self):
         if self.state != State.TERMINATED:
@@ -54,15 +58,18 @@ class GstreamerPipeline():
                 if res is not None:
                     self.execute()
 
-        return self.polling_flag
+        return True
 
     def terminate(self):
         if self.proc is not None:
             self.proc.terminate()
             self.proc.communicate()
             self.proc = None
-            self.state = State.TERMINATED
-        self.polling_flag = False
+
+        if self.poll_id != None:
+            GObject.source_remove(self.poll_id)
+            self.poll_id = None
+        self.state = State.TERMINATED
         print("terminating pipeline")
 
     def apply_new_program_list(self, prog_list):
@@ -87,10 +94,26 @@ class GstreamerPipeline():
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
         self.state = State.RUNNING
 
+        GObject.timeout_add(1000, self.restore_volume)
+
+    def restore_volume(self):
+        for prog in self.volumes:
+            self.change_volume(prog[0], prog[1], prog[2])
+
     def change_volume(self, prog_id, pid, value):
         HEADER = 0x0EFA1922
         msg = pack("IIIII", HEADER, prog_id, pid, value, HEADER)
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
+        for prog in self.volumes:
+            if (prog[0] == prog_id) and (prog[1] == pid):
+                if value == 0:
+                    self.volumes.remove(prog)
+                else:
+                    prog[2] = value
+                break
+        else:
+            self.volumes.append([prog_id, pid, value])
 
     # apply new analysis parameters
     def change_analysis_params(self, black_pixel, diff_level):

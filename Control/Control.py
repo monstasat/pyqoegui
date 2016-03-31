@@ -191,8 +191,6 @@ class Control(GObject.GObject):
         for interface in self.interfaces:
             if self.is_gui(interface) is True:
                 interface.toolbar.change_start_icon()
-                # set volume on all renderers to null
-                interface.mute_all_renderers()
 
     def stop_analysis(self):
         self.backend.terminate_all_pipelines()
@@ -204,8 +202,6 @@ class Control(GObject.GObject):
             if self.is_gui(interface) is True:
                 # change toolbar icon
                 interface.toolbar.change_start_icon()
-                # set volume on all renderers to null
-                interface.mute_all_renderers()
                 # set drawing black background for all renderers to True
                 for stream in self.analyzed_progs:
                     interface.update_rendering_mode(True, stream[0])

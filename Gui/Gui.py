@@ -40,14 +40,8 @@ class Gui(BaseInterface):
         self.window = Gtk.Window(decorated=False, resizable=False)
 
         settings = Gtk.Settings.get_default()
-        # can't resize window by double click on header bar
-        settings.set_property("gtk-titlebar-double-click", 'none')
         # set default font
         settings.set_property("gtk-font-name", "Cantarell 11")
-        # don't show menu on mouse right-click
-        settings.set_property("gtk-titlebar-right-click", 'none')
-        # place window at the center of the screen
-        #self.window.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         # create program tree model for programs in stream
         self.stream_progs_model = ProgramTreeModel()
