@@ -1,5 +1,4 @@
 import os
-import re
 
 from gi.repository import Gtk, Gdk, GObject
 
@@ -68,12 +67,36 @@ class Gui(BaseInterface):
                           orientation=Gtk.Orientation.VERTICAL)
 
         dark_theme_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                                 spacing=Spacing.COL_SPACING)
-        self.darkThemeCheck = Gtk.Switch()
+                                 spacing=Spacing.COL_SPACING,
+                                 halign=Gtk.Align.FILL)
+        self.darkThemeCheck = Gtk.Switch(halign=Gtk.Align.END)
         self.darkThemeCheck.connect('state-set', self.on_dark_theme_check)
+        dark_theme_box.add(Gtk.Label(label='Использовать тёмное оформление:',
+                                     halign=Gtk.Align.START,
+                                     hexpand=True))
         dark_theme_box.add(self.darkThemeCheck)
-        dark_theme_box.add(Gtk.Label(label='Использовать тёмное оформление'))
         popBox.add(dark_theme_box)
+        popBox.add(Gtk.HSeparator())
+
+        audio_source_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                   spacing=Spacing.COL_SPACING)
+        audio_source_box.add(Gtk.Label(label="Выход аудио:",
+                                       halign=Gtk.Align.START, hexpand=True))
+        first_btn = None
+        radio_btn_box = Gtk.FlowBox(homogeneous=True, max_children_per_line=2,
+                                    selection_mode=Gtk.SelectionMode.NONE)
+        self.audio_radio_btns = []
+        for output in self.audio_outputs:
+            label = "HDMI" if (output[1].find("hdmi") != -1) else "Аналоговый"
+            btn = Gtk.RadioButton(label=label, halign=Gtk.Align.END)
+            btn.connect('toggled', self.on_audio_source_btn)
+            radio_btn_box.insert(btn, -1)
+            self.audio_radio_btns.append(btn)
+            # if this radio button is not first, add it to group
+            if len(self.audio_radio_btns) != 0:
+                btn.join_group(self.audio_radio_btns[0])
+        audio_source_box.add(radio_btn_box)
+        popBox.add(audio_source_box)
         popBox.add(Gtk.HSeparator())
 
         self.cpu_load_val = Gtk.Label(label="")
@@ -155,9 +178,13 @@ class Gui(BaseInterface):
         list(map(lambda btn, func: btn.connect('clicked', func),
                  self.toolbar.get_children(), btnCallbacks))
 
-    def __destroy__(self):
-        BaseInterface.__destroy__(self)
-        self.window.destroy()
+    def on_audio_source_btn(self, button):
+        if button.get_active() is True:
+            idx = self.audio_radio_btns.index(button)
+            output = self.audio_outputs[idx]
+            os.popen("pacmd " + str(output[0]) + " " + str(output[1]))
+            os.popen("pacmd set-default-sink " + str(output[0]))
+            os.popen("pacmd set-default-source " + str(output[0]))
 
     def set_monitor_mode(self, screen):
         if screen is None:
@@ -213,6 +240,10 @@ class Gui(BaseInterface):
 
     # Methods for interaction with Control
     # Common methods for Gui and Usb
+
+    def __destroy__(self):
+        BaseInterface.__destroy__(self)
+        self.window.destroy()
 
     # called by Control to update stream prog list
     def update_stream_prog_list(self, prog_list):

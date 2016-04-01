@@ -1,3 +1,6 @@
+import os
+import re
+
 from gi.repository import GObject
 
 from Control import CustomMessages
@@ -26,6 +29,20 @@ class BaseInterface(GObject.GObject):
                  tuner_settings_list=ti.DEFAULT_VALUES):
 
         GObject.GObject.__init__(self)
+
+        # available audio outputs
+        self.audio_outputs = []
+        index = 0
+        buf = os.popen("pacmd list-cards").readlines()
+        for line in buf:
+            res = re.search("index: \w", line)
+            if res is not None:
+                index = int(res.group()[-1])
+                continue
+
+            res = re.search("output:[a-z]*-stereo:", line)
+            if res is not None:
+                self.audio_outputs.append([index, res.group()[:-1]])
 
         self.app = app
         # create stream prog list
