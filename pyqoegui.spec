@@ -12,6 +12,7 @@ BuildRoot:      %{_tmppath}/%{name}
 
 BuildRequires:  python3-pyserial
 BuildRequires:  python3-psutil
+BuildRequires:  pulseaudio-utils
 
 %description
 

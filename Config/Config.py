@@ -29,7 +29,8 @@ class Config():
                                       'language': 'ru',
                                       'plot_info': '[]',
                                       'analysis_settings': '[]',
-                                      'tuner_settings': '[]'}
+                                      'tuner_settings': '[]',
+                                      'audio_source': '0'}
 
             self.config['user'] = {}
             self.write_ini()
@@ -112,4 +113,12 @@ class Config():
             tuner_settings = ti.DEFAULT_VALUES
 
         return tuner_settings
+
+    def set_audio_source(self, source):
+        self.config['user']['audio_source'] = str(source)
+        self.write_ini()
+
+    def get_audio_source(self):
+        self.read_ini()
+        return int(self.config['user'].get('audio_source', '0'))
 

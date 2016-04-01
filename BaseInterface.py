@@ -1,5 +1,6 @@
 import os
 import re
+from operator import itemgetter
 
 from gi.repository import GObject
 
@@ -20,6 +21,8 @@ class BaseInterface(GObject.GObject):
         CustomMessages.ACTION_START_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
                                                None, ()),
         CustomMessages.ACTION_STOP_ANALYSIS: (GObject.SIGNAL_RUN_FIRST,
+                                              None, ()),
+        CustomMessages.AUDIO_SOURCE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                               None, ())}
 
     def __init__(self,
@@ -35,14 +38,17 @@ class BaseInterface(GObject.GObject):
         index = 0
         buf = os.popen("pacmd list-cards").readlines()
         for line in buf:
-            res = re.search("index: \w", line)
+            res = re.search("index: \w*", line)
             if res is not None:
-                index = int(res.group()[-1])
+                index = int(res.group().split(':')[1])
                 continue
 
             res = re.search("output:[a-z]*-stereo:", line)
             if res is not None:
                 self.audio_outputs.append([index, res.group()[:-1]])
+
+        # sort outputs by alphabetical order
+        self.audio_outputs = sorted(self.audio_outputs, key=itemgetter(1))
 
         self.app = app
         # create stream prog list
@@ -121,6 +127,10 @@ class BaseInterface(GObject.GObject):
     def update_cpu_load(self, load):
         pass
 
+    # called by Control to update audio source
+    def update_audio_source(self, source):
+        pass
+
     # Control asks to return analyzed prog list
     def get_analyzed_prog_list(self):
         return self.analyzed_prog_list
@@ -132,4 +142,8 @@ class BaseInterface(GObject.GObject):
     # Control asks to return tuner settings
     def get_tuner_settings(self):
         return self.tuner_settings
+
+    # Control asks to return audio source
+    def get_audio_source(self):
+        pass
 

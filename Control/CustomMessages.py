@@ -24,4 +24,5 @@ NEW_TUNER_MEASURED_DATA = 'new_tuner_measured_data'
 NEW_TUNER_PARAMS = 'new_tuner_params'
 # on remote client connected/disconnected
 REMOTE_CLIENTS_NUM_CHANGED = 'remote_clients_num_changed'
-
+# on audio source changed
+AUDIO_SOURCE_CHANGED = 'audio_source_changed'

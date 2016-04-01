@@ -1,4 +1,6 @@
 import psutil
+import os
+import re
 
 from gi.repository import Gio, GObject
 
@@ -31,10 +33,11 @@ class Control(GObject.GObject):
         self.sprogs_control = ProgramListControl([])
         self.aprogs_control = ProgramListControl(self.config.get_prog_list())
         self.analysis_settings = self.config.get_analysis_settings()
-        self.tuner_settings = self.config.get_tuner_settings()
+        tuner_settings = self.config.get_tuner_settings()
+        audio_source = self.config.get_audio_source()
 
         # create tv tuner control
-        self.rf_tuner = DVBTunerControl(self.tuner_settings)
+        self.rf_tuner = DVBTunerControl(tuner_settings)
         # execute server for receiving messages from gstreamer pipeline
         self.server = None
         self.start_server(1600)
@@ -51,7 +54,8 @@ class Control(GObject.GObject):
         for interface in self.interfaces:
             interface.update_analyzed_prog_list(self.analyzed_progs)
             interface.update_analysis_settings(self.analysis_settings)
-            interface.update_tuner_settings(self.tuner_settings)
+            interface.update_tuner_settings(tuner_settings)
+            interface.update_audio_source(audio_source)
 
             interface.connect(CustomMessages.NEW_SETTINS_PROG_LIST,
                               self.on_new_analyzed_prog_list)
@@ -63,6 +67,8 @@ class Control(GObject.GObject):
                               self.on_start)
             interface.connect(CustomMessages.ACTION_STOP_ANALYSIS,
                               self.on_stop)
+            interface.connect(CustomMessages.AUDIO_SOURCE_CHANGED,
+                              self.on_new_audio_source)
 
             # if interface is of type 'Gui'
             if self.is_gui(interface) is True:
@@ -276,26 +282,56 @@ class Control(GObject.GObject):
     # new tuner settings received
     def on_new_tuner_settings(self, source):
         # get new tuner settings from message source
-        self.tuner_settings = source.get_tuner_settings()
+        tuner_settings = source.get_tuner_settings()
 
         # Configure Gui and Usb according to new analysis settings
-        list(map(lambda x: x.update_tuner_settings(self.tuner_settings),
+        list(map(lambda x: x.update_tuner_settings(tuner_settings),
                  self.interfaces))
 
         # Configure dvb tuner according to new tuner settings
-        self.rf_tuner.apply_settings(self.tuner_settings)
+        self.rf_tuner.apply_settings(tuner_settings)
 
         # FIXME: is it necessary? check this
         # Configure backend according to new tuner settings
         self.backend.start_all_pipelines()
 
         # Save tuner settings in Config
-        self.config.set_tuner_settings(self.tuner_settings)
+        self.config.set_tuner_settings(tuner_settings)
 
         # write message to log
         msg = "new tuner settings selected " + \
               "(source: %s)" % type(source).__name__
         self.log.write_log_message(msg)
+
+    # new audio source received
+    def on_new_audio_source(self, source):
+        # get new audio source from message source
+        audio_source = source.get_audio_source()
+
+        # Configure Gui and Usb according to new audio source
+        list(map(lambda x: x.update_audio_source(audio_source),
+                 self.interfaces))
+
+        # Configure audio source
+        output = source.audio_outputs[audio_source]
+        cmd = "pacmd set-card-profile" + str(output[0]) + \
+                  " " + str(output[1])
+        os.popen(cmd)
+        os.popen("pacmd set-default-sink " + str(output[0]))
+        os.popen("pacmd set-default-source " + str(output[0]))
+
+        # list active playing streams
+        buf = os.popen("pacmd list-sink-inputs").readlines()
+        # switch them to new output
+        for line in buf:
+            res = re.search("index: \w*", line)
+            if res is not None:
+                cmd = "pacmd move-sink-input" + \
+                      res.group().split(':')[1] + " " + str(output[0])
+                os.popen(cmd)
+
+        # Save audio source in Config
+        self.config.set_audio_source(audio_source)
 
     # Interaction with Gui and Usb
     # Methods specific for Gui

@@ -1,5 +1,3 @@
-import os
-
 from gi.repository import Gtk, Gdk, GObject
 
 from Gui.ButtonToolbar import ButtonToolbar
@@ -87,7 +85,12 @@ class Gui(BaseInterface):
                                     selection_mode=Gtk.SelectionMode.NONE)
         self.audio_radio_btns = []
         for output in self.audio_outputs:
-            label = "HDMI" if (output[1].find("hdmi") != -1) else "Аналоговый"
+            if output[1].find("hdmi") != -1:
+                label = "HDMI"
+            elif output[1].find("analog") != -1:
+                label = "Аналоговый"
+            else:
+                label = "Неизвестно"
             btn = Gtk.RadioButton(label=label, halign=Gtk.Align.END)
             btn.connect('toggled', self.on_audio_source_btn)
             radio_btn_box.insert(btn, -1)
@@ -177,14 +180,6 @@ class Gui(BaseInterface):
                         self.on_dump_clicked, self.on_about_clicked]
         list(map(lambda btn, func: btn.connect('clicked', func),
                  self.toolbar.get_children(), btnCallbacks))
-
-    def on_audio_source_btn(self, button):
-        if button.get_active() is True:
-            idx = self.audio_radio_btns.index(button)
-            output = self.audio_outputs[idx]
-            os.popen("pacmd " + str(output[0]) + " " + str(output[1]))
-            os.popen("pacmd set-default-sink " + str(output[0]))
-            os.popen("pacmd set-default-source " + str(output[0]))
 
     def set_monitor_mode(self, screen):
         if screen is None:
@@ -322,10 +317,22 @@ class Gui(BaseInterface):
         BaseInterface.get_analysis_settings(self)
         return self.tunerDlg.get_tuner_settings()
 
+    # Control asks to return audio source
+    def get_audio_source(self):
+        BaseInterface.get_audio_source(self)
+        for button in self.audio_radio_btns:
+            if button.get_active() is True:
+                return self.audio_radio_btns.index(button)
+
     # called by Control to update cpu load
     def update_cpu_load(self, load):
         BaseInterface.update_cpu_load(self, load)
         self.cpu_load_val.set_text(str(load) + "%")
+
+    # called by Control to update audio source
+    def update_audio_source(self, source):
+        BaseInterface.update_audio_source(self, source)
+        self.audio_radio_btns[source].set_active(True)
 
     # Methods for interaction with Control
     # Specific Gui methods
@@ -362,6 +369,10 @@ class Gui(BaseInterface):
         return plot_info
 
     # User actions handling
+
+    # on audio source radio button clicked
+    def on_audio_source_btn(self, button):
+        self.emit(CustomMessages.AUDIO_SOURCE_CHANGED)
 
     # on reveal table button (in header bar) clicked
     def reveal_child(self, button, revealer):
