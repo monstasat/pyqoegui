@@ -224,6 +224,11 @@ class Control(GObject.GObject):
         list(map(lambda x: x.update_analyzed_prog_list(self.analyzed_progs),
                  self.interfaces))
 
+        # initially mute all renderers
+        for interface in self.interfaces:
+            if self.is_gui(interface) is True:
+                interface.mute_all_renderers()
+
         # Configure error detectors according to new analyzed prog list
         # pass new prog list to error detectors
         self.video_error_detector.set_programs_list(

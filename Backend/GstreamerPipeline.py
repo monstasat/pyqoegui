@@ -94,11 +94,11 @@ class GstreamerPipeline():
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
         self.state = State.RUNNING
 
-        GObject.timeout_add(1000, self.restore_volume)
+        def restore_volume():
+            list(map(lambda x: self.change_volume(x[0], x[1], x[2]),
+                 self.volumes))
 
-    def restore_volume(self):
-        for prog in self.volumes:
-            self.change_volume(prog[0], prog[1], prog[2])
+        GObject.timeout_add(1000, restore_volume)
 
     def change_volume(self, prog_id, pid, value):
         HEADER = 0x0EFA1922

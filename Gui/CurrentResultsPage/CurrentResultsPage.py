@@ -78,5 +78,5 @@ class CurrentResultsPage(Gtk.Box):
         return self.tableRevealer
 
     def mute_all_renderers(self):
-        map(lambda x: x.set_volume(0), self.rend.rend_arr)
+        list(map(lambda x: x.set_volume(0), self.rend.rend_arr))
 

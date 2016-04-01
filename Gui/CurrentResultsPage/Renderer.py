@@ -121,4 +121,5 @@ class Renderer(Gtk.Grid):
 
     def set_volume(self, value):
         self.volbtn.set_value(value)
+        self.volume_changed(self.volbtn, value)
 
