@@ -199,10 +199,8 @@ class Gui(BaseInterface):
             self.window.fullscreen()
 
         # set initial gui view
-        if color_theme is True:
-            self.darkThemeCheck.set_active(True)
-        if table_revealed is True:
-            self.showTableBtn.set_active(table_revealed)
+        self.darkThemeCheck.set_active(color_theme)
+        self.showTableBtn.set_active(table_revealed)
         for plot in plot_info:
             colors = []
             for color in plot[2]:
