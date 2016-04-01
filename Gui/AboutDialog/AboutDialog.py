@@ -5,7 +5,7 @@ from gi.repository import Gtk, GdkPixbuf
 
 # version number
 # major, minor, revision
-VERSION = "0.5.3b"
+VERSION = "0.5.4b"
 
 
 # about ats analyzer dialog based on Gtk.AboutDialog

@@ -2,7 +2,7 @@
 
 Summary:        ats-analyzer gui
 Name:           pyqoegui
-Version:        0.5.3b
+Version:        0.5.4b
 Release:        1%{?dist}
 License:        Proprietary
 Group:          Applications/Multimedia
