@@ -314,7 +314,7 @@ class Control(GObject.GObject):
 
         # Configure audio source
         output = source.audio_outputs[audio_source]
-        cmd = "pacmd set-card-profile" + str(output[0]) + \
+        cmd = "pacmd set-card-profile " + str(output[0]) + \
                   " " + str(output[1])
         os.popen(cmd)
         os.popen("pacmd set-default-sink " + str(output[0]))
