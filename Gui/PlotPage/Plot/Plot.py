@@ -38,8 +38,8 @@ class Plot(Gtk.Box):
         self.label = Gtk.Label(halign=Gtk.Align.END, hexpand=True,
                                vexpand=False, label="")
 
-        self.close_button = Gtk.Button(image=Icon("window-close"))
-        self.close_button.set_relief(Gtk.ReliefStyle.NONE)
+        self.close_button = Gtk.Button(image=Icon("window-close"),
+                                       relief=Gtk.ReliefStyle.NONE)
         self.label_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                                  spacing=Spacing.COL_SPACING)
         self.label_box.add(self.label)
@@ -66,8 +66,6 @@ class Plot(Gtk.Box):
         self.add(self.da)
         self.add(self.bottom_bar)
 
-        # graph points number
-        self.NUM_POINTS = 160 + 2
         # width of graph frame
         self.FRAME_WIDTH = 4
 
@@ -133,12 +131,13 @@ class Plot(Gtk.Box):
         # background intervals
         self.intervals = []
 
-        # graph refresh speed (1 sec by default) and other refresh parameters
+        self.total_seconds = 40
+        # graph points number
+        # graph refresh speed and other refresh parameters
         self.speed = 250
+        self.NUM_POINTS = int((self.total_seconds * 1000 / self.speed)) + 2
         self.frames_per_unit = 10
         self.render_counter = self.frames_per_unit - 1
-        # index of refresh timer callback
-        self.timer_index = None
         # start refreshing loop
         self.timer_index = GObject.timeout_add(self.speed/self.frames_per_unit,
                                                self.graph_update,
@@ -260,6 +259,7 @@ class Plot(Gtk.Box):
         x_offset += self.rmargin - (sample_width / self.frames_per_unit)*self.render_counter
 
         # draw the graph
+
         #if self.background is None:
         self.draw_background()
 
@@ -365,8 +365,6 @@ class Plot(Gtk.Box):
             cr.line_to(self.draw_width - self.rmargin + 0.5 + 4, i * self.graph_dely + 0.5)
             cr.stroke()
 
-        total_seconds = int(self.speed * (self.NUM_POINTS - 2) / 1000)
-
         for i in range(7):
             x = i * (self.draw_width - self.rmargin - self.indent) / 6
             if i == 0 or i == 6:
@@ -378,7 +376,7 @@ class Plot(Gtk.Box):
             cr.line_to((math.ceil(x) + 0.5) + self.indent, self.real_draw_height + 4.5)
             cr.stroke()
 
-            seconds = total_seconds - i * total_seconds / 6
+            seconds = self.total_seconds - i * self.total_seconds / 6
 
             if i == 0:
                 format = "%u секунд"

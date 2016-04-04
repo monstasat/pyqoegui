@@ -91,7 +91,8 @@ class Gui(BaseInterface):
                 label = "Аналоговый"
             else:
                 label = "Неизвестно"
-            btn = Gtk.RadioButton(label=label, halign=Gtk.Align.END)
+            btn = Gtk.RadioButton(label=label, halign=Gtk.Align.END,
+                                  hexpand=True)
             btn.connect('toggled', self.on_audio_source_btn)
             radio_btn_box.insert(btn, -1)
             self.audio_radio_btns.append(btn)
@@ -215,6 +216,8 @@ class Gui(BaseInterface):
             self.set_monitor_mode(screen)
             screen.connect("size-changed", self.set_monitor_mode)
             screen.connect("monitors-changed", self.set_monitor_mode)
+        else:
+            self.window.set_size_request(width, height)
 
         # show in fullscreen if necessary
         if fullscreen is True:
