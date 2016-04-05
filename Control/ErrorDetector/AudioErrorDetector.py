@@ -32,16 +32,6 @@ class AudioErrorDetector(BaseErrorDetector):
 
         GObject.timeout_add(1000, self.on_parse_audio_data)
 
-    def set_analysis_settings(self, analysis_settings):
-
-        self.audio_loss = analysis_settings[ai.AUDIO_LOSS][2]
-
-        self.overload_err = analysis_settings[ai.OVERLOAD_ERR][2]
-        self.overload_warn = analysis_settings[ai.OVERLOAD_WARN][2]
-
-        self.silence_err = analysis_settings[ai.SILENCE_ERR][2]
-        self.silence_warn = analysis_settings[ai.SILENCE_WARN][2]
-
     def is_loss(self, is_overload, is_silence, storage):
         if is_overload is types.UNKNOWN or \
                     is_silence is types.UNKNOWN:

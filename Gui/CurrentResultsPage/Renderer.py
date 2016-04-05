@@ -51,8 +51,7 @@ class Renderer(Gtk.Grid):
         self.volbtn.connect('value-changed', self.volume_changed)
         # if program to this renderer do no contain audio,
         # disable volume button
-        # FIXME: chnage 2 and 3
-        if (self.prog_type != 2) and (self.prog_type != 3):
+        if self.audio_pid is None:
             self.volbtn.set_sensitive(False)
 
         # creating a program label
@@ -66,9 +65,10 @@ class Renderer(Gtk.Grid):
         self.attach(self.volbtn, 1, 1, 1, 1)
 
     def volume_changed(self, widget, value):
-        self.emit(CustomMessages.VOLUME_CHANGED,
-                  int(self.stream_id), int(self.prog_id),
-                  int(self.audio_pid), int(value * 100))
+        if self.audio_pid is not None:
+            self.emit(CustomMessages.VOLUME_CHANGED,
+                      int(self.stream_id), int(self.prog_id),
+                      int(self.audio_pid), int(value * 100))
 
     # return xid for the drawing area
     def get_drawing_area_xid(self):
@@ -76,9 +76,8 @@ class Renderer(Gtk.Grid):
 
     def on_drawingarea_draw(self, widget, cr):
 
-        # TODO: change 1 to VIDEO
         # if renderer corresponds to radio program
-        if (self.prog_type & 1) == 0:
+        if self.video_pid is None:
             # get volume button icons
             icons = self.volbtn.get_property("icons")
 

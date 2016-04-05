@@ -114,13 +114,11 @@ class Control(GObject.GObject):
         # create video error detector
         self.video_error_detector = VideoErrorDetector(
                                         self.analyzed_progs,
-                                        self.analysis_settings,
-                                        self.interfaces)
+                                        self.analysis_settings)
         # create audio error detector
         self.audio_error_detector = AudioErrorDetector(
                                         self.analyzed_progs,
-                                        self.analysis_settings,
-                                        self.interfaces)
+                                        self.analysis_settings)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -502,7 +500,7 @@ class Control(GObject.GObject):
             elif wstr[0] == 'a':
                 # translate message from string to list
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
-                self.audio_error_detector.set_data(aparams)
+                #self.audio_error_detector.set_data(aparams)
                 # update lufs levels in program table and plots in gui
                 list(map(lambda x: x.update_lufs(aparams), self.interfaces))
 
