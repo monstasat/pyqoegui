@@ -1,11 +1,13 @@
+from collections import deque
+
 from gi.repository import GObject
 
 from Control import AnalysisSettingsIndexes as ai
 from Control.ErrorDetector import StatusTypes as types
 from Control.ErrorDetector.BaseErrorDetector import BaseErrorDetector
 
-
 class VideoErrorDetector(BaseErrorDetector):
+
     def __init__(self,
                  prog_list,
                  analysis_settings,
@@ -13,30 +15,26 @@ class VideoErrorDetector(BaseErrorDetector):
 
         BaseErrorDetector.__init__(self, prog_list, 'video')
 
-        # interfaces
+        # interfaces to which err info should be sent
         self.interfaces = interfaces
 
+        # video errors flags
         self.is_black_flag = types.UNKNOWN
         self.is_freeze_flag = types.UNKNOWN
         self.is_blocky_flag = types.UNKNOWN
         self.is_loss_flag = types.UNKNOWN
 
-        self.video_loss = 0
-
-        self.black_err = 0
-        self.black_warn = 0
-        self.black_luma_warn = 0
-
-        self.freeze_err = 0
-        self.freeze_warn = 0
-        self.freeze_diff_warn = 0
-
-        self.block_err = 0
-        self.block_warn = 0
-
         self.set_analysis_settings(analysis_settings)
 
         GObject.timeout_add(1000, self.on_parse_video_data)
+
+    # extend deques with new data
+    def push_new_data(self, data):
+        self.black_num.extend(data[0])
+        self.freeze_num.extend(data[1])
+        self.blocky_level.extend(data[2])
+        self.av_luma.extend(data[3])
+        self.av_diff.extend(data[4])
 
     def set_analysis_settings(self, analysis_settings):
 
@@ -107,12 +105,10 @@ class VideoErrorDetector(BaseErrorDetector):
 
     def on_parse_video_data(self):
         results = []
-        for storage in self.storage_list:
-            av_black = storage.black_average
-            av_freeze = storage.freeze_average
-            av_block = storage.blocky_average
-            av_luma = storage.luma_average
-            av_diff = storage.diff_average
+        # iterating over TV progs storages
+        for buf in self.buffers:
+            hdr = buf[0]
+            data = buf[1]
 
             self.is_black_flag = self.is_black(av_black, av_luma)
             self.is_freeze_flag = self.is_freeze(av_freeze, av_diff)
@@ -122,7 +118,7 @@ class VideoErrorDetector(BaseErrorDetector):
                                              self.is_blocky_flag,
                                              storage)
 
-            results.append([storage.prog_info,
+            results.append([hdr,
                             [self.is_loss_flag,           # video loss
                              self.is_black_flag,          # black frame
                              self.is_freeze_flag,         # freeze

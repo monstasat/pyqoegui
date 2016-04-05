@@ -13,44 +13,54 @@ class BaseErrorDetector(GObject.GObject):
         # detector type: audio/video
         self.type = detector_type
 
-        # list of measured data headers
+        # set list of measured data headers and buffers for storing data
         self.valid_headers = []
-        # list of value storages
-        self.storage_list = []
-
+        self.buffers = []
+        # fill valid headers and
         self.set_programs_list(prog_list)
+
+        # buffers for storing data
+        self.deque_num = 5 if (self.type is 'video') else 2
+
+        # data loss counter
+        self.loss_cnt = 0
 
     def set_data(self, vparams):
         try:
             index = self.valid_headers.index(vparams[0])
+            buf = self.buffers[index][1]
         except:
             pass
         else:
-            storage = self.storage_list[index]
-            storage.push_new_data(vparams[1])
+            for i, param in enumerate(vparams[1]):
+                try:
+                    buf[i] = param
+                except:
+                    print("error while pushing data")
 
     def set_programs_list(self, prog_list):
 
         self.valid_headers.clear()
-        self.storage_list.clear()
+        self.buffers.clear()
 
-        # get list of measured data headers for video
+        # get list of measured data headers
         for stream in prog_list:
             stream_id = stream[0]
             for prog in stream[1]:
-                data_header = []
+                hdr = []
                 prog_id = prog[0]
-                data_header.append(int(stream_id))
-                data_header.append(int(prog_id))
+                hdr.append(int(stream_id))
+                hdr.append(int(prog_id))
                 for pid in prog[4]:
                     pid_type = pid[2].split('-')[0]
                     if pid_type == self.type:
-                        data_header.append(int(pid[0]))
-                        self.valid_headers.append(data_header)
-
-        for prog in self.valid_headers:
-            if self.type == 'video':
-                self.storage_list.append(VideoDataStorage(prog))
-            else:
-                self.storage_list.append(AudioDataStorage(prog))
+                        hdr.append(int(pid[0]))
+                        self.valid_headers.append(hdr)
+                        # one instance of buffer contains deques
+                        # for measured parameters
+                            # video: [black num, freeze num,
+                            # blocky level, av luma, av diff]
+                            # audio : [momentary loudness,
+                            # short term loudness]
+                        self.buffers.append([hdr, [deque()]*self.deque_num])
 
