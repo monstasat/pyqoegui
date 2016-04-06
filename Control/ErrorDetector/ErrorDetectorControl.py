@@ -2,11 +2,14 @@ from Control.ErrorDetector.ErrorDetector import ErrorDetector
 
 class ErrorDetectorControl():
     def __init__(self, prog_list, analysis_settings):
+        print(analysis_settings)
 
         # create error detectors
         self.error_detectors = []
         self.set_prog_list(prog_list)
 
+        # set analysis settings
+        self.analysis_settings = analysis_settings
         self.set_analysis_settings(analysis_settings)
 
     def create_error_detectors(self, prog_list):
@@ -27,8 +30,7 @@ class ErrorDetectorControl():
 
                 # append error detector for program
                 error_detectors.append(ErrorDetector(video_data_header,
-                                                     audio_data_header,
-                                                     analysis_settings))
+                                                     audio_data_header))
 
         return error_detectors
 
@@ -38,18 +40,69 @@ class ErrorDetectorControl():
         self.error_detectors = self.create_error_detectors(prog_list)
 
     def set_analysis_settings(self, analysis_settings):
-        list(map((lambda x: x.set_analysis_settings(analysis_settings)),
-                 self.error_detectors))
 
-    def parse_data(self, data, data_type):
+        for dt in self.error_detectors:
+            dt.vloss_thrsh = analysis_settings['vloss']
+            dt.aloss_thrsh = analysis_settings['aloss']
+
+            # FIXME: rewrite
+            for k, v in dt.video_errs.items():
+                if k == 'black':
+                    black_cont = float(analysis_settings[k + '_cont'])
+                    black_peak = float(analysis_settings[k + '_peak'])
+                    luma_cont = int(analysis_settings[k + '_cont'])
+                    luma_peak = int(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: (x[0] >= black_cont) or \
+                                                 (x[1] <= luma_cont)
+                    v.peak_predicate = lambda x: (x[0] >= black_peak) or \
+                                                 (x[1] <= luma_peak)
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'freeze':
+                    freeze_cont = float(analysis_settings[k + '_cont'])
+                    freeze_peak = float(analysis_settings[k + '_peak'])
+                    diff_cont = float(analysis_settings[k + '_cont'])
+                    diff_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: (x[0] >= freeze_cont) or \
+                                                 (x[1] <= diff_cont)
+                    v.peak_predicate = lambda x: (x[0] >= freeze_peak) or \
+                                                 (x[1] <= diff_peak)
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'blocky':
+                    blocky_cont = float(analysis_settings[k + '_cont'])
+                    blocky_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x >= blocky_cont
+                    v.peak_predicate = lambda x: x >= blocky_peak
+                    v.time = int(analysis_settings[k + '_time'])
+
+            for k, v in dt.audio_errs.items():
+                if k == 'silence':
+                    silence_cont = float(analysis_settings[k + '_cont'])
+                    silence_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x <= silence_cont
+                    v.peak_predicate = lambda x: x <= silence_peak
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'loudness':
+                    loudness_cont = float(analysis_settings[k + '_cont'])
+                    loudness_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x >= loudness_cont
+                    v.peak_predicate = lambda x: x >= loudness_peak
+                    v.time = int(analysis_settings[k + '_time'])
+
+    def eval_video(self, data):
         # get error detectors with specified data header
-        detectors = list(filter(
-            lambda x: getattr(x, data_type + '_data_header') == data[0],
-            self.error_detectors))
+        detectors = list(filter(lambda x: x.video_data_header == data[0],
+                         self.error_detectors))
 
-        # push data to corresponding error detectors
-        list(map(lambda x: getattr(x, 'fill_' + data_type + '_data')(data[1]),
-                 detectors))
+        # push data to corresponding error detector
+        list(map(lambda x: x.eval_video(data[1]), detectors))
+
+    def eval_audio(self, data):
+        # get error detectors with specified data header
+        detectors = list(filter(lambda x: x.audio_data_header == data[0],
+                         self.error_detectors))
+
+        # push data to corresponding error detector
+        list(map(lambda x: x.eval_audio(data[1]), detectors))
 
     def get_errors(self):
         err_list = []

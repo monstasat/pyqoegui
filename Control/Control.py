@@ -110,8 +110,16 @@ class Control(GObject.GObject):
             self.__destroy__()
             return
 
+        aset = {'vloss': 2, 'black_cont': 90, 'black_peak': 99,
+                'luma_cont': 20, 'luma_peak': 17, 'black_time': 2,
+                'freeze_cont': 90, 'freeze_peak': 99,
+                'diff_cont': 0.2, 'diff_peak': 0.05, 'freeze_time': 2,
+                'blocky_cont': 3, 'blocky_peak': 6, 'blocky_time': 2,
+                'aloss': 2,
+                'silence_cont': -35, 'silence_peak': -45, 'silence_time': 2,
+                'loudness_cont': -40, 'loudness_peak': -15, 'loudness_time': 2}
         self.error_detector = ErrorDetectorControl(self.analyzed_progs,
-                                                   self.analysis_settings)
+                                                   aset)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -212,8 +220,10 @@ class Control(GObject.GObject):
 
     def get_errors(self):
         err_list = self.error_detector.get_errors()
+        print(err_list)
         #list(map(lambda x: x.update_analyzed_status(err_list),
         #         self.interfaces))
+        return True
 
     # Interaction with Gui and Usb
     # Common methods for Gui and USb
@@ -484,7 +494,7 @@ class Control(GObject.GObject):
             elif wstr[0] == 'v':
                 # translate message from string to list
                 vparams = self.msg_translator.get_vparams_list(wstr[1:])
-                self.error_detector.parse_data(vparams, 'video')
+                self.error_detector.eval_video(vparams)
                 # update video plot data in gui
                 for interface in self.interfaces:
                     if self.is_gui(interface) is True:
@@ -494,7 +504,7 @@ class Control(GObject.GObject):
             elif wstr[0] == 'a':
                 # translate message from string to list
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
-                self.error_detector.parse_data(aparams, 'audio')
+                self.error_detector.eval_audio(aparams)
                 # update lufs levels in program table and plots in gui
                 list(map(lambda x: x.update_lufs(aparams), self.interfaces))
 
