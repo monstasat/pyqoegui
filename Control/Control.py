@@ -8,8 +8,7 @@ from BaseInterface import BaseInterface
 from Backend.Backend import Backend
 from Backend import State
 from Control.TranslateMessages import TranslateMessages
-from Control.ErrorDetector.VideoErrorDetector import VideoErrorDetector
-from Control.ErrorDetector.AudioErrorDetector import AudioErrorDetector
+from Control.ErrorDetector.ErrorDetectorControl import ErrorDetectorControl
 from Control.ProgramListControl import ProgramListControl
 from Control.DVBTunerControl import DVBTunerControl
 from Control import AnalysisSettingsIndexes as ai
@@ -111,14 +110,8 @@ class Control(GObject.GObject):
             self.__destroy__()
             return
 
-        # create video error detector
-        self.video_error_detector = VideoErrorDetector(
-                                        self.analyzed_progs,
-                                        self.analysis_settings)
-        # create audio error detector
-        self.audio_error_detector = AudioErrorDetector(
-                                        self.analyzed_progs,
-                                        self.analysis_settings)
+        self.error_detector = ErrorDetectorControl(self.analyzed_progs,
+                                                   self.analysis_settings)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
@@ -135,6 +128,7 @@ class Control(GObject.GObject):
         self.log.write_log_message(msg)
 
         GObject.timeout_add(1000, self.on_get_cpu_load)
+        GObject.timeout_add(1000, self.get_errors)
 
         # start analysis on app startup
         self.start_analysis()
@@ -216,6 +210,11 @@ class Control(GObject.GObject):
         list(map(lambda x: x.update_cpu_load(load), self.interfaces))
         return True
 
+    def get_errors(self):
+        err_list = self.error_detector.get_errors()
+        #list(map(lambda x: x.update_analyzed_status(err_list),
+        #         self.interfaces))
+
     # Interaction with Gui and Usb
     # Common methods for Gui and USb
 
@@ -234,11 +233,7 @@ class Control(GObject.GObject):
                 interface.mute_all_renderers()
 
         # Configure error detectors according to new analyzed prog list
-        # pass new prog list to error detectors
-        self.video_error_detector.set_programs_list(
-                                        self.analyzed_progs)
-        self.audio_error_detector.set_programs_list(
-                                        self.analyzed_progs)
+        self.error_detector.set_prog_list(self.analyzed_progs)
 
         # Configure backend according to new analyzed prog list
         # we need to restart gstreamer pipelines with ids that were selected
@@ -263,8 +258,7 @@ class Control(GObject.GObject):
                  self.interfaces))
 
         # Configure error detectors according to new analysis settings
-        self.video_error_detector.set_analysis_settings(self.analysis_settings)
-        self.audio_error_detector.set_analysis_settings(self.analysis_settings)
+        self.error_detector.set_analysis_settings(self.analysis_settings)
 
         # Configure backend according to new analysis settings
         self.send_analysis_params_to_backend()
@@ -490,7 +484,7 @@ class Control(GObject.GObject):
             elif wstr[0] == 'v':
                 # translate message from string to list
                 vparams = self.msg_translator.get_vparams_list(wstr[1:])
-                self.video_error_detector.set_data(vparams)
+                self.error_detector.parse_data(vparams, 'video')
                 # update video plot data in gui
                 for interface in self.interfaces:
                     if self.is_gui(interface) is True:
@@ -500,7 +494,7 @@ class Control(GObject.GObject):
             elif wstr[0] == 'a':
                 # translate message from string to list
                 aparams = self.msg_translator.get_aparams_list(wstr[1:])
-                #self.audio_error_detector.set_data(aparams)
+                self.error_detector.parse_data(aparams, 'audio')
                 # update lufs levels in program table and plots in gui
                 list(map(lambda x: x.update_lufs(aparams), self.interfaces))
 
