@@ -220,9 +220,9 @@ class Control(GObject.GObject):
 
     def get_errors(self):
         err_list = self.error_detector.get_errors()
-        print(err_list)
-        #list(map(lambda x: x.update_analyzed_status(err_list),
-        #         self.interfaces))
+        #print(err_list, '\n')
+        list(map(lambda x: x.update_analysis_results(err_list),
+                 self.interfaces))
         return True
 
     # Interaction with Gui and Usb

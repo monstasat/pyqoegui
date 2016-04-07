@@ -112,11 +112,7 @@ class BaseInterface(GObject.GObject):
         pass
 
     # called by Error Detector to update video status
-    def update_video_status(self, results):
-        pass
-
-    # called by Error Detector to update audio status
-    def update_audio_status(self, results):
+    def update_analysis_results(self, results):
         pass
 
     # called by Control to update lufs values in program table and plots

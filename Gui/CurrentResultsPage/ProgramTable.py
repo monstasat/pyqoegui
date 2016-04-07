@@ -2,7 +2,7 @@ from statistics import mean
 
 from gi.repository import Gtk
 
-from Control.ErrorDetector import StatusTypes as types
+from Control.ErrorDetector.StatusTypes import STYPES
 
 
 # class for viewing current program status
@@ -20,12 +20,17 @@ class ProgramTable(Gtk.TreeView):
             "Нет аудио", "Тихо", "Громко", "Громкость"]
 
         # associates status code with a cell color
-        self.clrs = {types.NO_ERR: '#80FF80', types.WARN: '#FFFF80',
-                     types.ERR: '#FF7878', types.UNKNOWN: '#CCCCCC'}
+        self.clrs = {STYPES['norm']: '#80FF80', STYPES['warn']: '#FFFF80',
+                     STYPES['err']: '#FF7878', STYPES['unkn']: '#CCCCCC'}
 
         # associates status code with a cell text (temporary)
-        self.stattxt = {types.UNKNOWN: "", types.NO_ERR: "",
-                        types.WARN: "Опасно", types.ERR: "Брак"}
+        self.stattxt = {STYPES['unkn']: "", STYPES['norm']: "",
+                        STYPES['warn']: "Опасно", STYPES['err']: "Брак"}
+
+        # associates parameter name with a cell num
+        self.param_cell_id = {'vloss': 4, 'black': 6, 'freeze': 8,
+                              'blocky': 10, 'aloss': 12, 'silence': 14,
+                              'loudness': 16}
 
         # remove any selections
         sel = self.get_selection()
@@ -35,23 +40,20 @@ class ProgramTable(Gtk.TreeView):
         self.set_grid_lines(Gtk.TreeViewGridLines.BOTH)
 
         # attaching list store to tree view widget
-        self.store = Gtk.ListStore(int, str,        # n
-                                   str, str,        # prog name
-                                   str, str,        # video loss
-                                   str, str,        # black frame
-                                   str, str,        # freeze
-                                   str, str,        # blockiness
-                                   str, str,        # audio loss
-                                   str, str,        # silence
-                                   str, str,        # loudness
-                                   int, str,        # lufs
-                                   int,             # prog type
-                                   int,             # stream id
-                                   int,             # prog id
-                                   int,             # video pid
-                                   int)             # audio pid
-
-        self.set_model(self.store)
+        self.set_model(Gtk.ListStore(int, str,        # n
+                                     str, str,        # prog name
+                                     str, str,        # video loss
+                                     str, str,        # black frame
+                                     str, str,        # freeze
+                                     str, str,        # blockiness
+                                     str, str,        # audio loss
+                                     str, str,        # silence
+                                     str, str,        # loudness
+                                     int, str,        # lufs
+                                     int,             # stream id
+                                     int,             # prog id
+                                     int,             # video pid
+                                     int))            # audio pid
 
         # constructing columns and cells of the table
         for i in range(0, 20, 2):
@@ -110,7 +112,6 @@ class ProgramTable(Gtk.TreeView):
             for prog in stream[1]:
                 prog_cnt += 1
                 prog_name = prog[1]
-                prog_type = 0
                 prog_id = int(prog[0])
 
                 video_pid = 0
@@ -118,116 +119,43 @@ class ProgramTable(Gtk.TreeView):
                 for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_pid = int(pid[0])
-                        # FIXME: & VIDEO
-                        prog_type = prog_type | 0x01
                     elif pid[2].split('-')[0] == 'audio':
                         audio_pid = int(pid[0])
-                        # FIXME: & AUDIO
-                        prog_type = prog_type | 0x02
 
-                treeiter = store.append(
-                    # start of visible part
-                    # prog num
-                    [prog_cnt, '#FFFFFF',
-                     # prog name
-                     prog_name, '#FFFFFF',
-                     # audio loss
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # silence
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # loudness
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # video loss
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # black frame
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # freeze
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                     # blockiness
-                     self.stattxt[types.UNKNOWN], self.clrs[types.UNKNOWN],
-                      # lufs level
-                     0, '0',
-                     # start of invisible part
-                     # prog type
-                     prog_type,
-                     # stream id
-                     stream_id,
-                     # prog id
-                     prog_id,
-                     # video pid
-                     video_pid,
-                     # audio pid
-                     audio_pid])
+                def_cells = ["", self.clrs[STYPES['unkn']]]
 
-    def update_table_cell(self, row, index, val):
-        # FIXME prog type 1, 2 change to VIDEO, AUDIO (define types somewhere)
-        prog_type = 2 if index > 11 else 1
-        if (row[20] & prog_type) != 0:
-            data = val
-        else:
-            data = 0
-        row[index] = self.stattxt[data]
-        row[index + 1] = self.clrs[data]
+                store_data = [prog_cnt, '#FFFFFF', prog_name, '#FFFFFF'] + \
+                             def_cells*7 + \
+                             [0, '0', stream_id, prog_id, video_pid, audio_pid]
 
-    def update(self, results, param_type):
-        # set values for some variables dependent on content type
-        if param_type == 'audio':
-            pid_index = 24
-            shift = 12
-            cell_num = 6
-        elif param_type == 'video':
-            pid_index = 23
-            shift = 4
-            cell_num = 8
+                store.append(store_data)
 
-        # iterating over programs in table
-        for row in self.get_model():
+    def update_table_cells(self, row, data):
+        for k, v in data.items():
+            row[self.param_cell_id[k]] = self.stattxt[v]
+            row[self.param_cell_id[k] + 1] = self.clrs[v]
 
-            # create data header
-            # stream id, prog id, audio pid
-            data_header = [row[21], row[22], row[pid_index]]
+    def update(self, results):
+        for vresults, aresults in results:
+            print(vresults, aresults)
+            vrow = list(filter(lambda x: [x[20], x[21], x[22]] == vresults[0],
+                               self.get_model()))[0]
+            arow = list(filter(lambda x: [x[20], x[21], x[23]] == aresults[0],
+                               self.get_model()))[0]
 
-            for result in results:
-                try:
-                    index = result.index(data_header)
-                except:
-                    pass
-                else:
-                    data = result[1]
-                    # iterating over row cells with parameters
-                    for i in range(0, cell_num, 2):
-                        self.update_table_cell(row,             # row
-                                               i+shift,         # row index
-                                               data[int(i/2)])  # data
-
-                    # remove current item from result list
-                    # as we don't need it anymore
-                    #results.remove(result)
-
-    def update_video(self, results):
-        self.update(results, 'video')
-
-    def update_audio(self, results):
-        self.update(results, 'audio')
+            self.update_table_cells(vrow, vresults[1])
+            self.update_table_cells(arow, aresults[1])
 
     def update_lufs(self, lufs):
-        for row in self.get_model():
-            # create data header
-            # stream id, prog id, audio pid
-            data_header = [row[21], row[22], row[24]]
+        arow = list(filter(lambda x: [x[20], x[21], x[23]] == lufs[0],
+                           self.get_model()))[0]
 
-            if lufs[0] == data_header:
-                try:
-                    data = mean(lufs[1][1])
-                except:
-                    pass
-                else:
-                    min_ = -59
-                    max_ = -5
-                    if data > max_:
-                        data = max_
-                    elif data < min_:
-                        data = min_
-                    row[18] = int(((data - min_) / 54)*100)
-                    row[19] = '%.2f LUFS' % data
+        # lufs[1][1] - short term loudness
+        # check if list is empty
+        if not lufs[1][1] is False:
+            data = mean(lufs[1][1])
+            # limit value to range
+            data = max(min(-5, data), -59)
+            arow[18] = int(((data - (-59)) / 54)*100)
+            arow[19] = '%.2f LUFS' % data
 

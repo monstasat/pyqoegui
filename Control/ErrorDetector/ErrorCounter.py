@@ -1,3 +1,5 @@
+from Control.ErrorDetector.StatusTypes import STYPES
+
 class ErrorCounter():
 
     def __init__(self):
@@ -28,7 +30,7 @@ class ErrorCounter():
         self.error_values += len(list(filter(self.cont_predicate, buf)))
 
     def get_error(self):
-        loss_flag, error_flag = False, False
+        loss_flag, error_flag = False, STYPES['unkn']
 
         loss_flag = (self.total_values == 0)
         self.time_cnt += 1
@@ -36,9 +38,11 @@ class ErrorCounter():
         if self.time_cnt >= self.time:
 
             lt_error = False if loss_flag else \
-                       self.perc_predicate(self.total_values, self.error_values)
+                       self.perc_predicate(self.total_values,
+                                           self.error_values)
 
-            error_flag = self.peak_error | lt_error
+            error_flag = STYPES['err'] if (self.peak_error | lt_error) else \
+                         STYPES['norm']
 
             # clear values
             self.peak_error = False

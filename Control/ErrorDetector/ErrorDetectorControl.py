@@ -46,7 +46,7 @@ class ErrorDetectorControl():
             dt.aloss_thrsh = analysis_settings['aloss']
 
             # FIXME: rewrite
-            for k, v in dt.video_errs.items():
+            for k, v in dt.verr_cnts.items():
                 if k == 'black':
                     black_cont = float(analysis_settings[k + '_cont'])
                     black_peak = float(analysis_settings[k + '_peak'])
@@ -74,7 +74,7 @@ class ErrorDetectorControl():
                     v.peak_predicate = lambda x: x >= blocky_peak
                     v.time = int(analysis_settings[k + '_time'])
 
-            for k, v in dt.audio_errs.items():
+            for k, v in dt.aerr_cnts.items():
                 if k == 'silence':
                     silence_cont = float(analysis_settings[k + '_cont'])
                     silence_peak = float(analysis_settings[k + '_peak'])
@@ -90,7 +90,7 @@ class ErrorDetectorControl():
 
     def eval_video(self, data):
         # get error detectors with specified data header
-        detectors = list(filter(lambda x: x.video_data_header == data[0],
+        detectors = list(filter(lambda x: x.vdata_hdr == data[0],
                          self.error_detectors))
 
         # push data to corresponding error detector
@@ -98,7 +98,7 @@ class ErrorDetectorControl():
 
     def eval_audio(self, data):
         # get error detectors with specified data header
-        detectors = list(filter(lambda x: x.audio_data_header == data[0],
+        detectors = list(filter(lambda x: x.adata_hdr == data[0],
                          self.error_detectors))
 
         # push data to corresponding error detector
@@ -108,6 +108,7 @@ class ErrorDetectorControl():
         err_list = []
         for detector in self.error_detectors:
             err_list.append(detector.get_errors())
+
 
         return err_list
 
