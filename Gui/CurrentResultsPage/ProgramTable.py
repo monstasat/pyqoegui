@@ -114,8 +114,8 @@ class ProgramTable(Gtk.TreeView):
                 prog_name = prog[1]
                 prog_id = int(prog[0])
 
-                video_pid = 0
-                audio_pid = 0
+                video_pid = None
+                audio_pid = None
                 for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_pid = int(pid[0])
@@ -136,15 +136,13 @@ class ProgramTable(Gtk.TreeView):
             row[self.param_cell_id[k] + 1] = self.clrs[v]
 
     def update(self, results):
-        for vresults, aresults in results:
-            print(vresults, aresults)
-            vrow = list(filter(lambda x: [x[20], x[21], x[22]] == vresults[0],
-                               self.get_model()))[0]
-            arow = list(filter(lambda x: [x[20], x[21], x[23]] == aresults[0],
-                               self.get_model()))[0]
+        for result in results:
+            # result - video data header, audio data header, error flags
+            predicate = lambda x: ([x[20], x[21], x[22]] == result[0]) and \
+                                  ([x[20], x[21], x[23]] == result[1])
 
-            self.update_table_cells(vrow, vresults[1])
-            self.update_table_cells(arow, aresults[1])
+            row = list(filter(predicate, self.get_model()))[0]
+            self.update_table_cells(row, result[2])
 
     def update_lufs(self, lufs):
         arow = list(filter(lambda x: [x[20], x[21], x[23]] == lufs[0],

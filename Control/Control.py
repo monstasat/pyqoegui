@@ -8,7 +8,7 @@ from BaseInterface import BaseInterface
 from Backend.Backend import Backend
 from Backend import State
 from Control.TranslateMessages import TranslateMessages
-from Control.ErrorDetector.ErrorDetectorControl import ErrorDetectorControl
+from Control.ErrorDetector.ErrorDetector import ErrorDetector
 from Control.ProgramListControl import ProgramListControl
 from Control.DVBTunerControl import DVBTunerControl
 from Control import AnalysisSettingsIndexes as ai
@@ -117,9 +117,9 @@ class Control(GObject.GObject):
                 'blocky_cont': 3, 'blocky_peak': 6, 'blocky_time': 2,
                 'aloss': 2,
                 'silence_cont': -35, 'silence_peak': -45, 'silence_time': 2,
-                'loudness_cont': -40, 'loudness_peak': -15, 'loudness_time': 2}
-        self.error_detector = ErrorDetectorControl(self.analyzed_progs,
-                                                   aset)
+                'loudness_cont': -21.9, 'loudness_peak': -15, 'loudness_time': 2}
+
+        self.error_detector = ErrorDetector(self.analyzed_progs, aset)
 
         # connect to tuner signals
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,

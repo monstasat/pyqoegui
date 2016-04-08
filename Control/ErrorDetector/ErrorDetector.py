@@ -1,78 +1,113 @@
-from Control.ErrorDetector.ErrorCounter import ErrorCounter
-from Control.ErrorDetector.StatusTypes import STYPES
+from Control.ErrorDetector.ProgramStats import ProgramStats
 
 class ErrorDetector():
+    def __init__(self, prog_list, analysis_settings):
+        print(analysis_settings)
 
-    def __init__(self, video_data_header, audio_data_header):
+        # create error detectors
+        self.error_detectors = []
+        self.set_prog_list(prog_list)
 
-        self.vdata_hdr = video_data_header
-        self.adata_hdr = audio_data_header
+        # set analysis settings
+        self.analysis_settings = analysis_settings
+        self.set_analysis_settings(analysis_settings)
 
-        # loss counters
-        self.vloss_cnt = 0
-        self.aloss_cnt = 0
+    def create_error_detectors(self, prog_list):
+        error_detectors = []
+        # create error detectors
+        for stream in prog_list:
+            for prog in stream[1]:
+                stream_id = int(stream[0])
+                prog_id = int(prog[0])
+                audio_data_header = [stream_id, prog_id, None]
+                video_data_header = [stream_id, prog_id, None]
+                for pid in prog[4]:
+                    pid_type = pid[2].split('-')[0]
+                    if pid_type == 'audio':
+                        audio_data_header[2] = int(pid[0])
+                    elif pid_type == 'video':
+                        video_data_header[2] = int(pid[0])
 
-        self.vloss_thrsh = 0
-        self.aloss_thrsh = 0
+                # append error detector for program
+                error_detectors.append(ProgramStats(video_data_header,
+                                                    audio_data_header))
 
-        self.verr_cnts = {'black': ErrorCounter(),
-                          'freeze': ErrorCounter(),
-                          'blocky': ErrorCounter()}
-        self.aerr_cnts = {'silence': ErrorCounter(),
-                          'loudness': ErrorCounter()}
+        return error_detectors
 
-        self.verr_flgs = {'vloss': False, 'black': False,
-                          'freeze': False, 'blocky': False}
-        self.aerr_flgs = {'aloss': False, 'silence': False,
-                          'loudness': False}
+    def set_prog_list(self, prog_list):
+        list(map((lambda x: x.__destroy__()), self.error_detectors))
+        self.error_detectors.clear()
+        self.error_detectors = self.create_error_detectors(prog_list)
 
-    def eval_video(self, bufs):
-        for k, v in self.verr_cnts.items():
-            if k == 'black':
-                v.eval((bufs[0], bufs[3]))
-            elif k == 'freeze':
-                v.eval((bufs[1], bufs[4]))
-            elif k == 'blocky':
-                v.eval(bufs[2])
+    def set_analysis_settings(self, analysis_settings):
 
-    def eval_audio(self, bufs):
-        for k, v in self.aerr_cnts.items():
-            if k == 'silence':
-                v.eval(bufs[1])
-            elif k == 'loudness':
-                v.eval(bufs[1])
+        for dt in self.error_detectors:
+            dt.vloss_thrsh = analysis_settings['vloss']
+            dt.aloss_thrsh = analysis_settings['aloss']
+
+            # FIXME: rewrite
+            for k, v in dt.verr_cnts.items():
+                if k == 'black':
+                    black_cont = float(analysis_settings[k + '_cont'])
+                    black_peak = float(analysis_settings[k + '_peak'])
+                    luma_cont = int(analysis_settings['luma_cont'])
+                    luma_peak = int(analysis_settings['luma_peak'])
+                    v.cont_predicate = lambda x: (x[0] >= black_cont) or \
+                                                 (x[1] <= luma_cont)
+                    v.peak_predicate = lambda x: (x[0] >= black_peak) or \
+                                                 (x[1] <= luma_peak)
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'freeze':
+                    freeze_cont = float(analysis_settings[k + '_cont'])
+                    freeze_peak = float(analysis_settings[k + '_peak'])
+                    diff_cont = float(analysis_settings['diff_cont'])
+                    diff_peak = float(analysis_settings['diff_peak'])
+                    v.cont_predicate = lambda x: (x[0] >= freeze_cont) or \
+                                                 (x[1] <= diff_cont)
+                    v.peak_predicate = lambda x: (x[0] >= freeze_peak) or \
+                                                 (x[1] <= diff_peak)
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'blocky':
+                    blocky_cont = float(analysis_settings[k + '_cont'])
+                    blocky_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x >= blocky_cont
+                    v.peak_predicate = lambda x: x >= blocky_peak
+                    v.time = int(analysis_settings[k + '_time'])
+
+            for k, v in dt.aerr_cnts.items():
+                if k == 'silence':
+                    silence_cont = float(analysis_settings[k + '_cont'])
+                    silence_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x <= silence_cont
+                    v.peak_predicate = lambda x: x <= silence_peak
+                    v.time = int(analysis_settings[k + '_time'])
+                elif k == 'loudness':
+                    loudness_cont = float(analysis_settings[k + '_cont'])
+                    loudness_peak = float(analysis_settings[k + '_peak'])
+                    v.cont_predicate = lambda x: x >= loudness_cont
+                    v.peak_predicate = lambda x: x >= loudness_peak
+                    v.time = int(analysis_settings[k + '_time'])
+
+    def eval_video(self, data):
+        # get error detectors with specified data header
+        detectors = list(filter(lambda x: x.vdata_hdr == data[0],
+                         self.error_detectors))
+
+        # push data to corresponding error detector
+        list(map(lambda x: x.eval_video(data[1]), detectors))
+
+    def eval_audio(self, data):
+        # get error detectors with specified data header
+        detectors = list(filter(lambda x: x.adata_hdr == data[0],
+                         self.error_detectors))
+
+        # push data to corresponding error detector
+        list(map(lambda x: x.eval_audio(data[1]), detectors))
 
     def get_errors(self):
-        aloss_flag = False
-        vloss_flag = False
+        err_list = []
+        for detector in self.error_detectors:
+            err_list.append(detector.get_errors())
 
-        self.verr_flgs['vloss'] = STYPES['norm']
-        self.aerr_flgs['aloss'] = STYPES['norm']
-
-        for k, v in self.verr_cnts.items():
-            loss_flag, error = v.get_error()
-            self.verr_flgs[k] = error
-            vloss_flag = loss_flag
-
-        for k, v in self.aerr_cnts.items():
-            loss_flag, error = v.get_error()
-            self.aerr_flgs[k] = error
-            aloss_flag = loss_flag
-
-        if aloss_flag is True:
-            self.aloss_cnt += 1
-            if self.aloss_cnt >= self.aloss_thrsh:
-                self.aerr_flgs['aloss'] = STYPES['err']
-        else:
-            self.aloss_cnt = 0
-
-        if vloss_flag is True:
-            self.vloss_cnt += 1
-            if self.vloss_cnt >= self.vloss_thrsh:
-                self.verr_flgs['vloss'] = STYPES['err']
-        else:
-            self.vloss_cnt = 0
-
-        return ((self.vdata_hdr, self.verr_flgs),
-                (self.adata_hdr, self.aerr_flgs))
+        return err_list
 
