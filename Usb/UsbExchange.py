@@ -4,9 +4,8 @@ import math
 
 from Usb import UsbMessageTypes as usb_msgs
 from Control import ProgramListControl
-from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
-from Control.ErrorDetector import StatusTypes
+from Control.ErrorDetector.StatusTypes import STYPES
 
 
 class UsbExchange():
@@ -60,8 +59,6 @@ class UsbExchange():
         self.errs = [0]*self.MAX_PROG_NUM
         self.status_flags = 0
 
-        self.status_updated = 0
-
         self.is_connected = False
 
         self.is_connected = cyusb.init()
@@ -97,48 +94,28 @@ class UsbExchange():
                           0)
         self.write(msg)
 
-    def set_video_status(self, prog_idx, results):
+    def set_status(self, prog_idx, results):
         status = 0
-        if results[0] is StatusTypes.ERR:
+        if results['vloss'] is STYPES['err']:
             status = 0x01
-        elif results[1] is StatusTypes.ERR:
+        elif results['black'] is STYPES['err']:
             status = 0x02
-        elif results[2] is StatusTypes.ERR:
+        elif results['freeze'] is STYPES['err']:
             status = 0x03
-        elif results[3] is StatusTypes.ERR:
+        elif results['blocky'] is STYPES['err']:
             status = 0x04
-        elif results[1] is StatusTypes.WARN:
-            status = 0x05
-        elif results[2] is StatusTypes.WARN:
-            status = 0x06
-        elif results[3] is StatusTypes.WARN:
-            status = 0x07
-        else:
-            status = 0x00
-
-        self.errs[prog_idx] |= status
-
-    def set_audio_status(self, prog_idx, results):
-        status = 0
-        if results[0] is StatusTypes.ERR:
+        elif results['aloss'] is STYPES['err']:
             status = 0x10
-        elif results[1] is StatusTypes.ERR:
+        elif results['silence'] is STYPES['err']:
             status = 0x20
-        elif results[2] is StatusTypes.ERR:
+        elif results['loudness'] is STYPES['err']:
             status = 0x30
-        elif results[1] is StatusTypes.WARN:
-            status = 0x40
-        elif results[2] is StatusTypes.WARN:
-            status = 0x50
         else:
             status = 0x00
 
-        self.errs[prog_idx] |= status
+        self.errs[prog_idx] = status
 
     def send_status(self):
-        # FIXME 3
-        if self.status_updated != 3:
-            return
 
         STATUS_MSG = self.HEADER
         # reserved, ts count, reserved
@@ -178,7 +155,6 @@ class UsbExchange():
         self.lufs = [0]*self.MAX_PROG_NUM
         self.errs = [0]*self.MAX_PROG_NUM
         self.status_version += 1
-        self.status_updated = 0
 
     def send_errors(self):
         # header, length, TS index, TS num, reserved, err num
@@ -221,31 +197,9 @@ class UsbExchange():
         LEVELS = "fffffBBBBBBffB"
         RESERVED = "B"
 
-        msg = struct.pack("="+VIDEO_ANALYSIS_MSG+LEVELS+RESERVED,
-                          usb_msgs.PREFIX,
-                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          22,
-                          client_id,
-                          0xc514,
-                          request_id,
-                          18,
-                          float(analysis_settings[ai.BLACK_WARN][2]),
-                          float(analysis_settings[ai.BLACK_ERR][2]),
-                          float(analysis_settings[ai.FREEZE_WARN][2]),
-                          float(analysis_settings[ai.FREEZE_ERR][2]),
-                          float(analysis_settings[ai.DIFF_WARN][2]),
-                          int(analysis_settings[ai.VIDEO_LOSS][2]),
-                          int(analysis_settings[ai.LUMA_WARN][2]),
-                          int(analysis_settings[ai.BLACK_ERR][5]),
-                          int(analysis_settings[ai.BLACK_PIXEL][2]),
-                          int(analysis_settings[ai.PIXEL_DIFF][2]),
-                          int(analysis_settings[ai.FREEZE_ERR][5]),
-                          float(analysis_settings[ai.BLOCK_WARN][2]),
-                          float(analysis_settings[ai.BLOCK_ERR][2]),
-                          int(analysis_settings[ai.BLOCK_ERR][5]),
-                          0)
+        # TODO: pack and send message
 
-        self.write(msg)
+        #self.write(msg)
 
     def send_audio_analysis_settings(self,
                                      analysis_settings,
@@ -258,22 +212,10 @@ class UsbExchange():
         # level diff warn, time to video loss, level luma warn
         LEVELS = "ffffB"
         RESERVED = "BHI"
-        msg = struct.pack("="+AUDIO_ANALYSIS_MSG+LEVELS+RESERVED,
-                          usb_msgs.PREFIX,
-                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          16,
-                          client_id,
-                          0xc515,
-                          request_id,
-                          12,
-                          float(analysis_settings[ai.OVERLOAD_WARN][2]),
-                          float(analysis_settings[ai.OVERLOAD_ERR][2]),
-                          float(analysis_settings[ai.SILENCE_WARN][2]),
-                          float(analysis_settings[ai.SILENCE_ERR][2]),
-                          int(analysis_settings[ai.AUDIO_LOSS][2]),
-                          0, 0, 0)
 
-        self.write(msg)
+        # TODO: pack and send message
+
+        #self.write(msg)
 
     # send prog lists (stream and analyzed) to remote client
     def send_prog_list(self, stream_progs, analyzed_progs,

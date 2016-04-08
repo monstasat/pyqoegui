@@ -20,6 +20,9 @@ class Usb(BaseInterface):
 
         BaseInterface.__init__(self, app)
 
+        # list of info to associate measured data with programs
+        self.prog_info = []
+
         # create usb exchange
         self.exchange = UsbExchange()
         # create message parser
@@ -167,30 +170,6 @@ class Usb(BaseInterface):
 
         return True
 
-    def is_in_prog_list(self, stream_id, prog_id, pid_id):
-        prog_cnt = 0
-        found = False
-        # FIXME: optimize it
-        for stream in self.analyzed_prog_list:
-            if stream_id == int(stream[0]):
-                for prog in stream[1]:
-                    prog_cnt += 1
-                    if prog_id == int(prog[0]):
-                        for pid in prog[4]:
-                            if pid_id == int(pid[0]):
-                                found = True
-                                break
-                    if found is True:
-                        break
-            if found is True:
-                break
-
-        if found is True:
-            if prog_cnt < self.exchange.MAX_PROG_NUM:
-                return prog_cnt - 1
-
-        return None
-
     # Methods for interaction with Control
     # Common methods for Gui and Usb
 
@@ -212,6 +191,22 @@ class Usb(BaseInterface):
     # called by Control to update analyzed prog list
     def update_analyzed_prog_list(self, prog_list):
         BaseInterface.update_analyzed_prog_list(self, prog_list)
+
+        self.prog_info.clear()
+        prog_cnt = 0
+        found = False
+
+        for stream in self.analyzed_prog_list:
+            for prog in stream[1]:
+                video_hdr = [int(stream[0]), int(prog[0]), None]
+                audio_hdr = [int(stream[0]), int(prog[0]), None]
+                for pid in prog[4]:
+                    if pid[2].split('-')[0] == 'video':
+                        video_hdr[2] = int(pid[0])
+                    elif pid[2].split('-')[0] == 'audio':
+                        audio_hdr[2] = int(pid[0])
+
+                self.prog_info.append((video_hdr, audio_hdr))
 
         # increment settings version
         self.exchange.settings_version += 1
@@ -249,44 +244,36 @@ class Usb(BaseInterface):
         self.tuner_measured_data = measured_data
 
     # called by Error Detector to update video status
-    def update_video_status(self, results):
-        BaseInterface.update_video_status(self, results)
-        for result in results:
-            prog_idx = self.is_in_prog_list(result[0][0],
-                                            result[0][1],
-                                            result[0][2])
-            if prog_idx is not None:
-                self.exchange.set_video_status(prog_idx, result[1])
-        self.exchange.status_updated |= 1
-        self.exchange.send_status()
+    def update_analysis_results(self, results):
+        BaseInterface.update_analysis_results(self, results)
 
-    # called by Error Detector to update audio status
-    def update_audio_status(self, results):
-        BaseInterface.update_audio_status(self, results)
         for result in results:
-            prog_idx = self.is_in_prog_list(result[0][0],
-                                            result[0][1],
-                                            result[0][2])
-            if prog_idx is not None:
-                self.exchange.set_audio_status(prog_idx, result[1])
-        self.exchange.status_updated |= 2
+            # result - video data header, audio data header, error flags
+            predicate = lambda x: (x[0] == result[0]) and (x[1] == result[1])
+
+            match = list(filter(predicate, self.prog_info))
+            if not match is False:
+                idx = self.prog_info.index(match[0])
+                if idx < self.exchange.MAX_PROG_NUM:
+                    self.exchange.set_status(idx, result[1])
+
         self.exchange.send_status()
 
     # called by Control to update lufs values in program table and plots
     def update_lufs(self, lufs):
         BaseInterface.update_lufs(self, lufs)
-        prog_idx = self.is_in_prog_list(lufs[0][0], lufs[0][1], lufs[0][2])
-        if prog_idx is not None:
-            try:
-                av_short_term = mean(lufs[1][1])
-            except:
-                pass
-            else:
-                data = abs(math.ceil(av_short_term))
-                if 0 <= data <= 255:
-                    self.exchange.lufs[prog_idx] = data
-                else:
-                    print("LUFS value exceed byte range: ", data)
+
+        match = list(filter(lambda x: x[1] == lufs[0], self.self.prog_info))
+        if not match is False:
+            idx = self.prog_info.index(match[0])
+            if idx < self.exchange.MAX_PROG_NUM:
+                # lufs[1][1] - short term loudness
+                # check if list is empty
+                if not lufs[1][1] is False:
+                    data = mean(lufs[1][1])
+                    # limit value to range
+                    data = math.ceil(max(min(-5, data), -59))
+                    self.exchange.lufs[idx] = abs(data)
 
     # called by Control to update cpu load
     def update_cpu_load(self, load):

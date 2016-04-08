@@ -48,7 +48,6 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Config/Config.py
 /opt/%{name}/Config/__init__.py
 
-/opt/%{name}/Control/AnalysisSettingsIndexes.py
 /opt/%{name}/Control/Control.py
 /opt/%{name}/Control/CustomMessages.py
 /opt/%{name}/Control/DVBTunerControl.py
@@ -57,12 +56,11 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Control/TranslateMessages.py
 /opt/%{name}/Control/TunerSettingsIndexes.py
 
-/opt/%{name}/Control/ErrorDetector/AudioDataStorage.py
-/opt/%{name}/Control/ErrorDetector/AudioErrorDetector.py
-/opt/%{name}/Control/ErrorDetector/BaseErrorDetector.py
+/opt/%{name}/Control/ErrorDetector/ErrorDetector.py
+/opt/%{name}/Control/ErrorDetector/ParamStats.py
+/opt/%{name}/Control/ErrorDetector/ProgramStats.py
 /opt/%{name}/Control/ErrorDetector/StatusTypes.py
-/opt/%{name}/Control/ErrorDetector/VideoDataStorage.py
-/opt/%{name}/Control/ErrorDetector/VideoErrorDetector.py
+/opt/%{name}/Control/ErrorDetector/__init__.py
 
 /opt/%{name}/Gui/ButtonToolbar.py
 /opt/%{name}/Gui/DumpSettingsDialog.py
@@ -135,26 +133,22 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Config/Config.pyo
 /opt/%{name}/Config/__init__.pyc
 /opt/%{name}/Config/__init__.pyo
-/opt/%{name}/Control/AnalysisSettingsIndexes.pyc
-/opt/%{name}/Control/AnalysisSettingsIndexes.pyo
 /opt/%{name}/Control/Control.pyc
 /opt/%{name}/Control/Control.pyo
 /opt/%{name}/Control/CustomMessages.pyc
 /opt/%{name}/Control/CustomMessages.pyo
 /opt/%{name}/Control/DVBTunerControl.pyc
 /opt/%{name}/Control/DVBTunerControl.pyo
-/opt/%{name}/Control/ErrorDetector/AudioDataStorage.pyc
-/opt/%{name}/Control/ErrorDetector/AudioDataStorage.pyo
-/opt/%{name}/Control/ErrorDetector/AudioErrorDetector.pyc
-/opt/%{name}/Control/ErrorDetector/AudioErrorDetector.pyo
-/opt/%{name}/Control/ErrorDetector/BaseErrorDetector.pyc
-/opt/%{name}/Control/ErrorDetector/BaseErrorDetector.pyo
+/opt/%{name}/Control/ErrorDetector/ErrorDetector.pyc
+/opt/%{name}/Control/ErrorDetector/ErrorDetector.pyo
+/opt/%{name}/Control/ErrorDetector/ParamStats.pyc
+/opt/%{name}/Control/ErrorDetector/ParamStats.pyo
+/opt/%{name}/Control/ErrorDetector/ProgramStats.pyc
+/opt/%{name}/Control/ErrorDetector/ProgramStats.pyo
 /opt/%{name}/Control/ErrorDetector/StatusTypes.pyc
 /opt/%{name}/Control/ErrorDetector/StatusTypes.pyo
-/opt/%{name}/Control/ErrorDetector/VideoDataStorage.pyc
-/opt/%{name}/Control/ErrorDetector/VideoDataStorage.pyo
-/opt/%{name}/Control/ErrorDetector/VideoErrorDetector.pyc
-/opt/%{name}/Control/ErrorDetector/VideoErrorDetector.pyo
+/opt/%{name}/Control/ErrorDetector/__init__.pyc
+/opt/%{name}/Control/ErrorDetector/__init__.pyo
 /opt/%{name}/Control/ProgramListControl.pyc
 /opt/%{name}/Control/ProgramListControl.pyo
 /opt/%{name}/Control/TranslateMessages.pyc

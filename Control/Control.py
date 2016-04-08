@@ -11,7 +11,6 @@ from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.ErrorDetector import ErrorDetector
 from Control.ProgramListControl import ProgramListControl
 from Control.DVBTunerControl import DVBTunerControl
-from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
 from Control import CustomMessages
 from Config.Config import Config
@@ -421,8 +420,8 @@ class Control(GObject.GObject):
 
     # Set new analysis settings to backend
     def send_analysis_params_to_backend(self):
-        black_pixel_val = int(self.analysis_settings[ai.BLACK_PIXEL][2])
-        pixel_diff = int(self.analysis_settings[ai.PIXEL_DIFF][2])
+        black_pixel_val = int(self.analysis_settings['black_pixel'])
+        pixel_diff = int(self.analysis_settings['pixel_diff'])
         self.backend.change_analysis_params(black_pixel_val, pixel_diff)
 
     # Backend sent a message that one of streams has ended

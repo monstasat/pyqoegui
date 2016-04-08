@@ -28,6 +28,7 @@ class BaseDialog(Gtk.Dialog):
         self.set_titlebar(self.header)
 
         mainBox = self.get_content_area()
+        mainBox.set_hexpand(True)
 
         # connect to show signal
         self.connect('show', self.on_shown)
@@ -87,7 +88,7 @@ class SettingEntry(Gtk.Box):
         self.spinBtn = Gtk.SpinButton(numeric=True, digits=2, climb_rate=2,
                                       hexpand=True, vexpand=True,
                                       halign=Gtk.Align.END,
-                                      valign=Gtk.Align.CENTER,)
+                                      valign=Gtk.Align.CENTER)
         self.spinBtn.set_range(min_, max_)
         self.spinBtn.set_increments(0.1, 1)
         self.spinBtn.set_size_request(150, -1)
@@ -105,4 +106,25 @@ class SettingEntry(Gtk.Box):
 
     def set_value(self, value):
         self.spinBtn.set_value(value)
+
+# box with label and switch
+class Switch(Gtk.Box):
+    def __init__(self, label):
+        Gtk.Box.__init__(self, hexpand=True, vexpand=False,
+                         orientation=Gtk.Orientation.HORIZONTAL,
+                         spacing=Spacing.COL_SPACING)
+
+        # switch
+        self.switch = Gtk.Switch(hexpand=True, vexpand=True,
+                                 halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
+        # widget label
+        self.label = Gtk.Label(label=label, hexpand=True, vexpand=False,
+                               halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
+
+        self.add(self.label)
+        self.add(self.switch)
+        self.show_all()
+
+    def set_label(self, text):
+        self.label.set_text(text)
 

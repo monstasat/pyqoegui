@@ -7,7 +7,6 @@ from Gui.PlotPage.Plot import GraphTypes
 from Gui.PlotPage.PlotTypeSelectDialog import PlotTypeSelectDialog
 from Gui.PlotPage import PlotTypes
 from Gui import Spacing
-from Control import AnalysisSettingsIndexes as ai
 from Control import CustomMessages
 
 
@@ -152,71 +151,57 @@ class PlotPage(Gtk.Box):
         # get plot full range
         full_range = abs(plot_range[1] - plot_range[0])
 
+
+        # FIXME: add dependency on enable/disable cont or peak
         # apply intervals
         # freeze frame
         if index is 0:
-            err = analysis_settings[ai.FREEZE_ERR][2]
-            warn = analysis_settings[ai.FREEZE_WARN][2]
+            err = analysis_settings['freeze_cont']
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
-            plot.add_interval((err - warn)/full_range,
-                              GraphTypes.WARNING)
-            plot.add_interval((warn - plot_range[0])/full_range,
+            plot.add_interval((err - plot_range[0])/full_range,
                               GraphTypes.NORMAL)
         # black frame
         elif index is 1:
-            err = analysis_settings[ai.BLACK_ERR][2]
-            warn = analysis_settings[ai.BLACK_WARN][2]
+            err = analysis_settings['black_cont']
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
-            plot.add_interval((err - warn)/full_range,
-                              GraphTypes.WARNING)
-            plot.add_interval((warn - plot_range[0])/full_range,
+            plot.add_interval((err - plot_range[0])/full_range,
                               GraphTypes.NORMAL)
         # blockiness
         elif index is 2:
-            err = analysis_settings[ai.BLOCK_ERR][2]
-            warn = analysis_settings[ai.BLOCK_WARN][2]
+            err = analysis_settings['blocky_cont']
             plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
-            plot.add_interval((err - warn)/full_range,
-                              GraphTypes.WARNING)
-            plot.add_interval((warn - plot_range[0])/full_range,
+            plot.add_interval((err - plot_range[0])/full_range,
                               GraphTypes.NORMAL)
         # average frame luma
         elif index is 3:
-            warn = analysis_settings[ai.LUMA_WARN][2]
-            plot.add_interval((plot_range[1] - warn)/full_range,
+            err = analysis_settings['luma_cont']
+            plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
-            plot.add_interval((warn - plot_range[0])/full_range,
-                              GraphTypes.WARNING)
+            plot.add_interval((err - plot_range[0])/full_range,
+                              GraphTypes.ERROR)
         # average frame difference
         elif index is 4:
-            warn = analysis_settings[ai.DIFF_WARN][2]
-            plot.add_interval((plot_range[1] - warn)/full_range,
+            err = analysis_settings['diff_cont']
+            plot.add_interval((plot_range[1] - err)/full_range,
                               GraphTypes.NORMAL,
                               clear_previous=True)
-            plot.add_interval((warn - plot_range[0])/full_range,
-                              GraphTypes.WARNING)
+            plot.add_interval((err - plot_range[0])/full_range,
+                              GraphTypes.ERROR)
         elif (index is 5) or (index is 6):
-            high_err = analysis_settings[ai.OVERLOAD_ERR][2]
-            high_warn = analysis_settings[ai.OVERLOAD_WARN][2]
-            low_err = analysis_settings[ai.SILENCE_ERR][2]
-            low_warn = analysis_settings[ai.SILENCE_WARN][2]
-
+            high_err = analysis_settings['loudndess_cont']
+            low_err = analysis_settings['silence_cont']
             plot.add_interval(abs(plot_range[1] - high_err)/full_range,
                               GraphTypes.ERROR,
                               clear_previous=True)
-            plot.add_interval(abs(high_err - high_warn)/full_range,
-                              GraphTypes.WARNING)
-            plot.add_interval(abs(high_warn - low_warn)/full_range,
+            plot.add_interval(abs(high_err - low_err)/full_range,
                               GraphTypes.NORMAL)
-            plot.add_interval(abs(low_warn - low_err)/full_range,
-                              GraphTypes.WARNING)
             plot.add_interval(abs(low_err - plot_range[0])/full_range,
                               GraphTypes.ERROR)
 

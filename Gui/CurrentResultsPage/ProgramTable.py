@@ -141,8 +141,10 @@ class ProgramTable(Gtk.TreeView):
             predicate = lambda x: ([x[20], x[21], x[22]] == result[0]) and \
                                   ([x[20], x[21], x[23]] == result[1])
 
-            row = list(filter(predicate, self.get_model()))[0]
-            self.update_table_cells(row, result[2])
+            match = list(filter(predicate, self.get_model()))
+            if not match is False:
+                row = match[0]
+                self.update_table_cells(row, result[2])
 
     def update_lufs(self, lufs):
         arow = list(filter(lambda x: [x[20], x[21], x[23]] == lufs[0],

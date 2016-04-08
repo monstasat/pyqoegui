@@ -5,8 +5,28 @@ import os
 
 from gi.repository import Gio
 
-from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
+
+ANALYSIS_DEFAULT = {'vloss': 2, 'aloss': 2,
+                    'black_cont_en': True, 'black_cont': 90,
+                    'black_peak_en': True, 'black_peak': 100,
+                    'luma_cont_en': True, 'luma_cont': 20,
+                    'luma_peak_en': True, 'luma_peak': 17,
+                    'black_time': 2, 'black_pixel': 16,
+                    'freeze_cont_en': True, 'freeze_cont': 90,
+                    'freeze_peak_en': True, 'freeze_peak': 100,
+                    'diff_cont_en': True, 'diff_cont': 0.1,
+                    'diff_peak_en': True, 'diff_peak': 0.02,
+                    'freeze_time': 2, 'pixel_diff': 0,
+                    'blocky_cont_en': True, 'blocky_cont': 3,
+                    'blocky_peak_en': True, 'blocky_peak': 6,
+                    'blocky_time': 1,
+                    'silence_cont_en': True, 'silence_cont': -35,
+                    'silence_peak_en': True, 'silence_peak': -45,
+                    'silence_time': 10,
+                    'loudness_cont_en': True, 'loudness_cont': -21.9,
+                    'loudness_peak_en': True, 'loudness_peak': -15,
+                    'loudness_time': 2}
 
 
 class Config():
@@ -95,8 +115,8 @@ class Config():
         analysis_settings = self.config['user'].get('analysis_settings', '[]')
         analysis_settings = json.loads(analysis_settings)
 
-        if len(analysis_settings) < len(ai.DEFAULT_VALUES):
-            analysis_settings = ai.DEFAULT_VALUES
+        if len(analysis_settings) < len(ANALYSIS_DEFAULT):
+            analysis_settings = ANALYSIS_DEFAULT
 
         return analysis_settings
 

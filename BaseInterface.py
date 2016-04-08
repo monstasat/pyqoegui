@@ -5,7 +5,7 @@ from operator import itemgetter
 from gi.repository import GObject
 
 from Control import CustomMessages
-from Control import AnalysisSettingsIndexes as ai
+from Config.Config import ANALYSIS_DEFAULT
 from Control import TunerSettingsIndexes as ti
 
 
@@ -28,7 +28,7 @@ class BaseInterface(GObject.GObject):
     def __init__(self,
                  app,
                  analyzed_prog_list=[],
-                 analysis_settings_list=ai.DEFAULT_VALUES,
+                 analysis_settings_list=ANALYSIS_DEFAULT,
                  tuner_settings_list=ti.DEFAULT_VALUES):
 
         GObject.GObject.__init__(self)
@@ -111,7 +111,7 @@ class BaseInterface(GObject.GObject):
     def update_tuner_measured_data(self, measured_data):
         pass
 
-    # called by Error Detector to update video status
+    # called by Error Detector to update analysis results
     def update_analysis_results(self, results):
         pass
 

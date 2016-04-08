@@ -2,7 +2,6 @@ import struct
 from collections import deque
 
 from Usb import UsbMessageTypes as usb_msgs
-from Control import AnalysisSettingsIndexes as ai
 from Control import TunerSettingsIndexes as ti
 
 
@@ -147,20 +146,7 @@ class UsbMessageParser():
         length = data[1]
         request_id = data[2]
 
-        settings[ai.BLACK_WARN][2] = words_to_float(data[3], data[4])
-        settings[ai.BLACK_ERR][2] = words_to_float(data[5], data[6])
-        settings[ai.FREEZE_WARN][2] = words_to_float(data[7], data[8])
-        settings[ai.FREEZE_ERR][2] = words_to_float(data[9], data[10])
-        settings[ai.DIFF_WARN][2] = words_to_float(data[11], data[12])
-        settings[ai.VIDEO_LOSS][2] = float(data[13] & 0x00ff)
-        settings[ai.LUMA_WARN][2] = float(data[13] >> 8)
-        settings[ai.BLACK_ERR][5] = int(data[14] & 0x00ff)
-        settings[ai.BLACK_PIXEL][2] = int(data[14] >> 8)
-        settings[ai.PIXEL_DIFF][2] = int(data[15] & 0x00ff)
-        settings[ai.FREEZE_ERR][5] = int(data[15] >> 8)
-        settings[ai.BLOCK_WARN][2] = words_to_float(data[16], data[17])
-        settings[ai.BLOCK_ERR][2] = words_to_float(data[18], data[19])
-        settings[ai.BLOCK_ERR][5] = int(data[20] & 0x00ff)
+        # TODO: fill settings
 
         return settings
 
@@ -170,11 +156,8 @@ class UsbMessageParser():
         client_id = data[0]
         length = data[1]
         request_id = data[2]
-        settings[ai.OVERLOAD_WARN][2] = words_to_float(data[3], data[4])
-        settings[ai.OVERLOAD_ERR][2] = words_to_float(data[5], data[6])
-        settings[ai.SILENCE_WARN][2] = words_to_float(data[7], data[8])
-        settings[ai.SILENCE_ERR][2] = words_to_float(data[9], data[10])
-        settings[ai.AUDIO_LOSS][2] = float(data[11] & 0x00ff)
+
+        # TODO: fill settings
 
         return settings
 
