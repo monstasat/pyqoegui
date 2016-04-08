@@ -13,6 +13,9 @@ class AnalysisSettingsPage(Gtk.Box):
 
         self.page_type = page_type
 
+        self.spin_btns = []
+        self.switches = []
+
         if self.page_type == 'vloss' or self.page_type == 'aloss':
             return
 
@@ -24,7 +27,6 @@ class AnalysisSettingsPage(Gtk.Box):
             units = ('%', '')
             digits = (1, 0)
             ranges = ((0, 100), (16, 235))
-            incremets = (0.1, 1)
         elif self.page_type == 'freeze':
             names = ('Доля идентичных пикселей находится выше',
                      'Уровень средней разности находится ниже')
@@ -32,28 +34,24 @@ class AnalysisSettingsPage(Gtk.Box):
             units = ('%', '')
             digits = (1, 0)
             ranges = ((0, 100), (0, 219))
-            incremets = (0.1, 1)
         elif self.page_type == 'blocky':
             names = ('Уровень блочности находится выше',)
-            keys = (self.page_type + '_')
+            keys = (self.page_type + '_',)
             units = ('',)
             digits = (1,)
             ranges = ((0, 10),)
-            incremets = (0.1,)
         elif self.page_type == 'silence':
             names = ('Уровень громкости находится ниже',)
-            keys = (self.page_type + '_')
+            keys = (self.page_type + '_',)
             units = ('LUFS',)
             digits = (1,)
             ranges = ((-59, -5),)
-            incremets = (0.1,)
         elif self.page_type =='loudness':
             names = ('Уровень громкости находится выше',)
-            keys = (self.page_type + '_')
+            keys = (self.page_type + '_',)
             units = ('LUFS',)
             digits = (1,)
             ranges = ((-59, -5),)
-            incremets = (0.1,)
 
         row_cnt = 0
 
@@ -62,20 +60,27 @@ class AnalysisSettingsPage(Gtk.Box):
                         halign=Gtk.Align.FILL, hexpand=False)
 
         grid.attach(Gtk.Label("Определять ошибку немедленно, если",
-                              halign=Gtk.Align.START),
-                    0, row_cnt, 1, 1)
+                              halign=Gtk.Align.START), 0, row_cnt, 1, 1)
         row_cnt += 1
 
-        for name, range_, unit, digit in zip(names, ranges, units, digits):
+        for name, range_, unit, digit, key \
+                            in zip(names, ranges, units, digits, keys):
+            # create grid elements
             spin = Gtk.SpinButton(digits=digit)
             spin.set_range(range_[0], range_[1])
             spin.set_increments(0.1 if digit !=0 else 1, 2)
+            switch = Gtk.Switch()
+
+            self.spin_btns.append((spin, key + 'peak'))
+            self.switches.append((switch, key + 'peak_en'))
+
+            # attach elements to grid
             grid.attach(Gtk.Label(name, halign=Gtk.Align.START),
                         0, row_cnt, 1, 1)
             grid.attach(spin, 1, row_cnt, 1, 1)
             grid.attach(Gtk.Label(unit, Gtk.Align.START), 2, row_cnt, 1, 1)
             grid.attach(Gtk.VSeparator(), 3, row_cnt, 1, 1)
-            grid.attach(Gtk.Switch(), 4, row_cnt, 1, 1)
+            grid.attach(switch, 4, row_cnt, 1, 1)
             row_cnt += 1
 
         grid.attach(Gtk.HSeparator(), 0, row_cnt, 5, 15)
@@ -84,31 +89,56 @@ class AnalysisSettingsPage(Gtk.Box):
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
                               halign=Gtk.Align.START),
                     0, row_cnt, 1, 1)
-        spin = Gtk.SpinButton(digits=digit)
+        spin = Gtk.SpinButton(digits=0)
         spin.set_range(1, 3200)
         spin.set_increments(1, 2)
+        self.spin_btns.append((spin, self.page_type + '_time'))
+
         grid.attach(spin, 1, row_cnt, 1, 1)
         grid.attach(Gtk.Label("секунд", halign=Gtk.Align.START),
                     2, row_cnt, 1, 1)
         row_cnt += 1
 
-        for name, range_, unit, digit in zip(names, ranges, units, digits):
+        for name, range_, unit, digit, key \
+                            in zip(names, ranges, units, digits, keys):
+
+            # create grid elements
             spin = Gtk.SpinButton(digits=digit)
             spin.set_range(range_[0], range_[1])
             spin.set_increments(0.1 if digit !=0 else 1, 2)
+            switch = Gtk.Switch()
+
+            self.spin_btns.append((spin, key + 'cont'))
+            self.switches.append((switch, key + 'cont_en'))
+
+            # attach elements to grid
             grid.attach(Gtk.Label(name, halign=Gtk.Align.START),
                         0, row_cnt, 1, 1)
+
             grid.attach(spin, 1, row_cnt, 1, 1)
             grid.attach(Gtk.Label(unit, Gtk.Align.START), 2, row_cnt, 1, 1)
             grid.attach(Gtk.VSeparator(), 3, row_cnt, 1, 1)
-            grid.attach(Gtk.Switch(), 4, row_cnt, 1, 1)
+            grid.attach(switch, 4, row_cnt, 1, 1)
             row_cnt += 1
 
         self.add(grid)
 
-    def set_settings(self, analysis_settings):
-        pass
+        self.set_settings(settings)
+
+    def set_settings(self, settings):
+        for spin in self.spin_btns:
+            spin[0].set_value(settings[spin[1]])
+
+        for switch in self.switches:
+            switch[0].set_active(settings[switch[1]])
 
     def get_settings(self):
-        pass
+        settings = {}
+        for spin in self.spin_btns:
+            settings.update({spin[1]: spin[0].get_value()})
+
+        for switch in self.switches:
+            settings.update({switch[1]: switch[0].get_active()})
+
+        return settings
 

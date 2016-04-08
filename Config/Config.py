@@ -103,10 +103,7 @@ class Config():
 
         return json.loads(plot_info)
 
-    def set_analysis_settings(self, analysis_settings):
-        settings = copy.deepcopy(analysis_settings)
-        for setting in settings:
-            setting[0] = setting[0].replace('%', '%%')
+    def set_analysis_settings(self, settings):
         self.config['user']['analysis_settings'] = json.dumps(settings)
         self.write_ini()
 
