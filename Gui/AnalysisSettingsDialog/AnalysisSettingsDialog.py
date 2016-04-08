@@ -27,10 +27,10 @@ class AnalysisSettingsDialog(BaseDialog):
         append_page('Пропадание видео', 'vloss', ('vloss',))
         append_page('Пропадание аудио', 'aloss', ('aloss',))
         append_page('Чёрный кадр', 'black', ('black', 'luma'))
-        append_page('"Заморозка" видео"', 'freeze', ('freeze', 'diff'))
+        append_page('"Заморозка" видео', 'freeze', ('freeze', 'diff'))
         append_page('Блочность', 'blocky', ('blocky',))
         append_page('Тишина', 'silence', ('silence',))
-        append_page('"Перегрузка" звука"', 'loudness', ('loudness',))
+        append_page('"Перегрузка" звука', 'loudness', ('loudness',))
 
         # create stack
         self.stack = Gtk.Stack(halign=Gtk.Align.FILL, hexpand=True)

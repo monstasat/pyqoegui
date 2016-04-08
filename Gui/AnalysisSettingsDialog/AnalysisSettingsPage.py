@@ -9,14 +9,33 @@ class AnalysisSettingsPage(Gtk.Box):
         Gtk.Box.__init__(self, spacing=Spacing.ROW_SPACING,
                          border_width=Spacing.BORDER,
                          orientation=Gtk.Orientation.VERTICAL,
-                         vexpand=True, valign=Gtk.Align.FILL)
+                         vexpand=True, valign=Gtk.Align.FILL,
+                         hexpand=True, halign=Gtk.Align.FILL)
 
         self.page_type = page_type
 
         self.spin_btns = []
         self.switches = []
 
+        row_cnt = 0
+        grid = Gtk.Grid(column_spacing=Spacing.COL_SPACING,
+                        row_spacing=Spacing.ROW_SPACING,
+                        halign=Gtk.Align.FILL, hexpand=True)
+
         if self.page_type == 'vloss' or self.page_type == 'aloss':
+            text = 'Определять ошибку, если ' + \
+                   ('видео' if 'v' in self.page_type else 'аудио') + \
+                   ' отсутствует в течение'
+            grid.attach(Gtk.Label(text, halign=Gtk.Align.START),
+                        0, row_cnt, 1, 1)
+            spin = Gtk.SpinButton(digits=0)
+            spin.set_range(1, 3200)
+            spin.set_increments(1, 2)
+            self.spin_btns.append((spin, self.page_type))
+
+            grid.attach(spin, 1, row_cnt, 1, 1)
+            grid.attach(Gtk.Label("секунд"), 2, row_cnt, 1, 1)
+            self.add(grid)
             return
 
         # possible parameters
@@ -32,7 +51,7 @@ class AnalysisSettingsPage(Gtk.Box):
                      'Уровень средней разности находится ниже')
             keys = (self.page_type + '_', 'diff_')
             units = ('%', '')
-            digits = (1, 0)
+            digits = (1, 2)
             ranges = ((0, 100), (0, 219))
         elif self.page_type == 'blocky':
             names = ('Уровень блочности находится выше',)
@@ -53,12 +72,6 @@ class AnalysisSettingsPage(Gtk.Box):
             digits = (1,)
             ranges = ((-59, -5),)
 
-        row_cnt = 0
-
-        grid = Gtk.Grid(column_spacing=Spacing.COL_SPACING,
-                        row_spacing=Spacing.ROW_SPACING,
-                        halign=Gtk.Align.FILL, hexpand=False)
-
         grid.attach(Gtk.Label("Определять ошибку немедленно, если",
                               halign=Gtk.Align.START), 0, row_cnt, 1, 1)
         row_cnt += 1
@@ -66,7 +79,7 @@ class AnalysisSettingsPage(Gtk.Box):
         for name, range_, unit, digit, key \
                             in zip(names, ranges, units, digits, keys):
             # create grid elements
-            spin = Gtk.SpinButton(digits=digit)
+            spin = Gtk.SpinButton(digits=digit, hexpand=True)
             spin.set_range(range_[0], range_[1])
             spin.set_increments(0.1 if digit !=0 else 1, 2)
             switch = Gtk.Switch()
@@ -89,21 +102,21 @@ class AnalysisSettingsPage(Gtk.Box):
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
                               halign=Gtk.Align.START),
                     0, row_cnt, 1, 1)
-        spin = Gtk.SpinButton(digits=0)
+        spin = Gtk.SpinButton(digits=0, hexpand=True)
         spin.set_range(1, 3200)
         spin.set_increments(1, 2)
+
         self.spin_btns.append((spin, self.page_type + '_time'))
 
         grid.attach(spin, 1, row_cnt, 1, 1)
-        grid.attach(Gtk.Label("секунд", halign=Gtk.Align.START),
-                    2, row_cnt, 1, 1)
+        grid.attach(Gtk.Label("секунд"), 2, row_cnt, 1, 1)
         row_cnt += 1
 
         for name, range_, unit, digit, key \
                             in zip(names, ranges, units, digits, keys):
 
             # create grid elements
-            spin = Gtk.SpinButton(digits=digit)
+            spin = Gtk.SpinButton(digits=digit, hexpand=True)
             spin.set_range(range_[0], range_[1])
             spin.set_increments(0.1 if digit !=0 else 1, 2)
             switch = Gtk.Switch()

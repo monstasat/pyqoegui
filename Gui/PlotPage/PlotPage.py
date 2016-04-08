@@ -195,7 +195,7 @@ class PlotPage(Gtk.Box):
             plot.add_interval((err - plot_range[0])/full_range,
                               GraphTypes.ERROR)
         elif (index is 5) or (index is 6):
-            high_err = analysis_settings['loudndess_cont']
+            high_err = analysis_settings['loudness_cont']
             low_err = analysis_settings['silence_cont']
             plot.add_interval(abs(plot_range[1] - high_err)/full_range,
                               GraphTypes.ERROR,
