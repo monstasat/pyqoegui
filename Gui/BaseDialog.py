@@ -34,7 +34,7 @@ class BaseDialog(Gtk.Dialog):
         self.connect('show', self.on_shown)
 
         # delete all children from main box
-        map(lambda x: mainBox.remove(x), mainBox.get_children())
+        list(map(lambda x: mainBox.remove(x), mainBox.get_children()))
 
     # when dialog is to be shown
     def on_shown(self, widget):
@@ -77,7 +77,7 @@ class ComboBox(Gtk.Box):
 
 # box with label and spin button
 class SettingEntry(Gtk.Box):
-    def __init__(self, index, label, min_, max_):
+    def __init__(self, index, label, min_, max_, switch=False):
         Gtk.Box.__init__(self, hexpand=True, vexpand=False,
                          orientation=Gtk.Orientation.HORIZONTAL,
                          spacing=Spacing.COL_SPACING)
@@ -93,12 +93,16 @@ class SettingEntry(Gtk.Box):
         self.spinBtn.set_increments(0.1, 1)
         self.spinBtn.set_size_request(150, -1)
 
+        self.switch = Gtk.Switch(halign=Gtk.Align.END)
+
         # setting name
         self.label = Gtk.Label(label=label, hexpand=True, vexpand=False,
                                halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
 
         self.add(self.label)
         self.add(self.spinBtn)
+        if switch is True:
+            self.add(self.switch)
         self.show_all()
 
     def set_label(self, text):
@@ -106,25 +110,4 @@ class SettingEntry(Gtk.Box):
 
     def set_value(self, value):
         self.spinBtn.set_value(value)
-
-# box with label and switch
-class Switch(Gtk.Box):
-    def __init__(self, label):
-        Gtk.Box.__init__(self, hexpand=True, vexpand=False,
-                         orientation=Gtk.Orientation.HORIZONTAL,
-                         spacing=Spacing.COL_SPACING)
-
-        # switch
-        self.switch = Gtk.Switch(hexpand=True, vexpand=True,
-                                 halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
-        # widget label
-        self.label = Gtk.Label(label=label, hexpand=True, vexpand=False,
-                               halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
-
-        self.add(self.label)
-        self.add(self.switch)
-        self.show_all()
-
-    def set_label(self, text):
-        self.label.set_text(text)
 
