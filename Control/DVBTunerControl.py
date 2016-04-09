@@ -7,8 +7,8 @@ import time
 
 from gi.repository import GObject
 
-from Control import TunerSettingsIndexes as ti
 from Control import CustomMessages
+from Control.DVBTunerConstants import DVBC, DVBT, DVBT2
 
 # msg start byte
 START_BYTE = 0x55
@@ -189,38 +189,29 @@ class DVBTunerControl(GObject.GObject):
         return data
 
     def tuner_set_params(self, tuner_settings):
-
-        # tuner settings format:
-        # device, t2 freq, t2 bw, t2 plp id, t freq, t bw, c freq
-
         # get settings from received settings list.
-        # check input settings list
-        # if list is not compatible, return empty array
-        if len(tuner_settings) != 7:
-            return []
+        device = tuner_settings['device']
+        # if standard is DVB-T2
+        if device == DVBT2:
+            frequency = tuner_settings['t2_freq']
+            modulation = 9
+            width = tuner_settings['t2_bw']
+            dvb_c_t_t2_params = tuner_settings['t2_plp_id']
+        # if standard is DVB-T
+        elif device == DVBT:
+            frequency = tuner_settings['t_freq']
+            modulation = 6
+            width = tuner_settings['t_bw']
+            dvb_c_t_t2_params = 0
+        # if standard is DVB-C
+        elif device == DVBC:
+            frequency = tuner_settings['c_freq']
+            modulation = 3
+            width = 0
+            dvb_c_t_t2_params = 0
+        # if standard is unknown, return empty array
         else:
-            device = tuner_settings[0][0]
-            # if standard is DVB-T2
-            if device == ti.DVBT2:
-                frequency = tuner_settings[1][0]
-                modulation = 9
-                width = tuner_settings[2][0]
-                dvb_c_t_t2_params = tuner_settings[3][0]
-            # if standard is DVB-T
-            elif device == ti.DVBT:
-                frequency = tuner_settings[4][0]
-                modulation = 6
-                width = tuner_settings[5][0]
-                dvb_c_t_t2_params = 0
-            # if standard is DVB-C
-            elif device == ti.DVBC:
-                frequency = tuner_settings[6][0]
-                modulation = 3
-                width = 0
-                dvb_c_t_t2_params = 0
-            # if standard is unknown, return empty array
-            else:
-                return []
+            return []
 
         # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
         mhz = frequency // 1000000

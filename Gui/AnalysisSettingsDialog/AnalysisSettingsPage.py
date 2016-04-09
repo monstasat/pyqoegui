@@ -27,18 +27,22 @@ class AnalysisSettingsPage(Gtk.Box):
 
         # if this is video or audio loss page
         if self.page_type == 'vloss' or self.page_type == 'aloss':
-            text = 'Определять ошибку, если ' + \
-                   ('видео' if 'v' in self.page_type else 'аудио') + \
-                   ' отсутствует в течение'
+            text = 'Определять ошибку немедленно, если'
             grid.attach(Gtk.Label(text, halign=Gtk.Align.START),
-                        0, row_cnt, 1, 1)
+                        0, 0, 1, 1)
+
+            text = 'Данные на выходе декодера ' + \
+                   ('видео' if 'v' in self.page_type else 'аудио') + \
+                   ' отсутствуют в течение'
             spin = Gtk.SpinButton(digits=0)
             spin.set_range(1, 3200)
             spin.set_increments(1, 2)
             self.spin_btns.append((spin, self.page_type))
 
-            grid.attach(spin, 1, row_cnt, 1, 1)
-            grid.attach(Gtk.Label("секунд"), 2, row_cnt, 1, 1)
+            grid.attach(Gtk.Label(text, halign=Gtk.Align.START),
+                        0, 1, 1, 1)
+            grid.attach(spin, 1, 1, 1, 1)
+            grid.attach(Gtk.Label("секунд"), 2, 1, 1, 1)
             self.add(grid)
             return
 

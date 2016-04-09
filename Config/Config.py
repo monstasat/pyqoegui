@@ -5,7 +5,7 @@ import os
 
 from gi.repository import Gio
 
-from Control import TunerSettingsIndexes as ti
+from Control.DVBTunerConstants import DVBT2, BW8
 
 ANALYSIS_DEFAULT = {'vloss': 2, 'aloss': 2,
                     'black_cont_en': True, 'black_cont': 90,
@@ -27,6 +27,11 @@ ANALYSIS_DEFAULT = {'vloss': 2, 'aloss': 2,
                     'loudness_cont_en': True, 'loudness_cont': -21.9,
                     'loudness_peak_en': True, 'loudness_peak': -15,
                     'loudness_time': 2}
+
+TUNER_DEFAULT = {'device': DVBT2,
+                 't2_freq': 586000000, 't2_bw': BW8, 't2_plp_id': 0,
+                 't_freq': 586000000, 't_bw': BW8,
+                 'c_freq': 586000000}
 
 
 class Config():
@@ -126,8 +131,8 @@ class Config():
         tuner_settings = self.config['user'].get('tuner_settings', '[]')
         tuner_settings = json.loads(tuner_settings)
 
-        if len(tuner_settings) < len(ti.DEFAULT_VALUES):
-            tuner_settings = ti.DEFAULT_VALUES
+        if len(tuner_settings) < len(TUNER_DEFAULT):
+            tuner_settings = TUNER_DEFAULT
 
         return tuner_settings
 

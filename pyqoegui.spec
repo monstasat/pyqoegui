@@ -51,10 +51,10 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Control/Control.py
 /opt/%{name}/Control/CustomMessages.py
 /opt/%{name}/Control/DVBTunerControl.py
+/opt/%{name}/Control/DVBTunerConstants.py
 /opt/%{name}/Control/__init__.py
 /opt/%{name}/Control/ProgramListControl.py
 /opt/%{name}/Control/TranslateMessages.py
-/opt/%{name}/Control/TunerSettingsIndexes.py
 
 /opt/%{name}/Control/ErrorDetector/ErrorDetector.py
 /opt/%{name}/Control/ErrorDetector/ParamStats.py
@@ -139,6 +139,8 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Control/CustomMessages.pyo
 /opt/%{name}/Control/DVBTunerControl.pyc
 /opt/%{name}/Control/DVBTunerControl.pyo
+/opt/%{name}/Control/DVBTunerConstants.pyc
+/opt/%{name}/Control/DVBTunerConstants.pyo
 /opt/%{name}/Control/ErrorDetector/ErrorDetector.pyc
 /opt/%{name}/Control/ErrorDetector/ErrorDetector.pyo
 /opt/%{name}/Control/ErrorDetector/ParamStats.pyc
@@ -153,8 +155,6 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Control/ProgramListControl.pyo
 /opt/%{name}/Control/TranslateMessages.pyc
 /opt/%{name}/Control/TranslateMessages.pyo
-/opt/%{name}/Control/TunerSettingsIndexes.pyc
-/opt/%{name}/Control/TunerSettingsIndexes.pyo
 /opt/%{name}/Control/__init__.pyc
 /opt/%{name}/Control/__init__.pyo
 /opt/%{name}/Gui/AboutDialog/AboutDialog.pyc

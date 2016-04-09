@@ -11,7 +11,6 @@ from Control.TranslateMessages import TranslateMessages
 from Control.ErrorDetector.ErrorDetector import ErrorDetector
 from Control.ProgramListControl import ProgramListControl
 from Control.DVBTunerControl import DVBTunerControl
-from Control import TunerSettingsIndexes as ti
 from Control import CustomMessages
 from Config.Config import Config
 from Log import Log

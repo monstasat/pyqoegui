@@ -5,7 +5,6 @@ from Gui.BaseDialog import ComboBox
 from Gui.TunerSettingsDialog.TunerStatusBox import TunerStatusBox
 from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
 from Gui import Spacing
-from Control import TunerSettingsIndexes as ti
 
 
 # dialog for managing tuner settings
@@ -72,36 +71,34 @@ class TunerSettingsDialog(BaseDialog):
         device_box = self.standard_box.get_children()[0]
         device = device_box.combobox.get_active()
 
-        tuner_settings = [[device],
-                          [self.dvbt2_box.frequency],
-                          [self.dvbt2_box.bandwidth],
-                          [self.dvbt2_box.plp_id],
-                          [self.dvbt_box.frequency],
-                          [self.dvbt_box.bandwidth],
-                          [self.dvbc_box.frequency]]
+        self.tuner_settings['device'] = device
+        self.tuner_settings['t2_freq'] = self.dvbt2_box.frequency
+        self.tuner_settings['t2_bw'] = self.dvbt2_box.bandwidth
+        self.tuner_settings['t2_plp_id'] = self.dvbt2_box.plp_id
+        self.tuner_settings['t_freq'] = self.dvbt_box.frequency
+        self.tuner_settings['t_bw'] = self.dvbt_box.bandwidth
+        self.tuner_settings['c_freq'] = self.dvbc_box.frequency
 
-        return tuner_settings
+        return self.tuner_settings
 
     # update values in controls buttons
     def update_values(self, tuner_settings):
         # update tuner settings list
         self.tuner_settings = tuner_settings
 
-        # update device in status box
-        self.status_box.device = tuner_settings[ti.DEVICE][0]
-
-        self.standard_combo.combobox.set_active(
-                                        tuner_settings[ti.DEVICE][0])
-        self.dvbt2_box.frequency = tuner_settings[ti.T2_FREQ][0]
-        self.dvbt2_box.bandwidth = tuner_settings[ti.T2_BW][0]
-        self.dvbt2_box.plp_id = tuner_settings[ti.T2_PLP_ID][0]
-        self.dvbt_box.frequency = tuner_settings[ti.T_FREQ][0]
-        self.dvbt_box.bandwidth = tuner_settings[ti.T_BW][0]
-        self.dvbc_box.frequency = tuner_settings[ti.C_FREQ][0]
+        self.standard_combo.combobox.set_active(tuner_settings['device'])
+        self.dvbt2_box.frequency = tuner_settings['t2_freq']
+        self.dvbt2_box.bandwidth = tuner_settings['t2_bw']
+        self.dvbt2_box.plp_id = tuner_settings['t2_plp_id']
+        self.dvbt_box.frequency = tuner_settings['t_freq']
+        self.dvbt_box.bandwidth = tuner_settings['t_bw']
+        self.dvbc_box.frequency = tuner_settings['c_freq']
 
     def set_new_tuner_params(self, status, modulation, params):
         self.status_box.signal_params_view.set_signal_params(modulation,
                                                              params)
+        self.status_box.measured_data_view.device = \
+                                self.status_box.signal_params_view.device
         self.status_box.set_tuner_status_text_and_color(status)
         if status == 0x8000:
             self.status_box.measured_data_view.store_filter.refilter()

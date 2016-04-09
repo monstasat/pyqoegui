@@ -6,7 +6,7 @@ from gi.repository import GObject
 
 from Control import CustomMessages
 from Config.Config import ANALYSIS_DEFAULT
-from Control import TunerSettingsIndexes as ti
+from Config.Config import TUNER_DEFAULT
 
 
 class BaseInterface(GObject.GObject):
@@ -29,7 +29,7 @@ class BaseInterface(GObject.GObject):
                  app,
                  analyzed_prog_list=[],
                  analysis_settings_list=ANALYSIS_DEFAULT,
-                 tuner_settings_list=ti.DEFAULT_VALUES):
+                 tuner_settings_list=TUNER_DEFAULT):
 
         GObject.GObject.__init__(self)
 

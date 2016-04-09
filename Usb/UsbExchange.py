@@ -4,7 +4,6 @@ import math
 
 from Usb import UsbMessageTypes as usb_msgs
 from Control import ProgramListControl
-from Control import TunerSettingsIndexes as ti
 from Control.ErrorDetector.StatusTypes import STYPES
 
 
@@ -412,15 +411,15 @@ class UsbExchange():
                           self.dvb_cont_ver & 0xf,
                           54,
                           0, 0,
-                          tuner_settings[ti.DEVICE][0],
+                          tuner_settings['device'],
                           0, 0,
-                          tuner_settings[ti.C_FREQ][0],
-                          tuner_settings[ti.T_FREQ][0],
-                          2 - tuner_settings[ti.T_BW][0],
+                          tuner_settings['c_freq'],
+                          tuner_settings['t_freq'],
+                          2 - tuner_settings['t_bw'],
                           0,
-                          tuner_settings[ti.T2_FREQ][0],
-                          2 - tuner_settings[ti.T2_BW][0],
-                          tuner_settings[ti.T2_PLP_ID][0])
+                          tuner_settings['t2_freq'],
+                          2 - tuner_settings['t2_bw'],
+                          tuner_settings['t2_plp_id'])
 
         RESERVED = "B"*95
         rsrvd = struct.pack("="+RESERVED,

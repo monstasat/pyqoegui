@@ -2,7 +2,6 @@ import struct
 from collections import deque
 
 from Usb import UsbMessageTypes as usb_msgs
-from Control import TunerSettingsIndexes as ti
 
 
 # converts 2 words to float
@@ -168,13 +167,13 @@ class UsbMessageParser():
         length = data[1]
         request_id = data[2]
 
-        settings[ti.DEVICE][0] = int(data[8] & 0x00ff)
-        settings[ti.C_FREQ][0] = int(data[10] | (data[11] << 16))
-        settings[ti.T_FREQ][0] = int(data[12] | (data[13] << 16))
-        settings[ti.T_BW][0] = 2 - int(data[14])
-        settings[ti.T2_FREQ][0] = int(data[16] | (data[17] << 16))
-        settings[ti.T2_BW][0] = 2 - int(data[18])
-        settings[ti.T2_PLP_ID][0] = int(data[19] & 0x00ff)
+        settings['device'] = int(data[8] & 0x00ff)
+        settings['c_freq'] = int(data[10] | (data[11] << 16))
+        settings['t_freq'] = int(data[12] | (data[13] << 16))
+        settings['t_bw'] = 2 - int(data[14])
+        settings['t2_freq'] = int(data[16] | (data[17] << 16))
+        settings['t2_bw'] = 2 - int(data[18])
+        settings['t2_plp_id'] = int(data[19] & 0x00ff)
 
         return settings
 

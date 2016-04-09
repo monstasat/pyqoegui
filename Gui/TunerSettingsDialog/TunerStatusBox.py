@@ -11,7 +11,8 @@ class TunerStatusBox(Gtk.Box):
     def __init__(self):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL,
                          spacing=Spacing.ROW_SPACING,
-                         border_width=Spacing.BORDER)
+                         border_width=Spacing.BORDER,
+                         valign=Gtk.Align.START)
 
         # current tuner status
         self.no_device = True
@@ -38,14 +39,6 @@ class TunerStatusBox(Gtk.Box):
         self.add(Gtk.HSeparator())
         self.add(Gtk.Label(label="Измеренные параметры"))
         self.add(self.measured_data_view)
-
-    @property
-    def device(self):
-        return self.measured_data_view.device
-
-    @device.setter
-    def device(self, val):
-        self.measured_data_view.device = val
 
     def set_tuner_status_text_and_color(self, status):
         if status == 0x8000:

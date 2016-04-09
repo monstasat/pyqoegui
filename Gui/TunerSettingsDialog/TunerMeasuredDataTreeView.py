@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 
-from Control import TunerSettingsIndexes as ti
+from Control.DVBTunerConstants import DVBC, DVBT, DVBT2
 
 
 # tree view that displays tuner measured data
@@ -62,7 +62,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
     def param_filter_func(self, model, iter_, data):
         if self.device == 0xff:
             return False
-        elif (self.device) == ti.DVBC and \
+        elif (self.device) == DVBC and \
              (str(model.get_path(iter_)) == '3'):
             return False
         else:
@@ -88,7 +88,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.store[iter_][1] = str(self.measured_data[0])
 
         # set ber
-        if self.device == ti.DVBC:
+        if self.device == DVBC:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера Рида-Соломона"
@@ -99,7 +99,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
             self.store[iter_][0] = "BER после декодера Рида-Соломона"
             self.store[iter_][1] = "%e" % self.measured_data[4]
 
-        elif self.device == ti.DVBT:
+        elif self.device == DVBT:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера Витерби"
@@ -115,7 +115,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
             self.store[iter_][0] = "BER после декодера Рида-Соломона"
             self.store[iter_][1] = "%e" % self.measured_data[6]
 
-        elif self.device == ti.DVBT2:
+        elif self.device == DVBT2:
             # set ber1
             iter_ = self.store.get_iter_from_string('1')
             self.store[iter_][0] = "BER до декодера LDPC"
