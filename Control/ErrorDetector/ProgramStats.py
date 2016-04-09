@@ -61,7 +61,10 @@ class ProgramStats():
         if aloss_flag is True:
             self.aloss_cnt += 1
             if self.aloss_cnt >= self.aloss_thrsh:
-                self.err_flgs['aloss'] = STYPES['err']
+                if self.adata_hdr[2] != 0:
+                    self.err_flgs['aloss'] = STYPES['err']
+                else:
+                    self.err_flgs['aloss'] = STYPES['unkn']
                 self.err_flgs['silence'] = STYPES['unkn']
                 self.err_flgs['loudness'] = STYPES['unkn']
         else:
@@ -70,7 +73,10 @@ class ProgramStats():
         if vloss_flag is True:
             self.vloss_cnt += 1
             if self.vloss_cnt >= self.vloss_thrsh:
-                self.err_flgs['vloss'] = STYPES['err']
+                if self.vdata_hdr[2] != 0:
+                    self.err_flgs['vloss'] = STYPES['err']
+                else:
+                    self.err_flgs['vloss'] = STYPES['unkn']
                 self.err_flgs['black'] = STYPES['unkn']
                 self.err_flgs['freeze'] = STYPES['unkn']
                 self.err_flgs['blocky'] = STYPES['unkn']

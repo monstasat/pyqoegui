@@ -198,8 +198,8 @@ class Usb(BaseInterface):
 
         for stream in self.analyzed_prog_list:
             for prog in stream[1]:
-                video_hdr = [int(stream[0]), int(prog[0]), None]
-                audio_hdr = [int(stream[0]), int(prog[0]), None]
+                video_hdr = [int(stream[0]), int(prog[0]), 0]
+                audio_hdr = [int(stream[0]), int(prog[0]), 0]
                 for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_hdr[2] = int(pid[0])

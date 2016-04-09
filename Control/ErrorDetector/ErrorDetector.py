@@ -18,8 +18,8 @@ class ErrorDetector():
             for prog in stream[1]:
                 stream_id = int(stream[0])
                 prog_id = int(prog[0])
-                audio_data_header = [stream_id, prog_id, None]
-                video_data_header = [stream_id, prog_id, None]
+                audio_data_header = [stream_id, prog_id, 0]
+                video_data_header = [stream_id, prog_id, 0]
                 for pid in prog[4]:
                     pid_type = pid[2].split('-')[0]
                     if pid_type == 'audio':
@@ -34,7 +34,6 @@ class ErrorDetector():
         return error_detectors
 
     def set_prog_list(self, prog_list):
-        list(map((lambda x: x.__destroy__()), self.error_detectors))
         self.error_detectors.clear()
         self.error_detectors = self.create_error_detectors(prog_list)
 

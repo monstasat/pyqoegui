@@ -17,11 +17,15 @@ class AnalysisSettingsPage(Gtk.Box):
         self.spin_btns = []
         self.switches = []
 
+        # grid row counter
         row_cnt = 0
+
+        # create main grid
         grid = Gtk.Grid(column_spacing=Spacing.COL_SPACING,
                         row_spacing=Spacing.ROW_SPACING,
                         halign=Gtk.Align.FILL, hexpand=True)
 
+        # if this is video or audio loss page
         if self.page_type == 'vloss' or self.page_type == 'aloss':
             text = 'Определять ошибку, если ' + \
                    ('видео' if 'v' in self.page_type else 'аудио') + \
@@ -38,105 +42,106 @@ class AnalysisSettingsPage(Gtk.Box):
             self.add(grid)
             return
 
-        # possible parameters
+        # other possible parameters
         if self.page_type == 'black':
-            names = ('Доля чёрных пикселей находится выше',
-                     'Уровень средней яркости находится ниже')
+            names = ('Доля чёрных пикселей в кадре',
+                     'Средняя яркость кадра')
             keys = (self.page_type + '_', 'luma_')
+            signs = ('≥', '≤')
             units = ('%', '')
             digits = (1, 0)
             ranges = ((0, 100), (16, 235))
         elif self.page_type == 'freeze':
-            names = ('Доля идентичных пикселей находится выше',
-                     'Уровень средней разности находится ниже')
+            names = ('Доля идентичных пикселей в соседних кадрах',
+                     'Средняя разность между пикселами соседних кадров')
             keys = (self.page_type + '_', 'diff_')
+            signs = ('≥', '≤')
             units = ('%', '')
             digits = (1, 2)
             ranges = ((0, 100), (0, 219))
         elif self.page_type == 'blocky':
-            names = ('Уровень блочности находится выше',)
+            names = ('Уровень блочности в кадре',)
             keys = (self.page_type + '_',)
+            signs = ('≥')
             units = ('',)
             digits = (1,)
             ranges = ((0, 10),)
         elif self.page_type == 'silence':
-            names = ('Уровень громкости находится ниже',)
+            names = ('Уровень громкости в программе',)
             keys = (self.page_type + '_',)
+            signs = ('≤',)
             units = ('LUFS',)
             digits = (1,)
             ranges = ((-59, -5),)
         elif self.page_type =='loudness':
-            names = ('Уровень громкости находится выше',)
+            names = ('Уровень громкости в программе',)
             keys = (self.page_type + '_',)
+            signs = ('≥',)
             units = ('LUFS',)
             digits = (1,)
             ranges = ((-59, -5),)
 
+        # add peak group header
         grid.attach(Gtk.Label("Определять ошибку немедленно, если",
-                              halign=Gtk.Align.START), 0, row_cnt, 1, 1)
+                              halign=Gtk.Align.START, hexpand=True),
+                    0, row_cnt, 1, 1)
         row_cnt += 1
 
-        for name, range_, unit, digit, key \
-                            in zip(names, ranges, units, digits, keys):
-            # create grid elements
-            spin = Gtk.SpinButton(digits=digit, hexpand=True)
-            spin.set_range(range_[0], range_[1])
-            spin.set_increments(0.1 if digit !=0 else 1, 2)
-            switch = Gtk.Switch()
+        # add peak parameters group
+        row_cnt = self.add_parameters_group('peak', grid, row_cnt, names,
+                                            ranges, units, digits, keys, signs)
 
-            self.spin_btns.append((spin, key + 'peak'))
-            self.switches.append((switch, key + 'peak_en'))
-
-            # attach elements to grid
-            grid.attach(Gtk.Label(name, halign=Gtk.Align.START),
-                        0, row_cnt, 1, 1)
-            grid.attach(spin, 1, row_cnt, 1, 1)
-            grid.attach(Gtk.Label(unit, Gtk.Align.START), 2, row_cnt, 1, 1)
-            grid.attach(Gtk.VSeparator(), 3, row_cnt, 1, 1)
-            grid.attach(switch, 4, row_cnt, 1, 1)
-            row_cnt += 1
-
+        # add separator between groups
         grid.attach(Gtk.HSeparator(), 0, row_cnt, 5, 15)
         row_cnt += 15
 
+        # add cont group header
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
-                              halign=Gtk.Align.START),
-                    0, row_cnt, 1, 1)
-        spin = Gtk.SpinButton(digits=0, hexpand=True)
+                              halign=Gtk.Align.START), 0, row_cnt, 1, 1)
+        spin = Gtk.SpinButton(digits=0, hexpand=False)
         spin.set_range(1, 3200)
         spin.set_increments(1, 2)
-
         self.spin_btns.append((spin, self.page_type + '_time'))
-
-        grid.attach(spin, 1, row_cnt, 1, 1)
-        grid.attach(Gtk.Label("секунд"), 2, row_cnt, 1, 1)
+        grid.attach(spin, 2, row_cnt, 1, 1)
+        grid.attach(Gtk.Label("секунд"), 3, row_cnt, 1, 1)
         row_cnt += 1
 
-        for name, range_, unit, digit, key \
-                            in zip(names, ranges, units, digits, keys):
+        # add cont parameters group
+        row_cnt = self.add_parameters_group('cont', grid, row_cnt, names,
+                                            ranges, units, digits, keys, signs)
 
-            # create grid elements
-            spin = Gtk.SpinButton(digits=digit, hexpand=True)
-            spin.set_range(range_[0], range_[1])
-            spin.set_increments(0.1 if digit !=0 else 1, 2)
-            switch = Gtk.Switch()
-
-            self.spin_btns.append((spin, key + 'cont'))
-            self.switches.append((switch, key + 'cont_en'))
-
-            # attach elements to grid
-            grid.attach(Gtk.Label(name, halign=Gtk.Align.START),
-                        0, row_cnt, 1, 1)
-
-            grid.attach(spin, 1, row_cnt, 1, 1)
-            grid.attach(Gtk.Label(unit, Gtk.Align.START), 2, row_cnt, 1, 1)
-            grid.attach(Gtk.VSeparator(), 3, row_cnt, 1, 1)
-            grid.attach(switch, 4, row_cnt, 1, 1)
-            row_cnt += 1
-
+        # add grid to page
         self.add(grid)
 
+        # fill values into controls
         self.set_settings(settings)
+
+    def add_parameters_group(self, group_type, grid, row_cnt, names, ranges,
+                             units, digits, keys, signs):
+
+            for name, range_, unit, digit, key, sign \
+                in zip(names, ranges, units, digits, keys, signs):
+
+                # create grid elements
+                spin = Gtk.SpinButton(digits=digit, hexpand=False)
+                spin.set_range(range_[0], range_[1])
+                spin.set_increments(0.1 if digit !=0 else 1, 2)
+                switch = Gtk.Switch()
+
+                self.spin_btns.append((spin, key + group_type))
+                self.switches.append((switch, key + group_type + '_en'))
+
+                # attach elements to grid
+                grid.attach(Gtk.Label(name, halign=Gtk.Align.START),
+                            0, row_cnt, 1, 1)
+                grid.attach(Gtk.Label(sign, hexpand=False), 1, row_cnt, 1, 1)
+                grid.attach(spin, 2, row_cnt, 1, 1)
+                grid.attach(Gtk.Label(unit, Gtk.Align.START), 3, row_cnt, 1, 1)
+                grid.attach(Gtk.VSeparator(), 4, row_cnt, 1, 1)
+                grid.attach(switch, 5, row_cnt, 1, 1)
+                row_cnt += 1
+
+            return row_cnt
 
     def set_settings(self, settings):
         for spin in self.spin_btns:

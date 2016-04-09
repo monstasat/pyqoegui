@@ -114,8 +114,8 @@ class ProgramTable(Gtk.TreeView):
                 prog_name = prog[1]
                 prog_id = int(prog[0])
 
-                video_pid = None
-                audio_pid = None
+                video_pid = 0
+                audio_pid = 0
                 for pid in prog[4]:
                     if pid[2].split('-')[0] == 'video':
                         video_pid = int(pid[0])
@@ -143,6 +143,8 @@ class ProgramTable(Gtk.TreeView):
 
             match = list(filter(predicate, self.get_model()))
             if not match is False:
+                model = self.get_model()
+                x = model[-1]
                 row = match[0]
                 self.update_table_cells(row, result[2])
 
