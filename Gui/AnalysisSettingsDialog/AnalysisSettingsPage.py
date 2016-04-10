@@ -85,6 +85,16 @@ class AnalysisSettingsPage(Gtk.Box):
             digits = (1,)
             ranges = ((-59, -5),)
 
+        # add group header
+        grid.attach(
+            Gtk.Label("Триггеры пиковых ошибок",
+                      halign=Gtk.Align.END,
+                      valign=Gtk.Align.END),
+            0, row_cnt, 6, 1)
+        row_cnt += 1
+        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
+        row_cnt += 4
+
         # add peak group header
         grid.attach(Gtk.Label("Определять ошибку немедленно, если",
                               halign=Gtk.Align.START, hexpand=True),
@@ -95,9 +105,15 @@ class AnalysisSettingsPage(Gtk.Box):
         row_cnt = self.add_parameters_group('peak', grid, row_cnt, names,
                                             ranges, units, digits, keys, signs)
 
-        # add separator between groups
-        grid.attach(Gtk.HSeparator(), 0, row_cnt, 5, 15)
-        row_cnt += 15
+        # add group header
+        grid.attach(
+            Gtk.Label("Триггеры длительных ошибок",
+                      halign=Gtk.Align.END,
+                      valign=Gtk.Align.END),
+            0, row_cnt, 6, 10)
+        row_cnt += 10
+        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
+        row_cnt += 4
 
         # add cont group header
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
@@ -113,6 +129,36 @@ class AnalysisSettingsPage(Gtk.Box):
         # add cont parameters group
         row_cnt = self.add_parameters_group('cont', grid, row_cnt, names,
                                             ranges, units, digits, keys, signs)
+
+        # add aditional parameters to page if necessary
+        if self.page_type == 'black':
+            txt = "Принимать пиксель за чёрный, если его яркость "
+            range_ = (16, 235)
+            type_ = 'black_pixel'
+        elif self.page_type == 'freeze':
+            txt = "Считать пиксели идентичными, если разность их яркостей "
+            range_ = (0, 219)
+            type_ = 'pixel_diff'
+
+        if self.page_type == 'black' or self.page_type == 'freeze':
+            # add group header
+            grid.attach(
+                Gtk.Label("Дополнительные параметры",
+                          halign=Gtk.Align.END,
+                          valign=Gtk.Align.END),
+                0, row_cnt, 6, 10)
+            row_cnt += 10
+            grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
+            row_cnt += 4
+
+            grid.attach(Gtk.Label(txt, halign=Gtk.Align.START),
+                        0, row_cnt, 1, 1)
+            spin = Gtk.SpinButton(digits=0, hexpand=False)
+            spin.set_range(range_[0], range_[1])
+            spin.set_increments(1, 2)
+            self.spin_btns.append((spin, type_))
+            grid.attach(Gtk.Label('≤'), 1, row_cnt, 1, 1)
+            grid.attach(spin, 2, row_cnt, 1, 1)
 
         # add grid to page
         self.add(grid)
