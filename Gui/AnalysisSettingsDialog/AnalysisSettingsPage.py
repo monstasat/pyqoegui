@@ -35,6 +35,7 @@ class AnalysisSettingsPage(Gtk.Box):
                    ('видео' if 'v' in self.page_type else 'аудио') + \
                    ' отсутствуют в течение'
             spin = Gtk.SpinButton(digits=0)
+            spin.set_size_request(150, -1)
             spin.set_range(1, 3200)
             spin.set_increments(1, 2)
             self.spin_btns.append((spin, self.page_type))
@@ -118,9 +119,11 @@ class AnalysisSettingsPage(Gtk.Box):
         # add cont group header
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
                               halign=Gtk.Align.START), 0, row_cnt, 1, 1)
-        spin = Gtk.SpinButton(digits=2, hexpand=False, climb_rate=1)
+        spin = Gtk.SpinButton(digits=1, hexpand=False, climb_rate=2)
+        spin.set_size_request(150, -1)
         spin.set_range(0.1, 3200)
         spin.set_increments(0.1, 1)
+        spin.connect('value-changed', self.time_val_changed)
         self.spin_btns.append((spin, self.page_type + '_time'))
         grid.attach(spin, 2, row_cnt, 1, 1)
         grid.attach(Gtk.Label("секунд"), 3, row_cnt, 1, 1)
@@ -165,6 +168,22 @@ class AnalysisSettingsPage(Gtk.Box):
 
         # fill values into controls
         self.set_settings(settings)
+
+    def time_val_changed(self, btn):
+        val = btn.get_value()
+        if val > 1:
+            if val < 2:
+                btn.set_increments(1, 1)
+                btn.set_value(2)
+            else:
+                btn.set_value(int(val))
+            btn.set_digits(0)
+        else:
+            btn.set_increments(0.1, 1)
+            if abs(val - 1) < 0.001:
+                btn.set_digits(0)
+            else:
+                btn.set_digits(1)
 
     def add_parameters_group(self, group_type, grid, row_cnt, names, ranges,
                              units, digits, keys, signs):
