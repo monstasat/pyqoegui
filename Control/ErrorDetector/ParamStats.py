@@ -50,10 +50,6 @@ class ParamStats():
         if self.counter > self.error_sequence:
             self.error_sequence = self.counter
 
-        if self.name == 'black':
-            print("err_seq: ", self.error_sequence)
-            print("tot_seq: ", self.total_values)
-
         seq_equal_flag = False if loss_flag else \
                          self.time_predicate(self.total_values,
                                              self.error_sequence)
