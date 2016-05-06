@@ -118,9 +118,9 @@ class AnalysisSettingsPage(Gtk.Box):
         # add cont group header
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
                               halign=Gtk.Align.START), 0, row_cnt, 1, 1)
-        spin = Gtk.SpinButton(digits=0, hexpand=False)
-        spin.set_range(1, 3200)
-        spin.set_increments(1, 2)
+        spin = Gtk.SpinButton(digits=2, hexpand=False, climb_rate=1)
+        spin.set_range(0.1, 3200)
+        spin.set_increments(0.1, 1)
         self.spin_btns.append((spin, self.page_type + '_time'))
         grid.attach(spin, 2, row_cnt, 1, 1)
         grid.attach(Gtk.Label("секунд"), 3, row_cnt, 1, 1)

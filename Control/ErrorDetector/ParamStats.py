@@ -8,13 +8,14 @@ class ParamStats():
 
         self.total_values = 0
         self.error_values = 0
+        self.error_seq = 0
 
         self.peak_error = False
         self.cont_error = False
 
         self.cont_predicate = lambda x: False
         self.peak_predicate = lambda x: False
-        self.perc_predicate = lambda x, y: x == y
+        self.time_predicate = lambda x, y: x == y
 
         self.time = 0
         self.time_cnt = 0
@@ -30,8 +31,24 @@ class ParamStats():
                 self.peak_error = True
                 break
 
+        def func(counter):
+            self.error_values = counter
+            iterable = zip(*buf) if (type(buf) is tuple) else buf
+            for val in iterable:
+                if self.cont_predicate(val):
+                    self.error_values += 1
+                    #if self.name == 'freeze':
+                    #    print("predicate returned true", val)
+                else:
+                    #if self.name == 'freeze':
+                    #    print("predicate returned false", val)
+                    if self.error_values > self.error_seq:
+                        self.error_seq = self.error_values
+                    self.error_values = 0
+
+        func(self.error_values)
         # find values higher that continuous threshold value
-        self.error_values += len(list(filter(self.cont_predicate, buf)))
+        #self.error_values += len(list(filter(self.cont_predicate, buf)))
 
     def get_error(self):
         error_flag = STYPES['unkn']
@@ -40,8 +57,12 @@ class ParamStats():
 
         self.time_cnt += 1
 
+        if self.name == 'freeze':
+            print("err_seq: ", self.error_seq)
+            print("err_vals: ", self.error_values)
+
         seq_equal_flag = False if loss_flag else \
-                         self.perc_predicate(self.total_values,
+                         self.time_predicate(self.total_values,
                                              self.error_values)
 
         if self.time_cnt >= self.time:

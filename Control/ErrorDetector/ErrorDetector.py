@@ -45,14 +45,18 @@ class ErrorDetector():
             fun1 = lambda x: (x >= float(aset['black_cont']))
         if aset['luma_cont_en'] is True:
             fun2 = lambda x: (x <= float(aset['luma_cont']))
-        black_cont_predicate = lambda x: fun1(x[0]) or fun2(x[1])
+        black_cont_pr = lambda x: fun1(x[0]) or fun2(x[1])
 
         fun1 = fun2 = lambda x: False
         if aset['black_peak_en'] is True:
             fun1 = lambda x: (x >= float(aset['black_peak']))
         if aset['luma_peak_en'] is True:
             fun2 = lambda x: (x <= float(aset['luma_peak']))
-        black_peak_predicate = lambda x: fun1(x[0]) or fun2(x[1])
+        black_peak_pr = lambda x: fun1(x[0]) or fun2(x[1])
+
+        black_time_pr = lambda x, y: x == y
+        if aset['black_time'] < 1.:
+            black_time_pr = lambda x, y: y >= x*aset['black_time']
 
         # freeze frame
         fun1 = fun2 = lambda x: False
@@ -60,41 +64,57 @@ class ErrorDetector():
             fun1 = lambda x: (x >= float(aset['freeze_cont']))
         if aset['diff_cont_en'] is True:
             fun2 = lambda x: (x <= float(aset['diff_cont']))
-        freeze_cont_predicate = lambda x: fun1(x[0]) or fun2(x[1])
+        freeze_cont_pr = lambda x: fun1(x[0]) or fun2(x[1])
 
         fun1 = fun2 = lambda x: False
         if aset['freeze_peak_en'] is True:
             fun1 = lambda x: (x >= float(aset['freeze_peak']))
         if aset['diff_peak_en'] is True:
             fun2 = lambda x: (x <= float(aset['diff_peak']))
-        freeze_peak_predicate = lambda x: fun1(x[0]) or fun2(x[1])
+        freeze_peak_pr = lambda x: fun1(x[0]) or fun2(x[1])
+
+        freeze_time_pr = lambda x, y: x == y
+        if aset['freeze_time'] < 1.:
+            freeze_time_pr = lambda x, y: y >= x*aset['freeze_time']
 
         # blockiness
-        block_cont_pr = lambda x: False
+        blocky_cont_pr = lambda x: False
         if aset['blocky_cont_en'] is True:
-            block_cont_pr = lambda x: x >= float(aset['blocky_cont'])
+            blocky_cont_pr = lambda x: x >= float(aset['blocky_cont'])
 
-        block_peak_pr = lambda x: False
+        blocky_peak_pr = lambda x: False
         if aset['blocky_peak_en'] is True:
-            block_peak_pr = lambda x: x >= float(aset['blocky_peak'])
+            blocky_peak_pr = lambda x: x >= float(aset['blocky_peak'])
+
+        blocky_time_pr = lambda x, y: x == y
+        if aset['blocky_time'] < 1.:
+            blocky_time_pr = lambda x, y: y >= x*aset['blocky_time']
 
         # silence
-        sil_cont_pr = lambda x: False
+        silence_cont_pr = lambda x: False
         if aset['silence_cont_en'] is True:
-            sil_cont_pr = lambda x: x <= float(aset['silence_cont'])
+            silence_cont_pr = lambda x: x <= float(aset['silence_cont'])
 
-        sil_peak_pr = lambda x: False
+        silence_peak_pr = lambda x: False
         if aset['silence_peak_en'] is True:
-            sil_peak_pr = lambda x: x <= float(aset['silence_peak'])
+            silence_peak_pr = lambda x: x <= float(aset['silence_peak'])
+
+        silence_time_pr = lambda x, y: x == y
+        if aset['silence_time'] < 1.:
+            silence_time_pr = lambda x, y: y >= x*aset['silence_time']
 
         # loudness
-        loud_cont_pr = lambda x: False
+        loudness_cont_pr = lambda x: False
         if aset['loudness_cont_en'] is True:
-            loud_cont_pr = lambda x: x >= float(aset['loudness_cont'])
+            loudness_cont_pr = lambda x: x >= float(aset['loudness_cont'])
 
-        loud_peak_pr = lambda x: False
+        loudness_peak_pr = lambda x: False
         if aset['loudness_peak_en'] is True:
-            loud_peak_pr = lambda x: x >= float(aset['loudness_peak'])
+            loudness_peak_pr = lambda x: x >= float(aset['loudness_peak'])
+
+        loudness_time_pr = lambda x, y: x == y
+        if aset['loudness_time'] < 1.:
+            loudness_time_pr = lambda x, y: y >= x*aset['loudness_time']
 
         for dt in self.error_detectors:
             # loss thresholds
@@ -105,23 +125,28 @@ class ErrorDetector():
             for k, v in dt.verr_cnts.items():
                 v.time = int(aset[k + '_time'])
                 if k == 'black':
-                    v.cont_predicate = black_cont_predicate
-                    v.peak_predicate = black_peak_predicate
+                    v.cont_predicate = black_cont_pr
+                    v.peak_predicate = black_peak_pr
+                    v.time_predicate = black_time_pr
                 elif k == 'freeze':
-                    v.cont_predicate = freeze_cont_predicate
-                    v.peak_predicate = freeze_peak_predicate
+                    v.cont_predicate = freeze_cont_pr
+                    v.peak_predicate = freeze_peak_pr
+                    v.time_predicate = freeze_time_pr
                 elif k == 'blocky':
-                    v.cont_predicate = block_cont_pr
-                    v.peak_predicate = block_peak_pr
+                    v.cont_predicate = blocky_cont_pr
+                    v.peak_predicate = blocky_peak_pr
+                    v.time_predicate = blocky_time_pr
 
             for k, v in dt.aerr_cnts.items():
                 v.time = int(aset[k + '_time'])
                 if k == 'silence':
-                    v.cont_predicate = sil_cont_pr
-                    v.peak_predicate = sil_peak_pr
+                    v.cont_predicate = silence_cont_pr
+                    v.peak_predicate = silence_peak_pr
+                    v.time_predicate = silence_time_pr
                 elif k == 'loudness':
-                    v.cont_predicate = loud_cont_pr
-                    v.peak_predicate = loud_peak_pr
+                    v.cont_predicate = loudness_cont_pr
+                    v.peak_predicate = loudness_peak_pr
+                    v.time_predicate = loudness_time_pr
 
     def eval_video(self, data):
         # get error detectors with specified data header
