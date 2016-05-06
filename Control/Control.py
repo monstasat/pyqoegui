@@ -470,12 +470,11 @@ class Control(GObject.GObject):
                         xids.append([int(compared_prog_list[0]),
                                      int(prog[0]), 0])
 
+                # apply analysis params to backend
+                GObject.timeout_add(100, self.send_analysis_params_to_backend)
+
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
-
-                # apply analysis params to backend
-                self.send_analysis_params_to_backend()
-
                 # write event to log
                 self.log.write_log_message("new stream prog list received "
                                            "from backend")

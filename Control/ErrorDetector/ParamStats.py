@@ -7,8 +7,8 @@ class ParamStats():
         self.name = name
 
         self.total_values = 0
-        self.error_values = 0
-        self.error_seq = 0
+        self.counter = 0
+        self.error_sequence = 0
 
         self.peak_error = False
         self.cont_error = False
@@ -29,24 +29,14 @@ class ParamStats():
         for val in iterable:
             if self.peak_predicate(val) is True:
                 self.peak_error = True
-                break
 
-        def func(counter):
-            self.error_values = counter
-            iterable = zip(*buf) if (type(buf) is tuple) else buf
-            for val in iterable:
-                if self.cont_predicate(val):
-                    self.error_values += 1
-                    #if self.name == 'freeze':
-                    #    print("predicate returned true", val)
-                else:
-                    #if self.name == 'freeze':
-                    #    print("predicate returned false", val)
-                    if self.error_values > self.error_seq:
-                        self.error_seq = self.error_values
-                    self.error_values = 0
+            if self.cont_predicate(val) is True:
+                self.counter += 1
+            else:
+                if self.counter > self.error_sequence:
+                    self.error_sequence = self.counter
+                self.counter = 0
 
-        func(self.error_values)
         # find values higher that continuous threshold value
         #self.error_values += len(list(filter(self.cont_predicate, buf)))
 
@@ -57,20 +47,24 @@ class ParamStats():
 
         self.time_cnt += 1
 
-        if self.name == 'freeze':
-            print("err_seq: ", self.error_seq)
-            print("err_vals: ", self.error_values)
+        if self.counter > self.error_sequence:
+            self.error_sequence = self.counter
+
+        if self.name == 'black':
+            print("err_seq: ", self.error_sequence)
+            print("tot_seq: ", self.total_values)
 
         seq_equal_flag = False if loss_flag else \
                          self.time_predicate(self.total_values,
-                                             self.error_values)
+                                             self.error_sequence)
 
         if self.time_cnt >= self.time:
             if seq_equal_flag is True:
                 self.cont_error = True
             # reset counters
             self.total_values = 0
-            self.error_values = 0
+            self.error_sequence = 0
+            self.counter = 0
             self.time_cnt = 0
 
         if seq_equal_flag is False:

@@ -40,38 +40,42 @@ class ErrorDetector():
     def set_analysis_settings(self, aset):
         # predicates for error detection
         # black frame
-        fun1 = fun2 = lambda x: False
+        black_fun_cont = lambda x: False
+        luma_fun_cont = lambda x: False
         if aset['black_cont_en'] is True:
-            fun1 = lambda x: (x >= float(aset['black_cont']))
+            black_fun_cont = lambda x: (x >= float(aset['black_cont']))
         if aset['luma_cont_en'] is True:
-            fun2 = lambda x: (x <= float(aset['luma_cont']))
-        black_cont_pr = lambda x: fun1(x[0]) or fun2(x[1])
+            luma_fun_cont = lambda x: (x <= float(aset['luma_cont']))
+        black_cont_pr = lambda x: black_fun_cont(x[0]) or luma_fun_cont(x[1])
 
-        fun1 = fun2 = lambda x: False
+        black_fun_peak = lambda x: False
+        luma_fun_peak = lambda x: False
         if aset['black_peak_en'] is True:
-            fun1 = lambda x: (x >= float(aset['black_peak']))
+            black_fun_peak = lambda x: (x >= float(aset['black_peak']))
         if aset['luma_peak_en'] is True:
-            fun2 = lambda x: (x <= float(aset['luma_peak']))
-        black_peak_pr = lambda x: fun1(x[0]) or fun2(x[1])
+            luma_fun_peak = lambda x: (x <= float(aset['luma_peak']))
+        black_peak_pr = lambda x: black_fun_peak(x[0]) or luma_fun_peak(x[1])
 
         black_time_pr = lambda x, y: x == y
         if aset['black_time'] < 1.:
             black_time_pr = lambda x, y: y >= x*aset['black_time']
 
         # freeze frame
-        fun1 = fun2 = lambda x: False
+        freeze_fun_cont = lambda x: False
+        diff_fun_cont = lambda x: False
         if aset['freeze_cont_en'] is True:
-            fun1 = lambda x: (x >= float(aset['freeze_cont']))
+            freeze_fun_cont = lambda x: (x >= float(aset['freeze_cont']))
         if aset['diff_cont_en'] is True:
-            fun2 = lambda x: (x <= float(aset['diff_cont']))
-        freeze_cont_pr = lambda x: fun1(x[0]) or fun2(x[1])
+            diff_fun_cont = lambda x: (x <= float(aset['diff_cont']))
+        freeze_cont_pr = lambda x: freeze_fun_cont(x[0]) or diff_fun_cont(x[1])
 
-        fun1 = fun2 = lambda x: False
+        freeze_fun_peak = lambda x: False
+        diff_fun_peak = lambda x: False
         if aset['freeze_peak_en'] is True:
-            fun1 = lambda x: (x >= float(aset['freeze_peak']))
+            freeze_fun_peak = lambda x: (x >= float(aset['freeze_peak']))
         if aset['diff_peak_en'] is True:
-            fun2 = lambda x: (x <= float(aset['diff_peak']))
-        freeze_peak_pr = lambda x: fun1(x[0]) or fun2(x[1])
+            diff_fun_peak = lambda x: (x <= float(aset['diff_peak']))
+        freeze_peak_pr = lambda x: freeze_fun_peak(x[0]) or diff_fun_peak(x[1])
 
         freeze_time_pr = lambda x, y: x == y
         if aset['freeze_time'] < 1.:
