@@ -26,8 +26,6 @@ class ProgramStats():
                          'loudness': False}
 
     def eval_video(self, bufs):
-        if self.vdata_hdr == [0, 2030, 2031]:
-            print(bufs)
         for k, v in self.verr_cnts.items():
             if k == 'black':
                 v.eval((bufs[1], bufs[3]))
