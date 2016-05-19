@@ -255,7 +255,7 @@ class Usb(BaseInterface):
             if not match is False:
                 idx = self.prog_info.index(match[0])
                 if idx < self.exchange.MAX_PROG_NUM:
-                    self.exchange.set_status(idx, result[1])
+                    self.exchange.set_status(idx, result[2])
 
         self.exchange.send_status()
 

@@ -155,6 +155,43 @@ class UsbExchange():
         self.errs = [0]*self.MAX_PROG_NUM
         self.status_version += 1
 
+    def send_status_old(self):
+
+        STATUS_MSG = self.HEADER
+        # reserved
+        STATUS_MSG += "B"
+        # flags, stat ver, sett ver, video load, aud load,
+        # dvbt2 stat ver, dvbt2 cont ver
+        STATUS_MSG += "BBBBBBB"
+        # err flags
+        ERROR_MSG = "%sB" % 12
+        # loudness levels
+        LOUD_MSG = "%sB" % 12
+
+        msg_code = (0x0300 | self.START_MSG) | \
+                   (self.STOP_MSG | self.EXIT_RECEIVE)
+
+        b = struct.pack("="+STATUS_MSG,
+                        usb_msgs.PREFIX,
+                        msg_code,
+                        0,
+                        self.status_flags,
+                        self.status_version & 0xff,
+                        self.settings_version & 0xff,
+                        int(self.cpu_load/100*255 + 0.5), 0,
+                        self.dvb_stat_ver & 0xff,
+                        self.dvb_cont_ver & 0xff)
+
+        err = struct.pack("=%sB" % 12, *([0]*12))
+        loud = struct.pack("=%sB" % 12, *([22]*12))
+
+        msg = b''.join([b, err, loud])
+        self.write(msg)
+
+        self.lufs = [0]*self.MAX_PROG_NUM
+        self.errs = [0]*self.MAX_PROG_NUM
+        self.status_version += 1
+
     def send_errors(self):
         # header, length, TS index, TS num, reserved, err num
 
@@ -183,38 +220,104 @@ class UsbExchange():
         self.write(msg)
 
     def send_video_analysis_settings(self,
-                                     analysis_settings,
+                                     aset,
                                      client_id,
                                      request_id):
 
         # header, length data, client id, msg cod, req id, length msg
         VIDEO_ANALYSIS_MSG = self.HEADER + "HHHHH"
-        # level black warn, level black, level freeze warn, level freeze
-        # level diff warn, time to video loss, level luma warn,
-        # num of black frames, black level, pixel diff, num of freeze frames,
-        # block level warn, block level err, num of block frames
-        LEVELS = "fffffBBBBBBffB"
-        RESERVED = "B"
+        # vloss, black_cont, black_peak, black_cont_en, black_peak_en
+        # luma_cont, luma_peak, luma_cont_en, luma_peak_en, black_time,
+        # black_pixel, reserved
+        # freeze_cont, freeze_peak, freeze_cont_en, freeze_peak_en
+        # diff_cont, diff_peak, diff_cont_en, diff_peak_en, freeze_time,
+        # pixel_diff, reserved
+        # blocky_cont, blocky_peak, blocky_cont_en, blocky_peak_en,
+        # blocky_time, block_size, reserved
+        LEVELS = "fffBB"\
+                 "ffBBfII"\
+                 "ffBB"\
+                 "ffBBfHI"\
+                 "ffBBfII"
 
-        # TODO: pack and send message
+        # pack and send message
+        msg = struct.pack("="+VIDEO_ANALYSIS_MSG+LEVELS,
+                          usb_msgs.PREFIX,
+                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                          48,
+                          client_id,
+                          0xc514,
+                          request_id,
+                          44,
+                          aset['vloss'],
+                          aset['black_cont'],
+                          aset['black_peak'],
+                          int(aset['black_cont_en']),
+                          int(aset['black_peak_en']),
+                          aset['luma_cont'],
+                          aset['luma_peak'],
+                          int(aset['luma_cont_en']),
+                          int(aset['luma_peak_en']),
+                          aset['black_time'],
+                          int(aset['black_pixel']),
+                          0,
+                          aset['freeze_cont'],
+                          aset['freeze_peak'],
+                          int(aset['freeze_cont_en']),
+                          int(aset['freeze_peak_en']),
+                          aset['diff_cont'],
+                          aset['diff_peak'],
+                          int(aset['diff_cont_en']),
+                          int(aset['diff_peak_en']),
+                          aset['freeze_time'],
+                          int(aset['pixel_diff']),
+                          0,
+                          aset['blocky_cont'],
+                          aset['blocky_peak'],
+                          int(aset['blocky_cont_en']),
+                          int(aset['blocky_peak_en']),
+                          aset['blocky_time'],
+                          8,
+                          0)
 
-        #self.write(msg)
+        self.write(msg)
 
     def send_audio_analysis_settings(self,
-                                     analysis_settings,
+                                     aset,
                                      client_id,
                                      request_id):
 
         # header, length data, client id, msg cod, req id, length msg
         AUDIO_ANALYSIS_MSG = self.HEADER + "HHHHH"
-        # level black warn, level black, level freeze warn, level freeze
-        # level diff warn, time to video loss, level luma warn
-        LEVELS = "ffffB"
-        RESERVED = "BHI"
+        # aloss, silence_cont, silence_peak, silence_cont_en, silence_peak_en, silence_time, reserved
+        # loudness_cont, loudness_peak, loudness_cont_en, loudness_peak_en, loudness_time, reserved
+        LEVELS = "fffBBfI"\
+                 "ffBBfI"
 
-        # TODO: pack and send message
+        # pack and send message
+        msg = struct.pack("="+AUDIO_ANALYSIS_MSG+LEVELS,
+                          usb_msgs.PREFIX,
+                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                          24,
+                          client_id,
+                          0xc515,
+                          request_id,
+                          20,
+                          aset['aloss'],
+                          aset['silence_cont'],
+                          aset['silence_peak'],
+                          aset['silence_cont_en'],
+                          aset['silence_peak_en'],
+                          aset['silence_time'],
+                          0,
+                          aset['loudness_cont'],
+                          aset['loudness_peak'],
+                          aset['loudness_cont_en'],
+                          aset['loudness_peak_en'],
+                          aset['loudness_time'],
+                          0)
+        self.write(msg)
 
-        #self.write(msg)
 
     # send prog lists (stream and analyzed) to remote client
     def send_prog_list(self, stream_progs, analyzed_progs,
@@ -482,7 +585,7 @@ class UsbExchange():
                           10,
                           9, 2,
                           0, 0,
-                          tuner_settings[ti.DEVICE][0],
+                          tuner_settings['device'],
                           0,
                           status,
                           mer, ber1, ber2, ber3)

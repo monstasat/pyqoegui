@@ -10,6 +10,12 @@ def words_to_float(loword, hiword):
     float_val = struct.unpack('f', bytes_)[0]
     return float_val
 
+# converts 2 words to dword
+def words_to_dword(loword, hiword):
+    bytes_ = ((hiword << 16) | loword).to_bytes(4, byteorder='little')
+    dword_val = struct.unpack('I', bytes_)[0]
+    return dword_val
+
 
 class UsbMessageParser():
 
@@ -145,7 +151,39 @@ class UsbMessageParser():
         length = data[1]
         request_id = data[2]
 
-        # TODO: fill settings
+        # fill settings
+        settings['vloss'] = words_to_float(data[3], data[4])
+        settings['black_cont'] = words_to_float(data[5], data[6])
+        settings['black_peak'] = words_to_float(data[7], data[8])
+        settings['black_cont_en'] = int(data[9] & 0x00ff)
+        settings['black_peak_en'] = int(data[9] >> 8)
+        settings['luma_cont'] = words_to_float(data[10], data[11])
+        settings['luma_peak'] = words_to_float(data[12], data[13])
+        settings['luma_cont_en'] = int(data[14] & 0x00ff)
+        settings['luma_peak_en'] = int(data[14] >> 8)
+        settings['black_time'] = words_to_float(data[15], data[16])
+        settings['black_pixel'] = words_to_dword(data[17], data[18])
+        # data[19], data[20] - reserved
+        settings['freeze_cont'] = words_to_float(data[21], data[22])
+        settings['freeze_peak'] = words_to_float(data[23], data[24])
+        settings['freeze_cont_en'] = int(data[25] & 0x00ff)
+        settings['freeze_peak_en'] = int(data[25] >> 8)
+        settings['diff_cont'] = words_to_float(data[26], data[27])
+        settings['diff_peak'] = words_to_float(data[28], data[29])
+        settings['diff_cont_en'] = int(data[30] & 0x00ff)
+        settings['diff_peak_en'] = int(data[30] >> 8)
+        settings['freeze_time'] = words_to_float(data[31], data[32])
+        settings['pixel_diff'] = data[33]
+        # data[34], data[35] - reserved
+        settings['blocky_cont'] = words_to_float(data[36], data[37])
+        settings['blocky_peak'] = words_to_float(data[38], data[39])
+        settings['blocky_cont_en'] = int(data[40] & 0x00ff)
+        settings['blocky_peak_en'] = int(data[40] >> 8)
+        settings['blocky_time'] = words_to_float(data[41], data[42])
+        settings['block_size'] = words_to_dword(data[43], data[44])
+        # data[45], data[46] - reserved
+
+        print()
 
         return settings
 
@@ -156,7 +194,19 @@ class UsbMessageParser():
         length = data[1]
         request_id = data[2]
 
-        # TODO: fill settings
+        settings['aloss'] = words_to_float(data[3], data[4])
+        settings['silence_cont'] = words_to_float(data[5], data[6])
+        settings['silence_peak'] = words_to_float(data[7], data[8])
+        settings['silence_cont_en'] = int(data[9] & 0x00ff)
+        settings['silence_peak_en'] = int(data[9] >> 8)
+        settings['silence_time'] = words_to_float(data[10], data[11])
+        # data[12], data[13] - reserved
+        settings['loudness_cont'] = words_to_float(data[14], data[15])
+        settings['loudness_peak'] = words_to_float(data[16], data[17])
+        settings['loudness_cont_en'] = int(data[18] & 0x00ff)
+        settings['loudness_peak_en'] = int(data[18] >> 8)
+        settings['loudness_time'] = words_to_float(data[19], data[20])
+        # data[21], data[22] - reserved
 
         return settings
 
