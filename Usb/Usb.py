@@ -258,12 +258,13 @@ class Usb(BaseInterface):
                     self.exchange.set_status(idx, result[2])
 
         self.exchange.send_status()
+        #self.exchange.send_status_old()
 
     # called by Control to update lufs values in program table and plots
     def update_lufs(self, lufs):
         BaseInterface.update_lufs(self, lufs)
 
-        match = list(filter(lambda x: x[1] == lufs[0], self.self.prog_info))
+        match = list(filter(lambda x: x[1] == lufs[0], self.prog_info))
         if not match is False:
             idx = self.prog_info.index(match[0])
             if idx < self.exchange.MAX_PROG_NUM:

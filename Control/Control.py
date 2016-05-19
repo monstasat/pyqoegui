@@ -417,12 +417,12 @@ class Control(GObject.GObject):
             # add event to log
             self.log.write_log_message(msg)
 
-        for interface in self.interfaces:
-            interface.update_stream_prog_list(self.stream_progs)
-            if self.is_gui(interface) is True:
-                # set drawing black background for renderers
-                interface.update_rendering_mode(True, stream_id)
-                interface.window.queue_draw()
+            for interface in self.interfaces:
+                interface.update_stream_prog_list(self.stream_progs)
+                if self.is_gui(interface) is True:
+                    # set drawing black background for renderers
+                    interface.update_rendering_mode(True, stream_id)
+                    interface.window.queue_draw()
 
     # Handling messages from backend
     def message_from_pipeline_callback(self, obj, conn, source):
