@@ -71,7 +71,7 @@ class AnalysisSettingsPage(Gtk.Box):
             signs = ('≥')
             units = ('',)
             digits = (1,)
-            ranges = ((0, 10),)
+            ranges = ((0, 100),)
         elif self.page_type == 'silence':
             names = ('Уровень громкости в программе',)
             keys = (self.page_type + '_',)

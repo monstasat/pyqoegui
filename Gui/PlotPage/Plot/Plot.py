@@ -26,13 +26,14 @@ class Plot(Gtk.Box):
         CustomMessages.PLOT_PAGE_CHANGED: (GObject.SIGNAL_RUN_FIRST,
                                            None, ())}
 
-    def __init__(self, plot_type, plot_progs, colors):
+    def __init__(self, plot_type, plot_progs, colors, data_predicate):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL,
                          spacing=Spacing.ROW_SPACING)
 
         # save incoming parameters
         self.plot_type = plot_type
         self.plot_progs = plot_progs
+        self.data_predicate = data_predicate
 
         # add plot label at the top
         self.label = Gtk.Label(halign=Gtk.Align.END, hexpand=True,
@@ -456,11 +457,11 @@ class Plot(Gtk.Box):
 
     def get_data(self, index):
         if len(self.buffer[index]) is not 0:
-            average = reduce(lambda x, y: x + y, self.buffer[index]) / len(self.buffer[index])
+            val = self.data_predicate(self.buffer[index])
         else:
-            average = None
+            val = None
         self.buffer[index].clear()
-        return average
+        return val
 
     # when plot colors are changed
     def on_plot_changed(self, wnd):

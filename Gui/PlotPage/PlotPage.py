@@ -78,8 +78,18 @@ class PlotPage(Gtk.Box):
         plot_unit = plot_info[1]
         plot_range = plot_info[2]
 
+        # if plot param is freeze, black or blockiness, plot max value
+        print(plot_info)
+        if PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 0 or \
+           PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 1 or \
+           PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 2:
+            data_predicate = lambda x: max(x)
+        # else, plot average value
+        else:
+            data_predicate = lambda x: sum(x)/len(x)
+
         # create new plot with selected parameters
-        plot = Plot(plot_info, plot_progs, colors)
+        plot = Plot(plot_info, plot_progs, colors, data_predicate)
         # connect delete plot event to plot close button
         plot.close_button.connect('clicked', self.on_plot_delete)
 
