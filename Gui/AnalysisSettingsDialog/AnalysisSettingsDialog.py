@@ -28,7 +28,7 @@ class AnalysisSettingsDialog(BaseDialog):
         append_page('Пропадание аудио', 'aloss', ('aloss',))
         append_page('Чёрный кадр', 'black', ('black', 'luma'))
         append_page('"Заморозка" видео', 'freeze', ('freeze', 'diff'))
-        append_page('Блочность', 'blocky', ('blocky',))
+        append_page('Блочность', 'blocky', ('blocky', 'blocks'))
         append_page('Тишина', 'silence', ('silence',))
         append_page('"Перегрузка" звука', 'loudness', ('loudness',))
 

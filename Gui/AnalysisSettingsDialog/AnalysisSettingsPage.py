@@ -23,6 +23,7 @@ class AnalysisSettingsPage(Gtk.Box):
         # create main grid
         grid = Gtk.Grid(column_spacing=Spacing.COL_SPACING,
                         row_spacing=Spacing.ROW_SPACING,
+                        row_homogeneous=True,
                         halign=Gtk.Align.FILL, hexpand=True)
 
         # if this is video or audio loss page
@@ -93,8 +94,8 @@ class AnalysisSettingsPage(Gtk.Box):
                       valign=Gtk.Align.END),
             0, row_cnt, 6, 1)
         row_cnt += 1
-        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
-        row_cnt += 4
+        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 1)
+        row_cnt += 1
 
         # add peak group header
         grid.attach(Gtk.Label("Определять ошибку немедленно, если",
@@ -111,10 +112,10 @@ class AnalysisSettingsPage(Gtk.Box):
             Gtk.Label("Триггеры длительных ошибок",
                       halign=Gtk.Align.END,
                       valign=Gtk.Align.END),
-            0, row_cnt, 6, 10)
-        row_cnt += 10
-        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
-        row_cnt += 4
+            0, row_cnt, 6, 1)
+        row_cnt += 1
+        grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 1)
+        row_cnt += 1
 
         # add cont group header
         grid.attach(Gtk.Label("Определять ошибку, если в течение",
@@ -142,30 +143,40 @@ class AnalysisSettingsPage(Gtk.Box):
             txt = "Считать пиксели идентичными, если разность их яркостей "
             range_ = (0, 219)
             type_ = 'pixel_diff'
+        elif self.page_type == 'blocky':
+            txt = "Отображать найденные блоки на изображении "
+            type_ = 'mark_blocks'
 
-        if self.page_type == 'black' or self.page_type == 'freeze':
+        if self.page_type == 'black' or self.page_type == 'freeze' or \
+           self.page_type == 'blocky':
             # add group header
             grid.attach(
                 Gtk.Label("Дополнительные параметры",
                           halign=Gtk.Align.END,
                           valign=Gtk.Align.END),
-                0, row_cnt, 6, 10)
-            row_cnt += 10
-            grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), 0, row_cnt, 6, 4)
-            row_cnt += 4
+                0, row_cnt, 6, 1)
+            row_cnt += 1
+            grid.attach(Gtk.HSeparator(valign=Gtk.Align.START), \
+                        0, row_cnt, 6, 1)
+            row_cnt += 1
 
             grid.attach(Gtk.Label(txt, halign=Gtk.Align.START),
                         0, row_cnt, 1, 1)
-            spin = Gtk.SpinButton(digits=0, hexpand=False)
-            spin.set_range(range_[0], range_[1])
-            spin.set_increments(1, 2)
-            self.spin_btns.append((spin, type_))
-            grid.attach(Gtk.Label('≤'), 1, row_cnt, 1, 1)
-            grid.attach(spin, 2, row_cnt, 1, 1)
+            if self.page_type == 'black' or self.page_type == 'freeze':
+                spin = Gtk.SpinButton(digits=0, hexpand=False)
+                spin.set_range(range_[0], range_[1])
+                spin.set_increments(1, 2)
+                self.spin_btns.append((spin, type_))
+                grid.attach(Gtk.Label('≤'), 1, row_cnt, 1, 1)
+                grid.attach(spin, 2, row_cnt, 1, 1)
+            else:
+                switch = Gtk.Switch()
+                grid.attach(switch, 5, row_cnt, 1, 1)
+                self.switches.append((switch, type_))
+            row_cnt += 1
 
         # add grid to page
         self.add(grid)
-
         # fill values into controls
         self.set_settings(settings)
 

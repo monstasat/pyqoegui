@@ -399,9 +399,12 @@ class Control(GObject.GObject):
 
     # Set new analysis settings to backend
     def send_analysis_params_to_backend(self):
-        black_pixel_val = int(self.analysis_settings['black_pixel'])
+        black_pixel = int(self.analysis_settings['black_pixel'])
         pixel_diff = int(self.analysis_settings['pixel_diff'])
-        self.backend.change_analysis_params(black_pixel_val, pixel_diff)
+        mark_blocks = int(self.analysis_settings['mark_blocks'])
+        self.backend.change_analysis_params(black_pixel,
+                                            pixel_diff,
+                                            mark_blocks)
 
     # Backend sent a message that one of streams has ended
     def end_of_stream_received(self, stream_id):
@@ -471,7 +474,7 @@ class Control(GObject.GObject):
                                      int(prog[0]), 0])
 
                 # apply analysis params to backend
-                GObject.timeout_add(100, self.send_analysis_params_to_backend)
+                GObject.timeout_add(500, self.send_analysis_params_to_backend)
 
                 # pass prog list and xids to backend
                 self.backend.apply_new_program_list(compared_prog_list, xids)
