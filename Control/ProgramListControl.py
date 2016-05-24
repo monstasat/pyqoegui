@@ -1,3 +1,6 @@
+import operator
+
+
 class ProgramListControl():
     def __init__(self, prog_list=[]):
         self.prog_list = prog_list
@@ -19,7 +22,6 @@ class ProgramListControl():
 
     # add or replace one stream in a list
     def add_one_stream(self, prog_list):
-
         stream_id = prog_list[0]
 
         # check if there is a stream in a model with equal stream id
@@ -32,15 +34,18 @@ class ProgramListControl():
                 break
         # if no stream with such stream id found,
         else:
-            for stream in self.prog_list:
-                # if found stream with id > that current id
-                # insert current prog list before this stream
-                if stream[0] > prog_list[0]:
-                    self.prog_list.insert(self.prog_list.index(stream),
-                                          prog_list)
-            else:
-                # if not, append prog list to the end
+            greater = list(filter((lambda x: x[0] > prog_list[0]),
+                                  self.prog_list))
+
+            greatest = max(greater,
+                           key=operator.itemgetter(0),
+                           default=None)
+
+            if greatest is None:
                 self.prog_list.append(prog_list)
+            else:
+                self.prog_list.insert(self.prog_list.index(greatest),
+                                      prog_list)
 
     # FIXME: optimize
     # compare two prog lists and make new list with only equal programs

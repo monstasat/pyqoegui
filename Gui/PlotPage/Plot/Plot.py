@@ -132,7 +132,7 @@ class Plot(Gtk.Box):
         # background intervals
         self.intervals = []
 
-        self.total_seconds = 40
+        self.total_seconds = 60
         # graph points number
         # graph refresh speed and other refresh parameters
         self.speed = 250

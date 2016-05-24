@@ -2,14 +2,11 @@ from Control.ErrorDetector.ProgramStats import ProgramStats
 
 class ErrorDetector():
     def __init__(self, prog_list, analysis_settings):
+        self.analysis_settings = analysis_settings
 
         # create error detectors
         self.error_detectors = []
         self.set_prog_list(prog_list)
-
-        # set analysis settings
-        self.analysis_settings = analysis_settings
-        self.set_analysis_settings(analysis_settings)
 
     def create_error_detectors(self, prog_list):
         error_detectors = []
@@ -36,6 +33,7 @@ class ErrorDetector():
     def set_prog_list(self, prog_list):
         self.error_detectors.clear()
         self.error_detectors = self.create_error_detectors(prog_list)
+        self.set_analysis_settings(self.analysis_settings)
 
     def set_analysis_settings(self, aset):
         # predicates for error detection

@@ -66,7 +66,7 @@ class AnalysisSettingsPage(Gtk.Box):
             digits = (1, 2)
             ranges = ((0, 100), (0, 219))
         elif self.page_type == 'blocky':
-            names = ('Уровень блочности в кадре',)
+            names = ('Доля заметных блоков в кадре, %',)
             keys = (self.page_type + '_',)
             signs = ('≥')
             units = ('',)
@@ -144,7 +144,7 @@ class AnalysisSettingsPage(Gtk.Box):
             range_ = (0, 219)
             type_ = 'pixel_diff'
         elif self.page_type == 'blocky':
-            txt = "Отображать найденные блоки на изображении "
+            txt = "Отображать заметные блоки на изображении "
             type_ = 'mark_blocks'
 
         if self.page_type == 'black' or self.page_type == 'freeze' or \
