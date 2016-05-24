@@ -79,7 +79,6 @@ class PlotPage(Gtk.Box):
         plot_range = plot_info[2]
 
         # if plot param is freeze, black or blockiness, plot max value
-        print(plot_info)
         if PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 0 or \
            PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 1 or \
            PlotTypes.PLOT_TYPES.index(tuple(plot_info)) == 2:
