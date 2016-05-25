@@ -66,10 +66,10 @@ class AnalysisSettingsPage(Gtk.Box):
             digits = (1, 2)
             ranges = ((0, 100), (0, 219))
         elif self.page_type == 'blocky':
-            names = ('Доля заметных блоков в кадре, %',)
+            names = ('Доля заметных блоков в кадре',)
             keys = (self.page_type + '_',)
             signs = ('≥')
-            units = ('',)
+            units = ('%',)
             digits = (1,)
             ranges = ((0, 100),)
         elif self.page_type == 'silence':
