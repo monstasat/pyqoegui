@@ -115,3 +115,29 @@ class TranslateMessages():
 
         return param_list
 
+# ADV LOUDNESS
+
+    def get_interval_loudness(self, interval_string):
+        PART_DIVIDER = ':*:'
+        PARAM_DIVIDER = ':'
+
+        param_list = []
+
+        # split string to stream params and video params
+        str_parts = interval_string.split(PART_DIVIDER)
+        # split stream parameters
+        stream_params = str_parts[0].split(PARAM_DIVIDER)
+        sparams_int_list = []
+        for param in stream_params:
+            sparams_int_list.append(int(param))
+        param_list.append(sparams_int_list)
+
+        # split measured params
+        measured_params = str_parts[1].split(PARAM_DIVIDER)
+        param_list.append([float(measured_params[0]),
+                           float(measured_params[1]),
+                           int(measured_params[2])])
+
+        return param_list
+
+
