@@ -1,4 +1,5 @@
 import subprocess
+import os
 from struct import pack
 
 from gi.repository import Gio, GObject
@@ -37,8 +38,15 @@ class GstreamerPipeline():
         print("ip: ", ip)
         print("stream: ", stream)
         print("port: ", port)
-        out = open("backend_log", "w")
-        err = open("backend_err_log", "w")
+        home = os.environ.get("HOME")
+        user_name = os.environ.get("USER")
+        log_dir = home + '/.var/log/' + user_name + '/analyzer/'
+        if os.path.isdir(log_dir) is False:
+            os.makedirs(log_dir)
+        out_filename = log_dir + '/backend_log'
+        err_filename = log_dir + '/backend_err_log'
+        out = open(out_filename, "w")
+        err = open(err_filename, "w")
         self.proc = subprocess.Popen(
                             ["ats3-backend",
                              "--stream", stream,
