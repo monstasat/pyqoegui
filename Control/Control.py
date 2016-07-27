@@ -401,9 +401,11 @@ class Control(GObject.GObject):
         black_pixel = int(self.analysis_settings['black_pixel'])
         pixel_diff = int(self.analysis_settings['pixel_diff'])
         mark_blocks = int(self.analysis_settings['mark_blocks'])
+        ad_timeout = 5
         self.backend.change_analysis_params(black_pixel,
                                             pixel_diff,
-                                            mark_blocks)
+                                            mark_blocks,
+                                            ad_timeout)
 
     # Backend sent a message that one of streams has ended
     def end_of_stream_received(self, stream_id):

@@ -76,9 +76,10 @@ class Backend():
             self.gs_pipelines[stream_id].change_volume(prog_id, pid, value)
 
     # apply new analysis parameters
-    def change_analysis_params(self, black_pixel, diff_level, mark_blocks):
+    def change_analysis_params(self, black_pixel, diff_level, mark_blocks, ad_timeout):
         for pipeline in self.gs_pipelines:
             pipeline.change_analysis_params(black_pixel,
                                             diff_level,
-                                            mark_blocks)
+                                            mark_blocks,
+                                            ad_timeout)
 

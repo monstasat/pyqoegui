@@ -123,11 +123,12 @@ class GstreamerPipeline():
             self.volumes.append([prog_id, pid, value])
 
     # apply new analysis parameters
-    def change_analysis_params(self, black_pixel, diff_level, mark_blocks):
+    def change_analysis_params(self, black_pixel, diff_level, mark_blocks, ad_timeout):
         HEADER = 0xCDDA1307
         BLACK_PIX = 0xBA1306BA
         PIXEL_DIFF = 0xDA0476AD
         MARK_BLOCKS = 0xCA12AD86
+        AD_TIMEOUT = 0x1F2AB83D
 
         msg = pack("IIII", HEADER, BLACK_PIX, black_pixel, HEADER)
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
@@ -136,6 +137,9 @@ class GstreamerPipeline():
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 
         msg = pack("IIII", HEADER, MARK_BLOCKS, mark_blocks, HEADER)
+        self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
+
+        msg = pack("IIII", HEADER, AD_TIMEOUT, ad_timeout, HEADER)
         self.send_message_to_pipeline(msg, 1500 + int(self.stream_id))
 
     def send_message_to_pipeline(self, msg, destination):
