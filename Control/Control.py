@@ -401,7 +401,7 @@ class Control(GObject.GObject):
         black_pixel = int(self.analysis_settings['black_pixel'])
         pixel_diff = int(self.analysis_settings['pixel_diff'])
         mark_blocks = int(self.analysis_settings['mark_blocks'])
-        ad_timeout = 5
+        ad_timeout = 60 * 60 * 2
         self.backend.change_analysis_params(black_pixel,
                                             pixel_diff,
                                             mark_blocks,
