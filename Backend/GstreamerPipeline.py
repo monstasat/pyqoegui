@@ -23,10 +23,11 @@ class GstreamerPipeline():
 
     def execute(self):
         # terminate previously executed process if any
-        #try:
-        #    self.terminate()
-        #except:
-        #    print("failed terminating process")
+        try:
+            self.terminate()
+        except:
+            print("failed terminating process with id ",
+                  self.stream_id)
 
         # execute new process
         ip = "224.1.2.2" #+ str(2 + self.stream_id)
@@ -34,10 +35,8 @@ class GstreamerPipeline():
         # ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234 + self.stream_id)
-        print("executing pipeline")
-        print("ip: ", ip)
-        print("stream: ", stream)
-        print("port: ", port)
+        print("executing pipeline. ip: ", ip,
+              "stream: ", stream, "port: ", port)
         home = os.environ.get("HOME")
         user_name = os.environ.get("USER")
         log_dir = home + '/.var/log/' + user_name + '/analyzer/'
@@ -78,10 +77,11 @@ class GstreamerPipeline():
             GObject.source_remove(self.poll_id)
             self.poll_id = None
         self.state = State.TERMINATED
-        print("terminating pipeline")
+        print("terminating pipeline with id ", self.stream_id)
 
     def apply_new_program_list(self, prog_list):
-        print("applying new prog list for pipeline")
+        print("applying new prog list for pipeline with id ",
+              self.stream_id)
         # constants to construct prog list message
         STREAM_DIVIDER = 0xABBA0000
         PROG_DIVIDER = 0xACDC0000
