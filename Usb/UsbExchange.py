@@ -96,21 +96,19 @@ class UsbExchange():
     def set_status(self, prog_idx, results):
         status = 0
         if results['vloss'] is STYPES['err']:
-            status = 0x01
-        elif results['black'] is STYPES['err']:
-            status = 0x02
-        elif results['freeze'] is STYPES['err']:
-            status = 0x03
-        elif results['blocky'] is STYPES['err']:
-            status = 0x04
-        elif results['aloss'] is STYPES['err']:
-            status = 0x10
-        elif results['silence'] is STYPES['err']:
-            status = 0x20
-        elif results['loudness'] is STYPES['err']:
-            status = 0x30
-        else:
-            status = 0x00
+            status = status | 0x01
+        if results['black'] is STYPES['err']:
+            status = status | 0x02
+        if results['freeze'] is STYPES['err']:
+            status = status | 0x03
+        if results['blocky'] is STYPES['err']:
+            status = status | 0x04
+        if results['aloss'] is STYPES['err']:
+            status = status | 0x10
+        if results['silence'] is STYPES['err']:
+            status = status | 0x20
+        if results['loudness'] is STYPES['err']:
+            status = status | 0x30
 
         self.errs[prog_idx] = status
 
