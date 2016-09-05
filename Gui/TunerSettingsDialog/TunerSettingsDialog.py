@@ -14,6 +14,10 @@ class TunerSettingsDialog(BaseDialog):
         BaseDialog.__init__(self, "Настройки ТВ тюнера", parent.window)
 
         mainBox = self.get_content_area()
+        mainBox.set_halign(Gtk.Align.FILL)
+        mainBox.set_valign(Gtk.Align.FILL)
+        mainBox.set_hexpand(True)
+        mainBox.set_vexpand(True)
 
         self.tuner_settings = tuner_settings
 
@@ -34,7 +38,7 @@ class TunerSettingsDialog(BaseDialog):
             self.slot_selector.append_page(self.slots[slot_id], Gtk.Label(label="Модуль " + str(slot_id + 1)))
 
         # pack items to main container
-        mainBox.pack_start(self.slot_selector, False, False, 0)
+        mainBox.pack_start(self.slot_selector, True, True, 0)
 
         self.update_values(self.tuner_settings)
 
