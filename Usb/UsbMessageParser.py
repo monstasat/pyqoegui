@@ -215,7 +215,7 @@ class UsbMessageParser():
 
         slot_keys = tuner_settings.keys().sort()
         try:
-            k = slot_keys[0]
+            k = int(slot_keys[0])
         except:
             k = 0
 

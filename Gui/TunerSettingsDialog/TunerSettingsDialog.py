@@ -31,7 +31,7 @@ class TunerSettingsDialog(BaseDialog):
 
         for slot_id in range(4):
             self.slots.append(TunerPage(slot_id, tuner_settings, self.standard_model))
-            self.slot_selector.append_page(self.slots[slot_id], Gtk.Label(label="Приёмник " + str(slot_id + 1)))
+            self.slot_selector.append_page(self.slots[slot_id], Gtk.Label(label="Модуль " + str(slot_id + 1)))
 
         # pack items to main container
         mainBox.pack_start(self.slot_selector, False, False, 0)
@@ -61,7 +61,7 @@ class TunerSettingsDialog(BaseDialog):
 
         for k,v in self.tuner_settings.items():
             try:
-                slot = self.slots[k]
+                slot = self.slots[int(k)]
             except (IndexError, ValueError):
                 slot = None
             if slot is not None:

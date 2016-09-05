@@ -505,7 +505,7 @@ class UsbExchange():
 
         # FIXME temporary until fixed by L.Smirnov
         slot_keys = tuner_settings.keys().sort()
-        slot_settings = tuner_settings[slot_keys[0]]
+        slot_settings = tuner_settings[int(slot_keys[0])]
 
         msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
                           usb_msgs.PREFIX,
