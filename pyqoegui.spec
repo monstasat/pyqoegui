@@ -108,6 +108,7 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Gui/TunerSettingsDialog/__init__.py
 /opt/%{name}/Gui/TunerSettingsDialog/TerrestrialFrequencyModel.py
 /opt/%{name}/Gui/TunerSettingsDialog/TunerMeasuredDataTreeView.py
+/opt/%{name}/Gui/TunerSettingsDialog/TunerPage.py
 /opt/%{name}/Gui/TunerSettingsDialog/TunerSettingsBox.py
 /opt/%{name}/Gui/TunerSettingsDialog/TunerSettingsDialog.py
 /opt/%{name}/Gui/TunerSettingsDialog/TunerStatusBox.py
@@ -227,6 +228,8 @@ cp -R ./%{name}/Usb %{buildroot}/opt/%{name}/
 /opt/%{name}/Gui/TunerSettingsDialog/TerrestrialFrequencyModel.pyo
 /opt/%{name}/Gui/TunerSettingsDialog/TunerMeasuredDataTreeView.pyc
 /opt/%{name}/Gui/TunerSettingsDialog/TunerMeasuredDataTreeView.pyo
+/opt/%{name}/Gui/TunerSettingsDialog/TunerPage.pyc
+/opt/%{name}/Gui/TunerSettingsDialog/TunerPage.pyo
 /opt/%{name}/Gui/TunerSettingsDialog/TunerSettingsBox.pyc
 /opt/%{name}/Gui/TunerSettingsDialog/TunerSettingsBox.pyo
 /opt/%{name}/Gui/TunerSettingsDialog/TunerSettingsDialog.pyc

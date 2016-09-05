@@ -40,7 +40,7 @@ class Control(GObject.GObject):
         self.start_server(1600)
 
         # create backend
-        self.backend = Backend(streams=4)
+        self.backend = Backend(streams=1)
 
         # create interfaces
         interface_names = ['Gui', 'Usb']

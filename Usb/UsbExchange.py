@@ -503,6 +503,10 @@ class UsbExchange():
         # t2 freq, t2 band, t2 plp id
         PARAMS = "BBHIIHHIHB"
 
+        # FIXME temporary until fixed by L.Smirnov
+        slot_keys = tuner_settings.keys().sort()
+        slot_settings = tuner_settings[slot_keys[0]]
+
         msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
                           usb_msgs.PREFIX,
                           self.SEND_PERS_BUF | self.EXIT_RECEIVE,
@@ -514,15 +518,15 @@ class UsbExchange():
                           self.dvb_cont_ver & 0xf,
                           54,
                           0, 0,
-                          tuner_settings['device'],
+                          slot_settings['device'],
                           0, 0,
-                          tuner_settings['c_freq'],
-                          tuner_settings['t_freq'],
-                          2 - tuner_settings['t_bw'],
+                          slot_settings['c_freq'],
+                          slot_settings['t_freq'],
+                          2 - slot_settings['t_bw'],
                           0,
-                          tuner_settings['t2_freq'],
-                          2 - tuner_settings['t2_bw'],
-                          tuner_settings['t2_plp_id'])
+                          slot_settings['t2_freq'],
+                          2 - slot_settings['t2_bw'],
+                          slot_settings['t2_plp_id'])
 
         RESERVED = "B"*95
         rsrvd = struct.pack("="+RESERVED,
