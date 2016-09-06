@@ -36,7 +36,9 @@ class DVBTunerControl(GObject.GObject):
                                                  (float, bool, float, bool,
                                                   float, bool, float, bool)),
         CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
-                                          None, (int, int, int))}
+                                          None, (int, int, int)),
+        CustomMessages.TUNER_SETTINGS_APPLIED: (GObject.SIGNAL_RUN_FIRST,
+                                                None, (int,))}
 
     def __init__(self, settings):
         GObject.GObject.__init__(self)
@@ -126,7 +128,7 @@ class DVBTunerControl(GObject.GObject):
                 self.serial.parity = serial.PARITY_NONE
                 self.serial.bytesize = serial.EIGHTBITS
                 self.serial.stopbits = serial.STOPBITS_ONE
-                self.serial.timeout = 10
+                self.serial.timeout = 2
             except:
                 self.serial.close()
                 continue
@@ -144,6 +146,7 @@ class DVBTunerControl(GObject.GObject):
                    # print("Status for port ", port, ": ",  status) 
                    if len(status) != 0:
                        found = True
+                       self.serial.timeout = 10
                        break
                 if found is True:
                     break
@@ -252,8 +255,11 @@ class DVBTunerControl(GObject.GObject):
             # return tuner answer
             answer = self.read(UART_CMD_LENGTH)
             # print(k, "tuner answered", answer.hex())
-            if len(answer) != 0:
+            if len(answer) == UART_CMD_LENGTH:
                 answ_dict.update(dict([(k, answer),]))
+                self.emit(CustomMessages.TUNER_SETTINGS_APPLIED,
+                          int(k))
+
         return answ_dict
 
     def tuner_get_params(self):

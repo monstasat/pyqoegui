@@ -118,6 +118,8 @@ class Control(GObject.GObject):
                               self.on_new_tuner_measured_data)
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
+        self.rf_tuner.connect(CustomMessages.TUNER_SETTINGS_APPLIED,
+                              self.on_tuner_settings_applied)
 
         # write log message
         self.log.write_log_message("application launched", True)
@@ -372,6 +374,10 @@ class Control(GObject.GObject):
                 interface.update_remote_clients_num(clients_num)
 
     # Methods for interaction with dvb tuner control
+
+    # Tuner control sent a message that settings were applied
+    def on_tuner_settings_applied(self, tuner_id):
+        pass
 
     # Tuner control sent a message with new status
     def on_new_tuner_status(self, source, status, hw_errors, temperature):
