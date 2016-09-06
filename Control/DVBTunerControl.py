@@ -10,21 +10,19 @@ from gi.repository import GObject
 from Control import CustomMessages
 from Control.DVBTunerConstants import DVBC, DVBT, DVBT2
 
-# msg start byte
-START_BYTE = 0x55
-# msg address
-ADDRESS = 0xB5
-# msg source
-SOURCE = 0x01
-
-# commands
-COD_COMAND_GET_STATUS = 1
-COD_COMAND_SET_PARAMS = 28
-COD_COMAND_GET_PARAMS = 33
-COD_COMAND_GET_MER_BER = 29
-COD_COMAND_GET_CH_LEVEL = 46
-COD_COMAND_GET_VERSION_INFO = 49
-COD_COMAND_RESET = 5
+# tags and commands
+UART_TAG_START     = 0xAA
+UART_TAG_START_INV = 0x55
+UART_TAG_STOP      = 0xFE
+UART_TAG_LENGTH    = 11
+UART_CMD_DEVINFO   = 0x10
+UART_CMD_SETTUNER  = 0x30
+UART_CMD_MEASURE   = 0x40
+UART_CMD_PARAMS    = 0x50
+UART_CMD_MEASURE   = 0x60
+UART_CMD_SETMUX    = 0x80
+UART_CMD_GETMUX    = 0x90
+UART_CMD_LENGTH    = 16
 
 
 # class for dvb-t2 tuner management via com-port
@@ -128,7 +126,7 @@ class DVBTunerControl(GObject.GObject):
                 self.serial.parity = serial.PARITY_NONE
                 self.serial.bytesize = serial.EIGHTBITS
                 self.serial.stopbits = serial.STOPBITS_ONE
-                self.serial.timeout = 1
+                self.serial.timeout = 10
             except:
                 self.serial.close()
                 continue
@@ -142,10 +140,11 @@ class DVBTunerControl(GObject.GObject):
                 continue
             else:
                 for i in range(3):
-                    status = self.tuner_get_status()
-                    if len(status) != 0:
-                        found = True
-                        break
+                   status = self.tuner_get_status()
+                   # print("Status for port ", port, ": ",  status) 
+                   if len(status) != 0:
+                       found = True
+                       break
                 if found is True:
                     break
                 else:
@@ -157,135 +156,102 @@ class DVBTunerControl(GObject.GObject):
         self.serial.close()
 
     def check_start_byte(self, byte):
-        return byte == START_BYTE
+        return byte == UART_TAG_START
 
     def tuner_get_status(self):
         # construct message``
-        msg = struct.pack("=BBHB",
-                          START_BYTE, SOURCE, 2, COD_COMAND_GET_STATUS)
+        msg = struct.pack("=BBBBBBBBBBBBBB",
+                          UART_TAG_START,
+                          UART_TAG_START_INV,
+                          UART_TAG_LENGTH,
+                          UART_CMD_DEVINFO,
+                          0,0,0,0,0,0,0,0,0,0)
+
+        # print("get status msg: ", msg.hex())
 
         # compute and append crc to message
-        crc = self.compute_crc(msg[1:])
+        crc = self.compute_crc(msg[3:])
         msg += struct.pack('B', crc)
+
+        # append message_stop
+        msg += struct.pack('B', UART_TAG_STOP)
 
         # send message to tuner
         self.write(msg)
         # read tuner answer
-        buf = self.read(20)
+        buf = self.read(UART_CMD_LENGTH)
 
         data = []
-        if len(buf) == 20:
-            # start byte, address, length, command
-            # status, num cur channel, ch count, hw errors, temperature,
-            # page num, page size, reserved, crc
-            buf_list = struct.unpack("=BBHBBBBHBHHIB", buf)
+        if len(buf) == UART_CMD_LENGTH:
+            # tag start, ~tag start, length, command,
+            # 0, serial num lsb, serial num msb, hw version,
+            # fpga version, soft version, hardware cfg, 0,
+            # 0, 0, crc, tag stop
+            buf_list = struct.unpack("=BBBBBBBBBBBBBBBB", buf)
             if self.check_start_byte(buf_list[0]) is True:
-                status = buf_list[4]
-                hw_errors = buf_list[7]
-                temperature = buf_list[8]
-                data = [status, hw_errors, temperature]
-
+                hw_version = buf_list[7]
+                hw_cfg = buf_list[10]
+                data = [hw_version, hw_cfg]
+                how_many_tuners = ((hw_cfg & 0x08) >> 3) + ((hw_cfg & 0x04) >> 2) + ((hw_cfg & 0x02) >> 1) + (hw_cfg & 0x01)
+                
         # return received data
         return data
 
     def tuner_set_params(self, tuner_settings):
-        # get settings from received settings list.
-        device = tuner_settings['device']
-        # if standard is DVB-T2
-        if device == DVBT2:
-            frequency = tuner_settings['t2_freq']
-            modulation = 9
-            width = tuner_settings['t2_bw']
-            dvb_c_t_t2_params = tuner_settings['t2_plp_id']
-        # if standard is DVB-T
-        elif device == DVBT:
-            frequency = tuner_settings['t_freq']
-            modulation = 6
-            width = tuner_settings['t_bw']
-            dvb_c_t_t2_params = 0
-        # if standard is DVB-C
-        elif device == DVBC:
-            frequency = tuner_settings['c_freq']
-            modulation = 3
-            width = 0
-            dvb_c_t_t2_params = 0
-        # if standard is unknown, return empty array
-        else:
-            return []
-
-        # [15:3] - reserved, [12:10] - khz, [9:0] - mhz
-        mhz = frequency // 1000000
-        khz = int(frequency % 1000000 / 1000) // 125
-        frequency = (khz << 10) | mhz
-
-        # modulation
-        # 0 - unknown
-        # 3 - DVB-C/QAM64
-        # 4 - DVB-C/QAM128
-        # 5 - DVB-C/QAM256
-        # 6 - DVB-T/QPSK
-        # 7 - DVB-T/QAM16
-        # 8 - DVB-T/QAM64
-        # 9 - DVB-T2
-
-        # dvb_c_t_t2_params
-        # for dvb-c:
-        # dvb_c_t_t2_params[15..0]
-        # sr: symbol rate in KSps (5000..7000)
-
-        # for dvb-t:
-        # dvb_c_t_t2_params[15..14]
-        # fft: 0 - 2K, 1 - 8K
-        # dvb_c_t_t2_params[13..12]
-        # gui: 0 - 1/32, 1 - 1/16, 2 - 1/8, 3 - 1/4
-        # dvb_c_t_t2_params[11..10]
-        # hierarch: 0 - w/out, 1 - a = 1, 2 - a = 2, 3 - a = 4
-        # dvb_c_t_t2_params[9]
-        # spectrum: 0 - straight, 1 - iverted
-        # dvb_c_t_t2_params[8:6]
-        # fec_lp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
-        # dvb_c_t_t2_params[5:3]
-        # fec_hp: 0 - 1/2, 1 - 2/3, 2 - 3/4, 3 - 5/6, 4 - 7/8
-        # dvb_c_t_t2_params[2:1]
-        # bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
-        # dvb_c_t_t2_params[0]
-        # reserved
-
-        # for dvb-t2
-        # dvb_c_t_t2_params[15:8]
-        # plp_id
-        # dvb_c_t_t2_params[7:4]
-        # qam_id: 0 - QPSK, 1 - QAM16, 2 - QAM64, 3 - QAM256
-        # dvb_c_t_t2_params[3:2]
-        # reserved
-        # dvb_c_t_t2_params[1:0]
-        # bw: 0 - 6 MHz, 1 - 7 MHz, 2 - 8 MHz
-
-        # width
-        # 0 - 6 mhz, 1 - 7 mhz, 2 - 8 mhz
-
-        # construct message
-        msg = struct.pack('=BBHBBHBHBBH',
-                          START_BYTE,               # message start (byte)
-                          SOURCE,                   # message source (byte)
-                          12,                       # message length (word)
-                          COD_COMAND_SET_PARAMS,    # message code (byte)
-                          0,                        # reserved (byte)
-                          frequency,                # frequency (word)
-                          modulation,               # modulation (byte)
-                          dvb_c_t_t2_params,        # params (word)
-                          0,                        # reserved (byte)
-                          width,                    # bandwidth (byte)
-                          0)                        # reserved (word)
-
-        # compute and append crc to message
-        crc = self.compute_crc(msg[1:])
-        msg += struct.pack('B', crc)
-
-        # send message to tuner
-        self.write(msg)
-        # return tuner answer
-        return self.read(7)
+        answ_dict = {}
+        for k, slot_settings in tuner_settings.items():
+            # get settings from received settings list.
+            device = slot_settings['device']  #device means DVB standard: T2, T, C
+            # if standard is DVB-T2
+            if device == DVBT2:
+                frequency = slot_settings['t2_freq']
+                modulation = 0
+                width = 0x20 | slot_settings['t2_bw']
+                plp_id = slot_settings['t2_plp_id']
+                # if standard is DVB-T
+            elif device == DVBT:
+                frequency = slot_settings['t_freq']
+                modulation = 0
+                width = 0x20 | slot_settings['t_bw']
+                plp_id = 0
+                # if standard is DVB-C
+            elif device == DVBC:
+                frequency = slot_settings['c_freq']
+                modulation = 0 #modulation = slot_settings['c_mod']
+                width = 0 #width = slot_settings['c_bw']
+                plp_id = 0
+                # if standard is unknown, return empty array
+            else:
+                continue
+        
+            # construct message
+            msg = struct.pack('=BBBBBBBBIBB',
+                              UART_TAG_START,                 # message start
+                              UART_TAG_START_INV,             # message start inverted
+                              UART_TAG_LENGTH,                # tag length
+                              UART_CMD_SETTUNER | int(k),     # cmd setconf | tuner addr
+                              device + 1,                     # tuner mode (1=T2, 2=T, 3=C)
+                              width,                          # tuner bandwidth (T2/T: 0x20=6MHz, 0x21=7MHz, 0x22=8MHz) (C: 0=6MHz, 1=7MHz, 2=8MHz)
+                              plp_id,                         # tuner PLP (0-255)
+                              modulation,                     # tuner QAM in DVB-C mode
+                              frequency,                      # tuner frq
+                              0x00,
+                              0x00)
+            
+            # compute and append crc to message
+            crc = self.compute_crc(msg[3:])
+            msg += struct.pack('B', crc)
+            
+            # append message_stop
+            msg += struct.pack('B', UART_TAG_STOP)
+        
+            # send message to tuner
+            self.write(msg)
+            # return tuner answer
+            answer = self.read(UART_CMD_LENGTH)
+            if len(answer) != 0:
+                answ_dict.update(dict([(k, answer),]))
+        return answ_dict
 
     def tuner_get_params(self):
         # construct message
@@ -384,26 +350,6 @@ class DVBTunerControl(GObject.GObject):
         # return received data list
         return data
 
-    def tuner_get_version_info(self):
-
-        # construct message
-        msg = struct.pack("=BBHBI",
-                          START_BYTE,                   # start byte
-                          SOURCE,                       # message source
-                          6,                            # len
-                          COD_COMAND_GET_VERSION_INFO,  # message code
-                          0)                            # reserved
-
-        # compute and append crc to message
-        crc = self.compute_crc(msg[1:])
-        msg += struct.pack('B', crc)
-
-        # send message to tuner
-        self.write(msg)
-
-        # read tuner answer
-        return self.read(30)
-
     def tuner_reset(self):
 
         # construct message
@@ -458,9 +404,10 @@ class DVBTunerControl(GObject.GObject):
 
             # read tuner status and params
             elif self.serial.isOpen() is True:
-                self.status = self.tuner_get_status()
-                self.measured_data = self.tuner_get_measured_info()
-                self.params = self.tuner_get_params()
+                pass
+                # self.status = self.tuner_get_status()
+                # self.measured_data = self.tuner_get_measured_info()
+                # self.params = self.tuner_get_params()
 
             # if thread is no more needed, close
             if self.thread_active is False:

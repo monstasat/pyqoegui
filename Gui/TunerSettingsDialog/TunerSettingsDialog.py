@@ -56,7 +56,7 @@ class TunerSettingsDialog(BaseDialog):
                              ('c_freq', slot.dvbc_box.frequency)])
             tuner_settings.update({slot.slot_id: slot_dic})
 
-        return self.tuner_settings
+        return tuner_settings
 
     # update values in controls buttons
     def update_values(self, tuner_settings):

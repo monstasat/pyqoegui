@@ -274,7 +274,7 @@ class Control(GObject.GObject):
     def on_new_tuner_settings(self, source):
         # get new tuner settings from message source
         tuner_settings = source.get_tuner_settings()
-
+        
         # Configure Gui and Usb according to new analysis settings
         list(map(lambda x: x.update_tuner_settings(tuner_settings),
                  self.interfaces))

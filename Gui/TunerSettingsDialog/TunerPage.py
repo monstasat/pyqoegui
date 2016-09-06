@@ -10,8 +10,13 @@ class TunerPage(Gtk.Box):
         # standard selection page
         Gtk.Box.__init__(self,
                          spacing=Spacing.ROW_SPACING,
-                         border_width=Spacing.BORDER,
-                         orientation=Gtk.Orientation.HORIZONTAL)
+                         orientation=Gtk.Orientation.HORIZONTAL,
+                         valign=Gtk.Align.FILL,
+                         halign=Gtk.Align.FILL,
+                         vexpand=True,
+                         hexpand=True)
+
+        self.set_property("margin_top", 5)
 
         self.slot_id = slot_id
         
