@@ -244,11 +244,13 @@ class DVBTunerControl(GObject.GObject):
             
             # append message_stop
             msg += struct.pack('B', UART_TAG_STOP)
-        
+
+            print("set settings to tuner", k, msg.hex())
             # send message to tuner
             self.write(msg)
             # return tuner answer
             answer = self.read(UART_CMD_LENGTH)
+            print(k, "tuner answered", answer.hex())
             if len(answer) != 0:
                 answ_dict.update(dict([(k, answer),]))
         return answ_dict

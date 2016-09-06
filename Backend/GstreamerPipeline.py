@@ -28,11 +28,11 @@ class GstreamerPipeline():
             print("failed terminating process")
 
         # execute new process
-        ip = "224.1.2." + str(2 + self.stream_id)
+        ip = "224.1.2.2" # + str(2 + self.stream_id)
         # this is for testing purposes
-        ip = "127.0.0.1"
+        # ip = "127.0.0.1"
         stream = str(self.stream_id)
-        port = str(1234)
+        port = str(1234 + self.stream_id)
         print("executing pipeline")
         print("ip: ", ip)
         print("stream: ", stream)

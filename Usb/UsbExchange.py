@@ -504,8 +504,9 @@ class UsbExchange():
         PARAMS = "BBHIIHHIHB"
 
         # FIXME temporary until fixed by L.Smirnov
-        slot_keys = tuner_settings.keys().sort()
-        slot_settings = tuner_settings[int(slot_keys[0])]
+        slot_keys = list(tuner_settings.keys())
+        slot_keys.sort()
+        slot_settings = tuner_settings[slot_keys[0]]
 
         msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
                           usb_msgs.PREFIX,
@@ -577,6 +578,16 @@ class UsbExchange():
         # device, reserved, status, mer, ber1, ber2, ber3
         TUNER_STATUS_DATA = "BBBBIHBBHffff"
 
+        # FIXME temp!!!
+        slot_keys = list(tuner_settings.keys())
+        slot_keys.sort()
+        try:
+            slot_id = slot_keys[0]
+            slot_settings = tuner_settings[slot_id]
+            device = int(slot_settings['device'])
+        except:
+            device = 0
+
         msg = struct.pack("="+TUNER_STATUS_HDR+TUNER_STATUS_DATA,
                           usb_msgs.PREFIX,
                           self.SEND_PERS_BUF | self.EXIT_RECEIVE,
@@ -589,7 +600,7 @@ class UsbExchange():
                           10,
                           9, 2,
                           0, 0,
-                          tuner_settings['device'],
+                          device,
                           0,
                           status,
                           mer, ber1, ber2, ber3)
