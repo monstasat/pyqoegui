@@ -192,7 +192,8 @@ class DVBTunerControl(GObject.GObject):
                 hw_version = buf_list[7]
                 hw_cfg = buf_list[10]
                 data = [hw_version, hw_cfg]
-                how_many_tuners = ((hw_cfg & 0x08) >> 3) + ((hw_cfg & 0x04) >> 2) + ((hw_cfg & 0x02) >> 1) + (hw_cfg & 0x01)
+                how_many_tuners = ((hw_cfg & 0x08) >> 3) + ((hw_cfg & 0x04) >> 2) +\
+                                  ((hw_cfg & 0x02) >> 1) + (hw_cfg & 0x01)
                 
         # return received data
         return data
@@ -380,10 +381,17 @@ class DVBTunerControl(GObject.GObject):
         return crc
 
     def apply_settings(self, settings):
-        self.settings = settings
+        filtered_settings = {}
+        for new, old in zip(settings.items(), self.settings.items()):
+            if new[1] != old[1]:
+                filtered_settings.update(dict([(new[0], new[1])]))
+
+        print(filtered_settings)
+
         thread = threading.Thread(target=self.tuner_set_params,
-                                  args=(settings,))
+                                  args=(filtered_settings,))
         thread.start()
+        self.settings = settings
 
     def read_from_port(self):
         while True:
