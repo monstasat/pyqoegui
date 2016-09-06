@@ -392,8 +392,6 @@ class DVBTunerControl(GObject.GObject):
             if new[1] != old[1]:
                 filtered_settings.update(dict([(new[0], new[1])]))
 
-        print(filtered_settings)
-
         thread = threading.Thread(target=self.tuner_set_params,
                                   args=(filtered_settings,))
         thread.start()
