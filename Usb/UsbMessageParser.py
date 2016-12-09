@@ -211,27 +211,23 @@ class UsbMessageParser():
         return settings
 
     def parse_tuner_settings(self, data, tuner_settings):
-        #settings = tuner_settings
-
-        slot_keys = tuner_settings.keys().sort()
-        try:
-            k = int(slot_keys[0])
-        except:
-            k = 0
 
         client_id = data[0]
         length = data[1]
         request_id = data[2]
 
-        # FIXME temporary until fixed by L.Smirnov
+        tuner_slot_length = 12 # in words
 
-        settings = dict([('device',  int(data[8] & 0x00ff)),
-                         ('c_freq', int(data[10] | (data[11] << 16))),
-                         ('t_freq', int(data[12] | (data[13] << 16))),
-                         ('t_bw', 2 - int(data[14])),
-                         ('t2_freq', int(data[16] | (data[17] << 16))),
-                         ('t2_bw', 2 - int(data[18]))
-                         ('t2_plp_id', int(data[19] & 0x00ff))])
+        for i in range(4):
+            settings_block = data[8 + (tuner_slot_length*i):]
+            settings = dict([('device',  int(settings_block[0] & 0x00ff)),
+                             ('c_freq', int(settings_block[2] | (settings_block[3] << 16))),
+                             ('t_freq', int(settings_block[4] | (settings_block[5] << 16))),
+                             ('t_bw', 2 - int(settings_block[6])),
+                             ('t2_freq', int(settings_block[8] | (settings_block[9] << 16))),
+                             ('t2_bw', 2 - int(settings_block[10])),
+                             ('t2_plp_id', int(settings_block[11] & 0x00ff))])
 
-        return tuner_settings.update(dict(k=settings))
+            tuner_settings.update({i: settings})
 
+        return tuner_settings

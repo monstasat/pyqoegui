@@ -494,44 +494,42 @@ class UsbExchange():
                             request_id):
 
         # header, length data, client id, msg cod, req id, length msg
-        TUNER_SET_MSG = self.HEADER + "HHHHH"
+        TUNER_SET_MSG = self.HEADER + "HHHHH" # 10 bytes
         # control, data len, reserved, reserved
-        CTRL_DATA = "BBII"
+        CTRL_DATA = "BBII"  # 10 bytes
         # device, reserved, reserved, c freq, t freq, t band, reserve,
-        # t2 freq, t2 band, t2 plp id
-        PARAMS = "BBHIIHHIHB"
+        # t2 freq, t2 band, t2 plp id, reserved
+        PARAMS = "BBHIIHHIHBB"
 
-        # FIXME temporary until fixed by L.Smirnov
-        slot_keys = list(tuner_settings.keys())
-        slot_keys.sort()
-        slot_settings = tuner_settings[slot_keys[0]]
+        settings_msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA,
+                              usb_msgs.PREFIX,
+                              self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                              68,
+                              client_id,
+                              0xc518,
+                              request_id,
+                              64,
+                              self.dvb_cont_ver & 0xf, 96, 0, 0)
 
-        msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
-                          usb_msgs.PREFIX,
-                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          68,
-                          client_id,
-                          0xc518,
-                          request_id,
-                          64,
-                          self.dvb_cont_ver & 0xf,
-                          54,
-                          0, 0,
-                          slot_settings['device'],
-                          0, 0,
-                          slot_settings['c_freq'],
-                          slot_settings['t_freq'],
-                          2 - slot_settings['t_bw'],
-                          0,
-                          slot_settings['t2_freq'],
-                          2 - slot_settings['t2_bw'],
-                          slot_settings['t2_plp_id'])
+        for slot_index, slot_settings in tuner_settings.items():
+            slot_msg = struct.pack("="+PARAMS,
+                                   slot_settings['device'],
+                                   0, 0,
+                                   slot_settings['c_freq'],
+                                   slot_settings['t_freq'],
+                                   2 - slot_settings['t_bw'],
+                                   0,
+                                   slot_settings['t2_freq'],
+                                   2 - slot_settings['t2_bw'],
+                                   slot_settings['t2_plp_id'],
+                                   0)
+            settings_msg = b''.join([settings_msg, slot_msg])
 
-        RESERVED = "B"*95
+        RESERVED = "B"*22
         rsrvd = struct.pack("="+RESERVED,
-                            *[0 for _ in range(95)])
+                            *[0 for _ in range(22)])
 
-        msg = b''.join([msg, rsrvd])
+        msg = b''.join([settings_msg, rsrvd])
         self.write(msg)
 
     def send_tuner_status(self,

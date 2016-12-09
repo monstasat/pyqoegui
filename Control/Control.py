@@ -376,7 +376,7 @@ class Control(GObject.GObject):
     # Methods for interaction with dvb tuner control
 
     # Tuner control sent a message that settings were applied
-    def on_tuner_settings_applied(self, tuner_id):
+    def on_tuner_settings_applied(self, source, tuner_id):
         pass
 
     # Tuner control sent a message with new status

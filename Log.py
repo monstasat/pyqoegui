@@ -15,7 +15,7 @@ class Log():
         self.dir = home + '/.var/log/' + user_name + '/analyzer/'
         self.filename = self.dir + filename
 
-         # create directory if no exist
+        # create directory if no exist
         if os.path.isdir(self.dir) is False:
             os.makedirs(self.dir)
 
