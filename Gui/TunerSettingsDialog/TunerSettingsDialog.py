@@ -54,7 +54,7 @@ class TunerSettingsDialog(BaseDialog):
                              ('t_freq', slot.dvbt_box.frequency),
                              ('t_bw', slot.dvbt_box.bandwidth),
                              ('c_freq', slot.dvbc_box.frequency)])
-            tuner_settings.update({slot.slot_id: slot_dic})
+            tuner_settings.update({int(slot.slot_id): slot_dic})
 
         return tuner_settings
 

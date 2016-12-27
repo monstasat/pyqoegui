@@ -575,14 +575,7 @@ class UsbExchange():
         TUNER_STATUS_DATA = "BBBBIHBBHffff"
 
         # FIXME temp!!!
-        slot_keys = list(tuner_settings.keys())
-        slot_keys.sort()
-        try:
-            slot_id = slot_keys[0]
-            slot_settings = tuner_settings[slot_id]
-            device = int(slot_settings['device'])
-        except:
-            device = 0
+        device = 0
 
         msg = struct.pack("="+TUNER_STATUS_HDR+TUNER_STATUS_DATA,
                           usb_msgs.PREFIX,

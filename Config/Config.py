@@ -30,9 +30,9 @@ ANALYSIS_DEFAULT = {'vloss': 2, 'aloss': 2,
                     'loudness_time': 2}
 
 TUNER_SLOT_DEFAULT = {'device': DVBT2,
-                     't2_freq': 586000000, 't2_bw': BW8, 't2_plp_id': 0,
-                    't_freq': 586000000, 't_bw': BW8,
-                     'c_freq': 586000000} 
+                      't2_freq': 586000000, 't2_bw': BW8, 't2_plp_id': 0,
+                      't_freq': 586000000, 't_bw': BW8,
+                      'c_freq': 586000000} 
 
 TUNER_DEFAULT = {0: TUNER_SLOT_DEFAULT,
                  1: TUNER_SLOT_DEFAULT,
@@ -139,6 +139,8 @@ class Config():
 
         if len(tuner_settings) < len(TUNER_DEFAULT):
             tuner_settings = TUNER_DEFAULT
+
+        tuner_settings = {int(k):v for k,v in tuner_settings.items()}
 
         return tuner_settings
 

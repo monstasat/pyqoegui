@@ -183,8 +183,6 @@ class UsbMessageParser():
         settings['block_size'] = words_to_dword(data[43], data[44])
         # data[45], data[46] - reserved
 
-        print()
-
         return settings
 
     def parse_audio_analysis_settings(self, data, analysis_settings):
@@ -228,6 +226,6 @@ class UsbMessageParser():
                              ('t2_bw', 2 - int(settings_block[10])),
                              ('t2_plp_id', int(settings_block[11] & 0x00ff))])
 
-            tuner_settings.update({i: settings})
+            tuner_settings.update({int(i): settings})
 
         return tuner_settings

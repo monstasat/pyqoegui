@@ -45,7 +45,7 @@ class DVBTunerControl(GObject.GObject):
         self.serial = serial.Serial()
 
         # remember user settings
-        self.settings = settings
+        self.settings = settings.copy()
 
         self.serial_ports()
 
@@ -90,7 +90,7 @@ class DVBTunerControl(GObject.GObject):
             try:
                 return self.serial.read(size=size)
             except:
-                self.serial.close()
+                # self.serial.close()
                 return b''
         return b''
 
@@ -99,7 +99,8 @@ class DVBTunerControl(GObject.GObject):
             try:
                 self.serial.write(msg)
             except:
-                self.serial.close()
+                pass
+                # self.serial.close()
 
     # return list of available com ports (lightened code from stackoverflow)
     def serial_ports(self):
@@ -149,6 +150,7 @@ class DVBTunerControl(GObject.GObject):
                        self.serial.timeout = 10
                        break
                 if found is True:
+                    # print("port found", port)
                     break
                 else:
                     self.serial.close()
@@ -203,7 +205,7 @@ class DVBTunerControl(GObject.GObject):
 
     def tuner_set_params(self, tuner_settings):
         answ_dict = {}
-        for k, slot_settings in tuner_settings.items():
+        for k, slot_settings in tuner_settings.copy().items():
             # get settings from received settings list.
             device = slot_settings['device']  #device means DVB standard: T2, T, C
             # if standard is DVB-T2
@@ -390,12 +392,13 @@ class DVBTunerControl(GObject.GObject):
         filtered_settings = {}
         for new, old in zip(settings.items(), self.settings.items()):
             if new[1] != old[1]:
-                filtered_settings.update(dict([(new[0], new[1])]))
+                filtered_settings.update({new[0]: new[1]})
+
+        self.settings = settings.copy()
 
         thread = threading.Thread(target=self.tuner_set_params,
                                   args=(filtered_settings,))
         thread.start()
-        self.settings = settings
 
     def read_from_port(self):
         while True:
