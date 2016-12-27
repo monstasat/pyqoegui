@@ -105,9 +105,9 @@ class UsbExchange():
             status = status | 0x04
         if results['aloss'] is STYPES['err']:
             status = status | 0x10
-        if results['silence'] is STYPES['err']:
-            status = status | 0x20
         if results['loudness'] is STYPES['err']:
+            status = status | 0x20
+        if results['silence'] is STYPES['err']:
             status = status | 0x30
 
         self.errs[prog_idx] = status
@@ -494,39 +494,42 @@ class UsbExchange():
                             request_id):
 
         # header, length data, client id, msg cod, req id, length msg
-        TUNER_SET_MSG = self.HEADER + "HHHHH"
+        TUNER_SET_MSG = self.HEADER + "HHHHH" # 10 bytes
         # control, data len, reserved, reserved
-        CTRL_DATA = "BBII"
+        CTRL_DATA = "BBII"  # 10 bytes
         # device, reserved, reserved, c freq, t freq, t band, reserve,
-        # t2 freq, t2 band, t2 plp id
-        PARAMS = "BBHIIHHIHB"
+        # t2 freq, t2 band, t2 plp id, reserved
+        PARAMS = "BBHIIHHIHBB"
 
-        msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA+PARAMS,
-                          usb_msgs.PREFIX,
-                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          68,
-                          client_id,
-                          0xc518,
-                          request_id,
-                          64,
-                          self.dvb_cont_ver & 0xf,
-                          54,
-                          0, 0,
-                          tuner_settings['device'],
-                          0, 0,
-                          tuner_settings['c_freq'],
-                          tuner_settings['t_freq'],
-                          2 - tuner_settings['t_bw'],
-                          0,
-                          tuner_settings['t2_freq'],
-                          2 - tuner_settings['t2_bw'],
-                          tuner_settings['t2_plp_id'])
+        settings_msg = struct.pack("="+TUNER_SET_MSG+CTRL_DATA,
+                              usb_msgs.PREFIX,
+                              self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+                              68,
+                              client_id,
+                              0xc518,
+                              request_id,
+                              64,
+                              self.dvb_cont_ver & 0xf, 96, 0, 0)
 
-        RESERVED = "B"*95
+        for slot_index, slot_settings in tuner_settings.items():
+            slot_msg = struct.pack("="+PARAMS,
+                                   slot_settings['device'],
+                                   0, 0,
+                                   slot_settings['c_freq'],
+                                   slot_settings['t_freq'],
+                                   2 - slot_settings['t_bw'],
+                                   0,
+                                   slot_settings['t2_freq'],
+                                   2 - slot_settings['t2_bw'],
+                                   slot_settings['t2_plp_id'],
+                                   0)
+            settings_msg = b''.join([settings_msg, slot_msg])
+
+        RESERVED = "B"*22
         rsrvd = struct.pack("="+RESERVED,
-                            *[0 for _ in range(95)])
+                            *[0 for _ in range(22)])
 
-        msg = b''.join([msg, rsrvd])
+        msg = b''.join([settings_msg, rsrvd])
         self.write(msg)
 
     def send_tuner_status(self,
@@ -571,6 +574,9 @@ class UsbExchange():
         # device, reserved, status, mer, ber1, ber2, ber3
         TUNER_STATUS_DATA = "BBBBIHBBHffff"
 
+        # FIXME temp!!!
+        device = 0
+
         msg = struct.pack("="+TUNER_STATUS_HDR+TUNER_STATUS_DATA,
                           usb_msgs.PREFIX,
                           self.SEND_PERS_BUF | self.EXIT_RECEIVE,
@@ -583,7 +589,7 @@ class UsbExchange():
                           10,
                           9, 2,
                           0, 0,
-                          tuner_settings['device'],
+                          device,
                           0,
                           status,
                           mer, ber1, ber2, ber3)

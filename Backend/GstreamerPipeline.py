@@ -1,3 +1,4 @@
+import os
 import subprocess
 import os
 from struct import pack
@@ -29,23 +30,26 @@ class GstreamerPipeline():
             print("failed terminating process with id ",
                   self.stream_id)
 
+        home = os.environ.get("HOME")
+        user_name = os.environ.get("USER")
+        log_path = home + '/.var/log/' + user_name + '/analyzer/'
+        log_stdout = log_path + "out_log_backend_pipeline_" + str(self.stream_id)
+        log_stderr = log_path + "err_log_backend_pipeline_" + str(self.stream_id)
+
+        # create directory if no exist
+        if os.path.isdir(log_path) is False:
+            os.makedirs(log_path)
+
         # execute new process
-        ip = "224.1.2.2" #+ str(2 + self.stream_id)
+        ip = "224.1.2.2" # + str(2 + self.stream_id)
         # this is for testing purposes
         # ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234 + self.stream_id)
         print("executing pipeline. ip: ", ip,
               "stream: ", stream, "port: ", port)
-        home = os.environ.get("HOME")
-        user_name = os.environ.get("USER")
-        log_dir = home + '/.var/log/' + user_name + '/analyzer/'
-        if os.path.isdir(log_dir) is False:
-            os.makedirs(log_dir)
-        out_filename = log_dir + '/backend_log'
-        err_filename = log_dir + '/backend_err_log'
-        out = open(out_filename, "w")
-        err = open(err_filename, "w")
+        out = open(log_stdout, "w")
+        err = open(log_stderr, "w")
         self.proc = subprocess.Popen(
                             ["ats3-backend",
                              "--stream", stream,

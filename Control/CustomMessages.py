@@ -22,6 +22,8 @@ NEW_TUNER_STATUS = 'new_tuner_status'
 NEW_TUNER_MEASURED_DATA = 'new_tuner_measured_data'
 # new tuner signal params
 NEW_TUNER_PARAMS = 'new_tuner_params'
+# on tuner received new settings
+TUNER_SETTINGS_APPLIED = 'tuner_settings_applied'
 # on remote client connected/disconnected
 REMOTE_CLIENTS_NUM_CHANGED = 'remote_clients_num_changed'
 # on audio source changed
