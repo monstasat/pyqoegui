@@ -35,7 +35,7 @@ class AtsApp(Gtk.Application):
         Do clean up before the application is closed.
         this is triggered when self.quit() is called.
         '''
-        self.control.__destroy__()
+        # self.control.__destroy__()
         Gtk.Application.do_shutdown(self)
 
     def do_command_line(self, args):

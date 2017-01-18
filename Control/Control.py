@@ -40,7 +40,7 @@ class Control(GObject.GObject):
         self.start_server(1600)
 
         # create backend
-        self.backend = Backend(streams=4)
+        self.backend = Backend(streams=7)
 
         # create interfaces
         interface_names = ['Gui', 'Usb']
@@ -163,8 +163,16 @@ class Control(GObject.GObject):
             self.server.stop()
 
         # disconnect from tuner
-        self.rf_tuner.disconnect()
         self.rf_tuner.thread_active = False
+        thread_timeout = None # seconds
+        self.rf_tuner.disconnect()
+
+        if self.rf_tuner.writing_thread is not None and \
+           self.rf_tuner.writing_thread.is_alive():
+            self.rf_tuner.writing_thread.join(thread_timeout)
+        if self.rf_tuner.reading_thread is not None and \
+           self.rf_tuner.reading_thread.is_alive():
+            self.rf_tuner.reading_thread.join(thread_timeout)
 
         # write message to log
         self.log.write_log_message("application closed")

@@ -54,8 +54,10 @@ class DVBTunerControl(GObject.GObject):
         self.params = []
 
         self.thread_active = True
-        thread = threading.Thread(target=self.read_from_port, args=())
-        thread.start()
+        self.reading_thread = threading.Thread(target=self.read_from_port, args=())
+        self.reading_thread.start()
+
+        self.writing_thread = None
 
         GObject.timeout_add(1000, self.on_pass_data)
 
@@ -122,6 +124,8 @@ class DVBTunerControl(GObject.GObject):
         found = False
         ports = self.serial_ports()
         for port in ports:
+            if self.thread_active is False:
+                break;
             # configure com port
             try:
                 self.serial.baudrate = 115200
@@ -143,12 +147,14 @@ class DVBTunerControl(GObject.GObject):
                 continue
             else:
                 for i in range(3):
-                   status = self.tuner_get_status()
-                   # print("Status for port ", port, ": ",  status) 
-                   if len(status) != 0:
-                       found = True
-                       self.serial.timeout = 10
-                       break
+                    if self.thread_active is False:
+                        break;
+                    status = self.tuner_get_status()
+                    # print("Status for port ", port, ": ",  status) 
+                    if len(status) != 0:
+                        found = True
+                        self.serial.timeout = 10
+                        break
                 if found is True:
                     # print("port found", port)
                     break
@@ -396,12 +402,12 @@ class DVBTunerControl(GObject.GObject):
 
         self.settings = settings.copy()
 
-        thread = threading.Thread(target=self.tuner_set_params,
-                                  args=(filtered_settings,))
-        thread.start()
+        self.writing_thread = threading.Thread(target=self.tuner_set_params,
+                                               args=(filtered_settings,))
+        self.writing_thread.start()
 
     def read_from_port(self):
-        while True:
+        while self.thread_active:
             # read status
             if self.serial.isOpen() is False:
                 self.params = [0x8000, 0, 0]
@@ -426,10 +432,8 @@ class DVBTunerControl(GObject.GObject):
                 # self.measured_data = self.tuner_get_measured_info()
                 # self.params = self.tuner_get_params()
 
-            # if thread is no more needed, close
-            if self.thread_active is False:
-                return True
-
             # sleep for a second
             time.sleep(1)
+
+        return True
 
