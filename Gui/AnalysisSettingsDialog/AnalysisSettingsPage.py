@@ -182,19 +182,21 @@ class AnalysisSettingsPage(Gtk.Box):
 
     def time_val_changed(self, btn):
         val = btn.get_value()
-        if val > 1:
-            if val < 2:
-                btn.set_increments(1, 1)
-                btn.set_value(2)
-            else:
-                btn.set_value(int(val))
+        # this means val is 1
+        if (val > 0.95) and (val < 1.05):
             btn.set_digits(0)
-        else:
             btn.set_increments(0.1, 1)
-            if abs(val - 1) < 0.001:
-                btn.set_digits(0)
-            else:
-                btn.set_digits(1)
+        elif (val > 1.05) and (val < 1.15):
+            btn.set_digits(0)
+            btn.set_value(2)
+            btn.set_increments(1, 1)
+        elif val >= 1.15:
+            btn.set_increments(1, 1)
+            btn.set_digits(0)
+        # this means val < 1
+        else:
+            btn.set_digits(1)
+            btn.set_increments(0.1, 1)
 
     def add_parameters_group(self, group_type, grid, row_cnt, names, ranges,
                              units, digits, keys, signs):
