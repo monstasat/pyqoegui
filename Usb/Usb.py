@@ -42,7 +42,7 @@ class Usb(BaseInterface):
 
         # launch read and write methods
         GObject.timeout_add(1000, self.send_messages)
-        GObject.timeout_add(500, self.read_messages)
+        GObject.timeout_add(1000, self.read_messages)
 
     def __destroy__(self):
         BaseInterface.__destroy__(self)
@@ -53,8 +53,6 @@ class Usb(BaseInterface):
         if self.init_done is False:
             self.exchange.send_init()
         else:
-            #self.exchange.send_status()
-            #self.exchange.status_version += 1
             self.exchange.send_errors()
 
         return True
@@ -66,8 +64,12 @@ class Usb(BaseInterface):
         messages = self.msg_parser.parse_queue()
 
         for msg in messages:
-            msg_type = msg[0]
-            msg_data = msg[1]
+
+            try:
+                msg_type = msg[0]
+                msg_data = msg[1]
+            except:
+                continue
 
             if msg_type == usb_msgs.GET_BOARD_INFO:
                 self.init_done = False
@@ -76,34 +78,44 @@ class Usb(BaseInterface):
                 self.init_done = True
 
             elif msg_type == usb_msgs.OPEN_CLIENT:
-                client_num = int(msg_data[1])
-                self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
-                          client_num)
+                try:
+                    client_num = int(msg_data[1])
+                except:
+                    continue
+                else:
+                    self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
+                              client_num)
 
             elif msg_type == usb_msgs.CLOSE_CLIENT:
-                client_num = int(msg_data[1])
-                self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
-                          client_num)
+                try:
+                    client_num = int(msg_data[1])
+                except:
+                    continue
+                else:
+                    self.emit(CustomMessages.REMOTE_CLIENTS_NUM_CHANGED,
+                              client_num)
 
             # remote client sent video analysis settings
             elif msg_type == usb_msgs.SET_VIDEO_ANALYSIS_SETTINGS:
                 result = self.msg_parser.parse_video_analysis_settings(
                                                     msg_data,
                                                     self.analysis_settings)
-                self.analysis_settings = result
 
-                # send message to Control
-                self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
+                if result is not None:
+                    # send message to Control
+                    self.analysis_settings = result
+                    self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
             # remote client sent audio analysis settings
             elif msg_type == usb_msgs.SET_AUDIO_ANALYSIS_SETTINGS:
                 result = self.msg_parser.parse_audio_analysis_settings(
                                                     msg_data,
                                                     self.analysis_settings)
-                self.analysis_settings = result
 
-                # send message to Control
-                self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
+                if result is not None:
+                    # send message to Control
+                    self.analysis_settings = result
+                    self.emit(CustomMessages.ANALYSIS_SETTINGS_CHANGED)
 
             # remote client sent analyzed prog list
             elif msg_type == usb_msgs.SET_ANALYZED_PROG_LIST:
@@ -121,30 +133,43 @@ class Usb(BaseInterface):
                 result = self.msg_parser.parse_tuner_settings(
                                                     msg_data,
                                                     self.tuner_settings)
-                self.tuner_settings = result
 
-                # send message to Control
-                self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
+                if result is not None:
+                    # send message to Control
+                    self.tuner_settings = result
+                    self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
 
             # remote client asks to return video analysis settings
             elif msg_type == usb_msgs.GET_VIDEO_ANALYSIS_SETTINGS:
-                client_id = msg_data[0]
-                request_id = msg_data[2]
-                self.exchange.send_video_analysis_settings(
+                try:
+                    client_id = msg_data[0]
+                    request_id = msg_data[2]
+                except:
+                    continue
+                else:
+                    self.exchange.send_video_analysis_settings(
                         self.analysis_settings, client_id, request_id)
 
             # remote client asks to return audio analysis settings
             elif msg_type == usb_msgs.GET_AUDIO_ANALYSIS_SETTINGS:
-                client_id = msg_data[0]
-                request_id = msg_data[2]
-                self.exchange.send_audio_analysis_settings(
+                try:
+                    client_id = msg_data[0]
+                    request_id = msg_data[2]
+                except:
+                    continue
+                else:
+                    self.exchange.send_audio_analysis_settings(
                         self.analysis_settings, client_id, request_id)
 
             # remote client asks to return stream and analyzed prog list
             elif msg_type == usb_msgs.GET_ANALYZED_PROG_LIST:
-                client_id = msg_data[0]
-                request_id = msg_data[2]
-                self.exchange.send_prog_list(
+                try:
+                    client_id = msg_data[0]
+                    request_id = msg_data[2]
+                except:
+                    continue
+                else:
+                    self.exchange.send_prog_list(
                         self.stream_prog_list, self.analyzed_prog_list,
                         client_id, request_id)
 
@@ -155,15 +180,23 @@ class Usb(BaseInterface):
 
             # remote client asks to return tuner settings
             elif msg_type == usb_msgs.GET_TUNER_SETTINGS:
-                client_id = msg_data[0]
-                request_id = msg_data[2]
-                self.exchange.send_tuner_settings(
+                try:
+                    client_id = msg_data[0]
+                    request_id = msg_data[2]
+                except:
+                    continue
+                else:
+                    self.exchange.send_tuner_settings(
                         self.tuner_settings, client_id, request_id)
 
             elif msg_type == usb_msgs.GET_TUNER_STATUS:
-                client_id = msg_data[0]
-                request_id = msg_data[2]
-                self.exchange.send_tuner_status(
+                try:
+                    client_id = msg_data[0]
+                    request_id = msg_data[2]
+                except:
+                    continue
+                else:
+                    self.exchange.send_tuner_status(
                         self.tuner_status, self.tuner_params,
                         self.tuner_measured_data, self.tuner_settings,
                         client_id, request_id)

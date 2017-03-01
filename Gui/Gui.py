@@ -330,7 +330,10 @@ class Gui(BaseInterface):
     # called by Control to update audio source
     def update_audio_source(self, source):
         BaseInterface.update_audio_source(self, source)
-        self.audio_radio_btns[source].set_active(True)
+        try:
+            self.audio_radio_btns[source].set_active(True)
+        except:
+            pass
 
     # Methods for interaction with Control
     # Specific Gui methods

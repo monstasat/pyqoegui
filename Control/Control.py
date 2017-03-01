@@ -521,5 +521,5 @@ class Control(GObject.GObject):
 
             elif wstr[0] == 'c':
                 adv_lufs = self.msg_translator.get_interval_loudness(wstr[1:])
-                print(adv_lufs)
+                # print(adv_lufs)
 
