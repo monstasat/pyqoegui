@@ -14,7 +14,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.get_selection().set_mode(Gtk.SelectionMode.NONE)
 
         # current measured data
-        self.measured_data = [0, False, 0, False, 0, False, 0, False]
+        self.measured_data = {}
 
         self.device = 0xff
 
@@ -23,10 +23,11 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.unknown = "неизвестно"
 
         # append values
-        self.store.append(["MER", self.unknown])
+        self.store.append(["Мощность, дБм", self.unknown])
+        self.store.append(["MER, дБ", self.unknown])
         self.store.append(["BER", self.unknown])
-        self.store.append(["BER", self.unknown])
-        self.store.append(["BER", self.unknown])
+        self.store.append(["Отклонение частоты, Гц", self.unknown])
+        self.store.append(["Битрейт, Мбит/с", self.unknown])
 
         # creating store filter
         self.store_filter = self.store.filter_new()
@@ -60,77 +61,124 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.append_column(self.column_value)
 
     def param_filter_func(self, model, iter_, data):
-        if self.device == 0xff:
-            return False
-        elif (self.device) == DVBC and \
-             (str(model.get_path(iter_)) == '3'):
-            return False
-        else:
-            return True
+        # if self.device == 0xff:
+        #     return False
+        # elif (self.device) == DVBC and \
+        #      (str(model.get_path(iter_)) == '3'):
+        #     return False
+        # else:
+        return True
 
     def set_measured_params(self, data):
 
-        # if mer was updated
-        if data[1] is True:
-            self.measured_data[0] = data[0]
-        # if ber1 was updated
-        if data[3] is True:
-            self.measured_data[2] = data[2]
-        # if ber2 was updated
-        if data[5] is True:
-            self.measured_data[4] = data[4]
-        # if ber3 was updated
-        if data[7] is True:
-            self.measured_data[6] = data[6]
+        self.measured_data.update(data)
+
+        # set rf power
+        iter_ = self.store.get_iter_from_string('0')
+        try:
+            rf_power = self.measured_data["rf_power"]
+        except:
+            pass
+        else:
+            if rf_power == 0xffff:
+                self.store[iter_][1] = self.unknown
+            else:
+                self.store[iter_][1] = str(-rf_power / 10)
 
         # set mer
-        iter_ = self.store.get_iter_from_string('0')
-        self.store[iter_][1] = str(self.measured_data[0])
+        iter_ = self.store.get_iter_from_string('1')
+        try:
+            mer = self.measured_data["mer"]
+        except:
+            pass
+        else:
+            if mer == 0xffff:
+                self.store[iter_][1] = self.unknown
+            else:
+                self.store[iter_][1] = str(mer / 10.)
 
         # set ber
-        if self.device == DVBC:
-            # set ber1
-            iter_ = self.store.get_iter_from_string('1')
-            self.store[iter_][0] = "BER до декодера Рида-Соломона"
-            self.store[iter_][1] = "%e" % self.measured_data[2]
-
-            # set ber2
-            iter_ = self.store.get_iter_from_string('2')
-            self.store[iter_][0] = "BER после декодера Рида-Соломона"
-            self.store[iter_][1] = "%e" % self.measured_data[4]
-
-        elif self.device == DVBT:
-            # set ber1
-            iter_ = self.store.get_iter_from_string('1')
-            self.store[iter_][0] = "BER до декодера Витерби"
-            self.store[iter_][1] = "%e" % self.measured_data[2]
-
-            # set ber2
-            iter_ = self.store.get_iter_from_string('2')
-            self.store[iter_][0] = "BER до декодера Рида-Соломона"
-            self.store[iter_][1] = "%e" % self.measured_data[4]
-
-            # set ber3
-            iter_ = self.store.get_iter_from_string('3')
-            self.store[iter_][0] = "BER после декодера Рида-Соломона"
-            self.store[iter_][1] = "%e" % self.measured_data[6]
-
-        elif self.device == DVBT2:
-            # set ber1
-            iter_ = self.store.get_iter_from_string('1')
-            self.store[iter_][0] = "BER до декодера LDPC"
-            self.store[iter_][1] = "%e" % self.measured_data[2]
-
-            # set ber2
-            iter_ = self.store.get_iter_from_string('2')
-            self.store[iter_][0] = "BER до декодера BCH"
-            self.store[iter_][1] = "%e" % self.measured_data[4]
-
-            # set ber3
-            iter_ = self.store.get_iter_from_string('3')
-            self.store[iter_][0] = "BER после декодера BCH"
-            self.store[iter_][1] = "%e" % self.measured_data[6]
-
+        iter_ = self.store.get_iter_from_string('2')
+        try:
+            ber = self.measured_data["ber"]
+            br = self.measured_data["bitrate"]
+        except:
+            pass
         else:
-            self.store_filter.refilter()
+            if ber == -1 or br == -1 or br == 0:
+                self.store[iter_][1] = self.unknown
+            else:
+                self.store[iter_][1] = "%.3e" % (ber / br)
+
+        # set frequency
+        iter_ = self.store.get_iter_from_string('3')
+        try:
+            freq = self.measured_data["freq"]
+        except:
+            pass
+        else:
+            if freq == -1:
+                self.store[iter_][1] = self.unknown
+            else:
+                self.store[iter_][1] = str(freq)
+
+        # set bitrate
+        iter_ = self.store.get_iter_from_string('4')
+        try:
+            br = self.measured_data["bitrate"]
+        except:
+            print("no bitrate key")
+            pass
+        else:
+            if br == -1:
+                self.store[iter_][1] = self.unknown
+            else:
+                self.store[iter_][1] = str(br / 1000000.)
+
+        # # set ber
+        # if self.device == DVBC:
+        #     # set ber1
+        #     iter_ = self.store.get_iter_from_string('1')
+        #     self.store[iter_][0] = "BER до декодера Рида-Соломона"
+        #     self.store[iter_][1] = "%e" % self.measured_data[2]
+
+        #     # set ber2
+        #     iter_ = self.store.get_iter_from_string('2')
+        #     self.store[iter_][0] = "BER после декодера Рида-Соломона"
+        #     self.store[iter_][1] = "%e" % self.measured_data[4]
+
+        # elif self.device == DVBT:
+        #     # set ber1
+        #     iter_ = self.store.get_iter_from_string('1')
+        #     self.store[iter_][0] = "BER до декодера Витерби"
+        #     self.store[iter_][1] = "%e" % self.measured_data[2]
+
+        #     # set ber2
+        #     iter_ = self.store.get_iter_from_string('2')
+        #     self.store[iter_][0] = "BER до декодера Рида-Соломона"
+        #     self.store[iter_][1] = "%e" % self.measured_data[4]
+
+        #     # set ber3
+        #     iter_ = self.store.get_iter_from_string('3')
+        #     self.store[iter_][0] = "BER после декодера Рида-Соломона"
+        #     self.store[iter_][1] = "%e" % self.measured_data[6]
+
+        # elif self.device == DVBT2:
+        #     # set ber1
+        #     iter_ = self.store.get_iter_from_string('1')
+        #     self.store[iter_][0] = "BER до декодера LDPC"
+        #     self.store[iter_][1] = "%e" % self.measured_data[2]
+
+        #     # set ber2
+        #     iter_ = self.store.get_iter_from_string('2')
+        #     self.store[iter_][0] = "BER до декодера BCH"
+        #     self.store[iter_][1] = "%e" % self.measured_data[4]
+
+        #     # set ber3
+        #     iter_ = self.store.get_iter_from_string('3')
+        #     self.store[iter_][0] = "BER после декодера BCH"
+        #     self.store[iter_][1] = "%e" % self.measured_data[6]
+
+        # else:
+        #     self.store_filter.refilter()
 

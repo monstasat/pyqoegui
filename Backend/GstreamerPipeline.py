@@ -46,8 +46,8 @@ class GstreamerPipeline():
         # ip = "127.0.0.1"
         stream = str(self.stream_id)
         port = str(1234 + self.stream_id)
-        print("executing pipeline. ip: ", ip,
-              "stream: ", stream, "port: ", port)
+        # print("executing pipeline. ip: ", ip,
+        #       "stream: ", stream, "port: ", port)
         out = open(log_stdout, "w")
         err = open(log_stderr, "w")
         self.proc = subprocess.Popen(
@@ -81,11 +81,11 @@ class GstreamerPipeline():
             GObject.source_remove(self.poll_id)
             self.poll_id = None
         self.state = State.TERMINATED
-        print("terminating pipeline with id ", self.stream_id)
+        # print("terminating pipeline with id ", self.stream_id)
 
     def apply_new_program_list(self, prog_list):
-        print("applying new prog list for pipeline with id ",
-              self.stream_id)
+        # print("applying new prog list for pipeline with id ",
+        #       self.stream_id)
         # constants to construct prog list message
         STREAM_DIVIDER = 0xABBA0000
         PROG_DIVIDER = 0xACDC0000

@@ -31,11 +31,12 @@ class TunerSettingsDialog(BaseDialog):
         self.slot_selector.set_scrollable(False)
         self.slot_selector.set_show_border(False)
 
-        self.slots = []
+        self.slots = {}
 
         for slot_id in range(4):
-            self.slots.append(TunerPage(slot_id, tuner_settings, self.standard_model))
-            self.slot_selector.append_page(self.slots[slot_id], Gtk.Label(label="Модуль " + str(slot_id + 1)))
+            slot = TunerPage(slot_id, tuner_settings, self.standard_model)
+            self.slots.update(dict([(slot_id, slot), ]))
+            self.slot_selector.append_page(slot, Gtk.Label(label="Модуль " + str(slot_id + 1)))
 
         # pack items to main container
         mainBox.pack_start(self.slot_selector, True, True, 0)
@@ -46,7 +47,7 @@ class TunerSettingsDialog(BaseDialog):
     def get_tuner_settings(self):
 
         tuner_settings = {}
-        for slot in self.slots:
+        for i,slot in self.slots.items():
             slot_dic = dict([('device', slot.standard_combo.combobox.get_active()),
                              ('t2_freq', slot.dvbt2_box.frequency),
                              ('t2_bw', slot.dvbt2_box.bandwidth),
@@ -89,6 +90,16 @@ class TunerSettingsDialog(BaseDialog):
         #     self.status_box.signal_params_view.store_filter.refilter()
 
     def set_new_measured_data(self, measured_data):
-        pass
-       # self.status_box.measured_data_view.set_measured_params(measured_data)
+        try:
+            id = measured_data["id"]
+        except:
+            id = None
+
+        if id is not None:
+            try:
+                slot = self.slots[id]
+            except:
+                return
+
+            slot.status_box.measured_data_view.set_measured_params(measured_data)
 

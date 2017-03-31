@@ -95,8 +95,8 @@ class Control(GObject.GObject):
             # if interface is of type 'Usb'
             elif self.is_usb(interface) is True:
                 if interface.exchange.is_connected is False:
-                    print("Usb interface is not connected. "
-                          "Deleting interface...")
+                    # print("Usb interface is not connected. "
+                    #       "Deleting interface...")
                     interface.__destroy__()
                     self.interfaces.remove(interface)
                     continue
@@ -393,12 +393,12 @@ class Control(GObject.GObject):
             interface.update_tuner_status(status, hw_errors, temperature)
 
     # Tuner control sent a message with new measured data
-    def on_new_tuner_measured_data(self, source, mer, mer_updated,
-                                   ber1, ber1_updated, ber2, ber2_updated,
-                                   ber3, ber3_updated):
+    def on_new_tuner_measured_data(self, source, tuner_id, lock, rf_power,
+                                   mer, ber, freq, bitrate):
 
-        measured_data = [mer, mer_updated, ber1, ber1_updated,
-                         ber2, ber2_updated, ber3, ber3_updated]
+        measured_data = {"id":tuner_id, "lock": lock,
+                         "rf_power": rf_power, "mer": mer, "ber": ber,
+                         "freq": freq, "bitrate": bitrate}
 
         list(map(lambda x: x.update_tuner_measured_data(measured_data),
                  self.interfaces))
