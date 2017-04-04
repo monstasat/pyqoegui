@@ -533,66 +533,67 @@ class UsbExchange():
         self.write(msg)
 
     def send_tuner_status(self,
-                          tuner_status,
+                          tuner_devinfo,
                           tuner_params,
-                          tuner_measured_data,
+                          tuner_meas,
                           tuner_settings,
                           client_id,
                           request_id):
+        pass
 
-        if len(tuner_params) != 0:
-            if tuner_params[0] == 0x8000:
-                status = 0x8000
-            else:
-                # FIXME: change 0x1, 0x2 to constants
-                level_ok = bool(tuner_params[0] & 0x1)
-                lock_ok = bool(tuner_params[0] & 0x2)
-                if level_ok is False:
-                    status = 0x0000
-                elif lock_ok is False:
-                    status = 0x0100
-                else:
-                    status = 0x0300
-        else:
-            status = 0x8000
+        # if len(tuner_params) != 0:
+        #     if tuner_params[0] == 0x8000:
+        #         status = 0x8000
+        #     else:
+        #         # FIXME: change 0x1, 0x2 to constants
+        #         level_ok = bool(tuner_params[0] & 0x1)
+        #         lock_ok = bool(tuner_params[0] & 0x2)
+        #         if level_ok is False:
+        #             status = 0x0000
+        #         elif lock_ok is False:
+        #             status = 0x0100
+        #         else:
+        #             status = 0x0300
+        # else:
+        #     status = 0x8000
 
-        if len(tuner_measured_data) != 0:
-            mer = tuner_measured_data[0]
-            ber1 = tuner_measured_data[2]
-            ber2 = tuner_measured_data[4]
-            ber3 = tuner_measured_data[6]
-        else:
-            mer = 0.0
-            ber1 = 0.0
-            ber2 = 0.0
-            ber3 = 0.0
+        # if len(tuner_measured_data) != 0:
+        #     mer = tuner_measured_data[0]
+        #     ber1 = tuner_measured_data[2]
+        #     ber2 = tuner_measured_data[4]
+        #     ber3 = tuner_measured_data[6]
+        # else:
+        #     mer = 0.0
+        #     ber1 = 0.0
+        #     ber2 = 0.0
+        #     ber3 = 0.0
 
-        # header, length data, client id, msg cod, req id, length msg
-        TUNER_STATUS_HDR = self.HEADER + "HHHHH"
+        # # header, length data, client id, msg cod, req id, length msg
+        # TUNER_STATUS_HDR = self.HEADER + "HHHHH"
 
-        # stat ver, data len, opt type, opt ver, reserved, reserved,
-        # device, reserved, status, mer, ber1, ber2, ber3
-        TUNER_STATUS_DATA = "BBBBIHBBHffff"
+        # # stat ver, data len, opt type, opt ver, reserved, reserved,
+        # # device, reserved, status, mer, ber1, ber2, ber3
+        # TUNER_STATUS_DATA = "BBBBIHBBHffff"
 
-        # FIXME temp!!!
-        device = 0
+        # # FIXME temp!!!
+        # device = 0
 
-        msg = struct.pack("="+TUNER_STATUS_HDR+TUNER_STATUS_DATA,
-                          usb_msgs.PREFIX,
-                          self.SEND_PERS_BUF | self.EXIT_RECEIVE,
-                          19,
-                          client_id,
-                          0xc519,
-                          request_id,
-                          15,
-                          self.dvb_stat_ver & 0xff,
-                          10,
-                          9, 2,
-                          0, 0,
-                          device,
-                          0,
-                          status,
-                          mer, ber1, ber2, ber3)
+        # msg = struct.pack("="+TUNER_STATUS_HDR+TUNER_STATUS_DATA,
+        #                   usb_msgs.PREFIX,
+        #                   self.SEND_PERS_BUF | self.EXIT_RECEIVE,
+        #                   19,
+        #                   client_id,
+        #                   0xc519,
+        #                   request_id,
+        #                   15,
+        #                   self.dvb_stat_ver & 0xff,
+        #                   10,
+        #                   9, 2,
+        #                   0, 0,
+        #                   device,
+        #                   0,
+        #                   status,
+        #                   mer, ber1, ber2, ber3)
 
-        self.write(msg)
+        # self.write(msg)
 

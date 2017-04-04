@@ -4,9 +4,16 @@ DVBT = 1
 DVBC = 2
 
 # bw constants
-BW6 = 3
-BW7 = 2
-BW8 = 1
+BW6 = 0
+BW7 = 1
+BW8 = 2
+
+# timeouts
+TIME_RESPONSE_OK           = 1.5
+TIME_RESPONSE_MSG          = 2
+TIME_GET_DEVINFO           = 10
+TIME_GET_MEAS              = 1
+TIME_GET_PARAMS            = 10
 
 # tags and commands
 UART_TAG_START             = 0xAA
@@ -40,6 +47,3 @@ UART_TAG_PLP_SET           = 0x60
 UART_RSP_LEN_OK            = 2
 UART_TAG_OK                = 0xEE
 
-TIME_RESPONSE_OK           = 1.5
-TIME_RESPONSE_MSG          = 2
-TIME_DETECTION             = 1000

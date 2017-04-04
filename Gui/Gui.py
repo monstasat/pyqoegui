@@ -274,20 +274,21 @@ class Gui(BaseInterface):
         self.tunerDlg.update_values(self.tuner_settings)
 
     # called by Control to update tuner status
-    def update_tuner_status(self, status, hw_errors, temperature):
-        BaseInterface.update_tuner_status(self, status, hw_errors, temperature)
+    def update_tuner_status(self, devinfo):
+        BaseInterface.update_tuner_status(self, devinfo)
+        self.tunerDlg.on_new_devinfo(devinfo)
 
     # called by Control to update tuner parameters
-    def update_tuner_params(self, status, modulation, params):
-        BaseInterface.update_tuner_params(self, status, modulation, params)
+    def update_tuner_params(self, params):
+        BaseInterface.update_tuner_params(self, params)
         if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_tuner_params(status, modulation, params)
+            self.tunerDlg.on_new_params(params)
 
     # called by Control to update tuner measured data
-    def update_tuner_measured_data(self, measured_data):
-        BaseInterface.update_tuner_measured_data(self, measured_data)
+    def update_tuner_measured_data(self, meas):
+        BaseInterface.update_tuner_measured_data(self, meas)
         if self.tunerDlg.get_visible() is True:
-            self.tunerDlg.set_new_measured_data(measured_data)
+            self.tunerDlg.on_new_meas(meas)
 
     # called by Error Detector to update analyzed status
     def update_analysis_results(self, results):

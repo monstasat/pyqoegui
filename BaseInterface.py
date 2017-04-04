@@ -60,6 +60,10 @@ class BaseInterface(GObject.GObject):
         # create tuner settings list
         self.tuner_settings = tuner_settings_list
 
+        self.tuner_devinfo = {}
+        self.tuner_meas = {}
+        self.tuner_params = {}
+
         self.app.hold()
 
     def __destroy__(self):
@@ -100,16 +104,16 @@ class BaseInterface(GObject.GObject):
         self.tuner_settings = tuner_settings
 
     # called by Control to update tuner status
-    def update_tuner_status(self, status, hw_errors, temperature):
-        pass
+    def update_tuner_status(self, devinfo):
+        self.tuner_devinfo = devinfo
 
     # called by Control to update tuner parameters
-    def update_tuner_params(self, status, modulation, params):
-        pass
+    def update_tuner_params(self, params):
+        self.tuner_params = params
 
     # called by Control to update tuner measured data
-    def update_tuner_measured_data(self, measured_data):
-        pass
+    def update_tuner_measured_data(self, meas):
+        self.tuner_meas = meas
 
     # called by Error Detector to update analysis results
     def update_analysis_results(self, results):

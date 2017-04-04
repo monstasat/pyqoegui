@@ -14,12 +14,12 @@ from Control.DVBTunerConstants import *
 class DVBTunerControl(GObject.GObject):
 
     __gsignals__ = {
-        CustomMessages.NEW_TUNER_STATUS: (GObject.SIGNAL_RUN_FIRST,
-                                          None, (int, int, int)),
-        CustomMessages.NEW_TUNER_MEASURED_DATA: (GObject.SIGNAL_RUN_FIRST,
-                                                 None,
-                                                 (int, bool, int, int,
-                                                  int, int, int)),
+        CustomMessages.NEW_TUNER_DEVINFO: (GObject.SIGNAL_RUN_FIRST,
+                                           None, (bool, int, int, int, int, int)),
+        CustomMessages.NEW_TUNER_MEAS: (GObject.SIGNAL_RUN_FIRST,
+                                        None,
+                                        (int, bool, int, int,
+                                         int, int, int)),
         CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
                                           None, (int, int, int)),
         CustomMessages.TUNER_SETTINGS_APPLIED: (GObject.SIGNAL_RUN_FIRST,
@@ -30,46 +30,23 @@ class DVBTunerControl(GObject.GObject):
         self.serial = serial.Serial()
 
         # remember user settings
+        self.new_settings = {}
         self.settings = settings.copy()
 
         self.serial_ports()
 
-        self.tuner_idxs = []
-        self.status = []
-        self.measured_data = {}
-        self.params = []
+        self.tuner_idxs = set([])
+
+        self.devinfo = {}
+        self.meas = {}
+        self.params = {}
 
         self.thread_active = True
         self.reading_thread = threading.Thread(target=self.read_from_port, args=())
         self.reading_thread.start()
 
-        self.writing_thread = None
-
-    def on_pass_data(self):
-        if len(self.status) != 0:
-            self.emit(CustomMessages.NEW_TUNER_STATUS,
-                      self.status[0],            # status
-                      self.status[1],            # hw errors
-                      self.status[2])            # temperature
-
-        if len(self.measured_data) != 0:
-            for k,v in self.measured_data.copy().items():
-                self.emit(CustomMessages.NEW_TUNER_MEASURED_DATA,
-                          k,
-                          v["lock"],
-                          v["rf_power"],
-                          v["mer"],
-                          v["ber"],
-                          v["freq"],
-                          v["bitrate"])
-
-        if len(self.params) != 0:
-            self.emit(CustomMessages.NEW_TUNER_PARAMS,
-                      self.params[0],            # status
-                      self.params[1],            # modulation
-                      self.params[2])            # params
-
-        return True
+        self.settings_changed = False
+        self.settings_lock = threading.Lock()
 
     def flush(self):
         timeout = self.serial.timeout
@@ -114,7 +91,8 @@ class DVBTunerControl(GObject.GObject):
     def connect_to_port(self):
         found = False
         ports = self.serial_ports()
-        print(ports)
+        status = {}
+        # print(ports)
         for port in ports:
             if self.thread_active is False:
                 break;
@@ -144,17 +122,13 @@ class DVBTunerControl(GObject.GObject):
                 for i in range(3):
                     if self.thread_active is False:
                         break;
-                    status = self.tuner_get_status()
+                    status = self.get_devinfo()
                     if len(status) != 0:
-                        found = True
-                        break
-                if found is True:
-                    # print("port found", port)
-                    break
+                        return status
                 else:
                     self.serial.close()
 
-        return found
+        return status
 
     def disconnect(self):
         self.serial.close()
@@ -185,7 +159,7 @@ class DVBTunerControl(GObject.GObject):
         self.serial.timeout = TIME_RESPONSE_MSG
         return success
 
-    def tuner_get_status(self):
+    def get_devinfo(self):
         self.flush()
 
         # construct message``
@@ -206,16 +180,10 @@ class DVBTunerControl(GObject.GObject):
         # send message to tuner
         n = self.write(msg)
 
-        print("CMD DEVINFO data written: ", msg.hex(), \
-              "bytes in message: ", len(msg), \
-              " bytes written: ", n)
-
-
         # read tuner answer
         data = {}
 
         if self.read_rsp_ok() is False:
-            print("DEVINFO rsp ok failure", "\n")
             self.disconnect()
             return data
 
@@ -226,7 +194,6 @@ class DVBTunerControl(GObject.GObject):
             # fpga version, soft version, hardware cfg,
             # 0, 0, 0, 0, crc, tag stop
             buf_list = struct.unpack("=HBBBBBBBBBBBBBB", buf)
-            print("RSP_DEVINFO: ", [hex(x) for x in buf_list])
             if self.check_start_tag(buf_list[0]) is True and \
                self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
                (buf_list[2] & 0xf0) == UART_TAG_DEVINFO:
@@ -245,24 +212,18 @@ class DVBTunerControl(GObject.GObject):
 
                 data = {"serial": serial, "hw_ver": hw_ver,
                         "fpga_ver": fpga_ver, "soft_ver": soft_ver,
-                        "tuner_idxs": indexes, "asi": asi}
-
-                print("Received tuner status: ", data, "\n")
-            else:
-                print("RSP DEVINFO start or crc failure", "\n")
-        else:
-            print("RSP DEVINFO len failure", "\n")
+                        "hw_cfg": hw_cfg, "tuner_idxs": indexes,
+                        "asi": asi}
 
         # return received data
         return data
 
-    def tuner_set_settings(self, tuner_settings):
+    def set_settings(self, tuner_settings):
         self.flush()
         answ_dict = {}
 
         for k, slot_settings in tuner_settings.copy().items():
             if not k in self.tuner_idxs:
-                print(k, " not in indexes. Indexes: ", self.tuner_idxs, "\n")
                 continue
             
             # get settings from received settings list.
@@ -296,8 +257,8 @@ class DVBTunerControl(GObject.GObject):
                               UART_TAG_START_INV,             # message start inverted
                               UART_CMD_LEN_TUNER_SET,         # tag length
                               UART_TAG_TUNER_SET | int(k),    # cmd setconf | tuner addr
-                              device + 1,                     # tuner mode (1=T2, 2=T, 3=C)
-                              width,                          # tuner bandwidth
+                              device + 1,                     # tuner mode
+                              3 - width,                      # tuner bandwidth
                               0,
                               modulation,
                               frequency,
@@ -313,14 +274,9 @@ class DVBTunerControl(GObject.GObject):
 
             # send message to tuner
             n = self.write(msg)
-            print("CMD TUNER SET data written: ", msg.hex(), \
-                  "bytes in message: ", len(msg), \
-                  " bytes written: ", n)
-
 
             # return tuner answer
             if self.read_rsp_ok() is False:
-                print("TUNER SET rsp ok failure", "\n")
                 self.disconnect()
                 return answ_dict
 
@@ -344,20 +300,15 @@ class DVBTunerControl(GObject.GObject):
                                           buf_list[7]),
                             "lock": buf_list[11]}
 
-                    print("RSP TUNER SET: ", [hex(x) for x in buf_list])
-                    print("Tuner ID=", k, " response after settings setup: ", data, "\n")
-
                     answ_dict.update(dict([(k, data),]))
                     self.emit(CustomMessages.TUNER_SETTINGS_APPLIED,
                               int(k))
-                else:
-                    print("RSP TUNER SET crc or start err or tag err", k,"\n")
-            else:
-                print("RSP TUNER SET len err", k, "\n")
 
         return answ_dict
 
-    def tuner_get_params(self):
+    def get_params(self):
+        self.flush()
+
         answ_dict = {}
         for i in self.tuner_idxs:
             
@@ -378,13 +329,9 @@ class DVBTunerControl(GObject.GObject):
 
             # send request to tuner
             n = self.write(msg)
-            # print("CMD PARAMS data written: ", msg.hex(), \
-            #       "bytes in message: ", len(msg), \
-            #       " bytes written: ", n)
 
             # return tuner answer
             if self.read_rsp_ok() is False:
-                print("PARAMS rsp ok failure", "\n")
                 self.disconnect()
                 return answ_dict
 
@@ -394,12 +341,15 @@ class DVBTunerControl(GObject.GObject):
                 if self.check_start_tag(buf_list[0]) is True and \
                    self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
                    (buf_list[2] & 0xf0) == UART_TAG_PARAMS:
-                    # print("RSP PARAMS: ", [hex(x) for x in buf_list], "\n")
-                    pass
+
+                    data = {"void": None}
+
+                    answ_dict.update(dict([(i, data),]))
 
         return answ_dict
 
-    def tuner_get_measured_info(self):
+    def get_meas(self):
+        self.flush()
 
         answ_dict = {}
         for i in self.tuner_idxs:
@@ -421,13 +371,9 @@ class DVBTunerControl(GObject.GObject):
 
             # send request to tuner
             n = self.write(msg)
-            # print("CMD MEAS data written: ", msg.hex(), \
-            #       "bytes in message: ", len(msg), \
-            #       "bytes written: ", n)
 
             # return tuner answer
             if self.read_rsp_ok() is False:
-                print("MEAS rsp ok failure", "\n")
                 self.disconnect()
                 return answ_dict
 
@@ -454,14 +400,7 @@ class DVBTunerControl(GObject.GObject):
                             "mer": mer, "ber": ber,
                             "freq": freq, "bitrate":bitrate}
 
-                    # print("RSP MEAS: ", [hex(x) for x in buf_list], "\n")
-                    # print("Tuner ID=", i, "measured data:", data)
-
                     answ_dict.update(dict([(i, data),]))
-                else:
-                    print("RSP MEAS: start or crc or tag failure")
-            else:
-                print("RSP MEAS: length failure")
 
         return answ_dict
 
@@ -473,51 +412,126 @@ class DVBTunerControl(GObject.GObject):
         return crc
 
     def apply_settings(self, settings):
-        filtered_settings = {}
-        for new, old in zip(settings.items(), self.settings.items()):
-            if new[1] != old[1]:
-                filtered_settings.update({new[0]: new[1]})
-
-        self.settings = settings.copy()
-
-        self.writing_thread = threading.Thread(target=self.tuner_set_settings,
-                                               args=(filtered_settings,))
-        self.writing_thread.start()
+        with self.settings_lock:
+            self.new_settings = settings.copy()
+            self.settings_changed = True
 
     def read_from_port(self):
-        while self.thread_active:
-            # read status
-            if self.serial.isOpen() is False:
-                self.params = [0x8000, 0, 0]
-                self.connect_to_port()
 
+        connected = False
+
+        devinfo_prev_time = 0
+        meas_prev_time = 0
+        params_prev_time = 0
+
+        cur_time = 0
+
+        while self.thread_active:
+
+            devinfo = {}
+            meas = {}
+            params = {}
+            # try to connect to tuner
+            if self.serial.isOpen() is False:
+                if connected is True:
+                    connected = False
+                    self.devinfo["connected"] = connected
+                    self.emit_devinfo({"connected": connected})
+
+                self.connect_to_port()
                 # if opening port succeeded
                 if self.serial.isOpen() is True:
                     time.sleep(1)
-
                     # apply tuners settings
-                    set_answ = self.tuner_set_settings(self.settings)
+                    set_answ = self.set_settings(self.settings)
                     # if failed applying settings, try apply again in a loop
                     cnt = 0
                     while (len(set_answ) == 0) and \
                           (self.thread_active is True):
                         if cnt > 1:
                             self.disconnect()
-                            break;
-                        set_answ = self.tuner_set_settings(self.settings)
+                            break
+                        set_answ = self.set_settings(self.settings)
                         cnt += 1
                         time.sleep(1)
+            else:
+                if connected is False:
+                    connected = True
+                    self.devinfo["connected"] = connected
+                    self.emit_devinfo(self.devinfo)
 
-            # read tuner status and params
-            elif self.serial.isOpen() is True:
-                pass
-                # self.status = self.tuner_get_status()
-                self.measured_data = self.tuner_get_measured_info()
-                self.params = self.tuner_get_params()
-                self.on_pass_data()
+                # apply settings if necessary
+                with self.settings_lock:
+                    if self.settings_changed is True:
+                        self.settings_changed = False
+                        filtered_settings = {}
 
-            # sleep for a second
-            time.sleep(1)
+                        for new, old in zip(self.new_settings.items(),
+                                            self.settings.items()):
+                            if new[1] != old[1]:
+                                filtered_settings.update({new[0]: new[1]})
+                                self.set_settings(filtered_settings)
+
+                        self.settings = self.new_settings
+                        self.new_settings = {}
+
+                cur_time = time.perf_counter()
+
+                # get devinfo
+                if devinfo_prev_time < (cur_time - TIME_GET_DEVINFO) or \
+                   len(self.devinfo) == 0:
+                    devinfo = self.get_devinfo()
+                    devinfo["connected"] = connected
+                    if self.devinfo != devinfo:
+                        self.emit_devinfo(devinfo)
+                        self.devinfo = devinfo
+
+                    devinfo_prev_time = cur_time
+
+                # get meas
+                if meas_prev_time < (cur_time - TIME_GET_MEAS) or \
+                   len(self.meas) == 0:
+                    meas = self.get_meas()
+                    if self.meas != meas:
+                        self.emit_meas(meas)
+                        self.meas = meas
+
+                    meas_prev_time = cur_time
+
+                if params_prev_time < (cur_time - TIME_GET_PARAMS) or \
+                   len(self.params) == 0:
+                    params = self.get_params()
+                    if self.params != params:
+                        self.emit_params(params)
+                        self.params = params
+
+                    params_prev_time = cur_time
+
+                time.sleep(0.5)
 
         return True
+
+    def emit_devinfo(self, devinfo):
+        self.emit(CustomMessages.NEW_TUNER_DEVINFO,
+                  devinfo.get("connected", False),
+                  devinfo.get("serial", 0),
+                  devinfo.get("hw_ver", 0),
+                  devinfo.get("fpga_ver", 0),
+                  devinfo.get("soft_ver", 0),
+                  devinfo.get("hw_cfg", 0))
+
+    def emit_meas(self, meas):
+        for k,v in meas.items():
+            self.emit(CustomMessages.NEW_TUNER_MEAS,
+                      k,
+                      v["lock"],
+                      v["rf_power"],
+                      v["mer"],
+                      v["ber"],
+                      v["freq"],
+                      v["bitrate"])
+
+    def emit_params(self, params):
+        for k,v in params.items():
+            pass
 

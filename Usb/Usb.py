@@ -28,13 +28,6 @@ class Usb(BaseInterface):
         # create message parser
         self.msg_parser = parser.UsbMessageParser()
 
-        # create tuner status
-        self.tuner_status = []
-        # create tuner params
-        self.tuner_params = []
-        # create tuner measured data
-        self.tuner_measured_data = []
-
         # initialization done flag
         # True - handshake done with sopr board
         # False - handshake not done with sopr board
@@ -197,8 +190,8 @@ class Usb(BaseInterface):
                     continue
                 else:
                     self.exchange.send_tuner_status(
-                        self.tuner_status, self.tuner_params,
-                        self.tuner_measured_data, self.tuner_settings,
+                        self.tuner_devinfo, self.tuner_params,
+                        self.tuner_meas, self.tuner_settings,
                         client_id, request_id)
 
         return True
@@ -259,22 +252,18 @@ class Usb(BaseInterface):
         self.exchange.dvb_cont_ver += 1
 
     # called by Control to update tuner status
-    def update_tuner_status(self, status, hw_errors, temperature):
-        BaseInterface.update_tuner_status(self, status, hw_errors, temperature)
-        self.tuner_status = [status, hw_errors, temperature]
+    def update_tuner_status(self, devinfo):
+        BaseInterface.update_tuner_status(self, devinfo)
 
     # called by Control to update tuner parameters
-    def update_tuner_params(self, status, modulation, params):
-        BaseInterface.update_tuner_params(self, status, modulation, params)
-        self.tuner_params = [status, modulation, params]
-
+    def update_tuner_params(self, params):
+        BaseInterface.update_tuner_params(self, params)
         # increment tuner status version
         self.exchange.dvb_stat_ver += 1
 
     # called by Control to update tuner measured data
-    def update_tuner_measured_data(self, measured_data):
-        BaseInterface.update_tuner_measured_data(self, measured_data)
-        self.tuner_measured_data = measured_data
+    def update_tuner_measured_data(self, meas):
+        BaseInterface.update_tuner_measured_data(self, meas)
 
     # called by Error Detector to update video status
     def update_analysis_results(self, results):

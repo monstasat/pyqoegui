@@ -112,9 +112,9 @@ class Control(GObject.GObject):
                                             self.analysis_settings)
 
         # connect to tuner signals
-        self.rf_tuner.connect(CustomMessages.NEW_TUNER_STATUS,
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_DEVINFO,
                               self.on_new_tuner_status)
-        self.rf_tuner.connect(CustomMessages.NEW_TUNER_MEASURED_DATA,
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_MEAS,
                               self.on_new_tuner_measured_data)
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
@@ -167,9 +167,6 @@ class Control(GObject.GObject):
         thread_timeout = None # seconds
         self.rf_tuner.disconnect()
 
-        if self.rf_tuner.writing_thread is not None and \
-           self.rf_tuner.writing_thread.is_alive():
-            self.rf_tuner.writing_thread.join(thread_timeout)
         if self.rf_tuner.reading_thread is not None and \
            self.rf_tuner.reading_thread.is_alive():
             self.rf_tuner.reading_thread.join(thread_timeout)
@@ -388,9 +385,13 @@ class Control(GObject.GObject):
         pass
 
     # Tuner control sent a message with new status
-    def on_new_tuner_status(self, source, status, hw_errors, temperature):
+    def on_new_tuner_status(self, source, connected, serial, hw_ver,
+                            fpga_ver, soft_ver, hw_cfg):
+        devinfo = {"connected": connected, "serial": serial,
+                   "hw_ver": hw_ver, "fpga_ver": fpga_ver,
+                   "soft_ver": soft_ver, "hw_cfg": hw_cfg}
         for interface in self.interfaces:
-            interface.update_tuner_status(status, hw_errors, temperature)
+            interface.update_tuner_status(devinfo)
 
     # Tuner control sent a message with new measured data
     def on_new_tuner_measured_data(self, source, tuner_id, lock, rf_power,

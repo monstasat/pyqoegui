@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 
+from Control.DVBTunerConstants import *
 from Gui.BaseDialog import SettingEntry
 from Gui.BaseDialog import ComboBox
 from Gui.TunerSettingsDialog.TerrestrialFrequencyModel import \
@@ -21,14 +22,14 @@ class TunerSettingsBox(Gtk.Box):
 
         # bandwidth model: text, number
         bw_model = Gtk.ListStore(str, int)
-        bw_model.append(["6 МГц", 0])
-        bw_model.append(["7 МГц", 1])
-        bw_model.append(["8 МГц", 2])
+        bw_model.append(["6 МГц", BW6])
+        bw_model.append(["7 МГц", BW7])
+        bw_model.append(["8 МГц", BW8])
 
         # frequency model: dependent on tv standard
-        if (standard == 'DVB-T2') or (standard == 'DVB-T'):
+        if (standard == DVBT2) or (standard == DVBT):
             self.freq_model = TerrestrialFrequencyModel()
-        elif standard == 'DVB-C':
+        elif standard == DVBC:
             self.freq_model = CableFrequencyModel()
 
         # create frequency combo box
@@ -47,9 +48,9 @@ class TunerSettingsBox(Gtk.Box):
 
         # add widgets depending on standard
         self.add(self.frequency_box)
-        if (standard == 'DVB-T2') or (standard == 'DVB-T'):
+        if (standard == DVBT2) or (standard == DVBT):
             self.add(self.bw_box)
-        if standard == 'DVB-T2':
+        if standard == DVBT2:
             self.add(self.plp_box)
 
         self.show_all()
@@ -78,15 +79,13 @@ class TunerSettingsBox(Gtk.Box):
     def bandwidth(self):
         bw = self.bw_box.combobox.get_active()
         # if no active item, choose 8 MHz by default
-        return bw if (bw != -1) else tm.BW8
+        return bw if (bw != -1) else BW8
 
     # bandwidth setter
     @bandwidth.setter
     def bandwidth(self, value):
-        if value > 2:
-            value = 2
-        if value < 0:
-            value = 0
+        if not value in (BW6, BW7, BW8):
+            value = BW8
         self.bw_box.combobox.set_active(value)
 
     # plp id getter

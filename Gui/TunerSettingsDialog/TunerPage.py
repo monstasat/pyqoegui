@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 
+from Control.DVBTunerConstants import *
 from Gui.BaseDialog import ComboBox
 from Gui.TunerSettingsDialog.TunerStatusBox import TunerStatusBox
 from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
@@ -19,21 +20,20 @@ class TunerPage(Gtk.Box):
         self.set_property("margin_top", 5)
 
         self.slot_id = slot_id
-        
-        self.standard_box = Gtk.Box(spacing=Spacing.ROW_SPACING,
-                                    border_width=Spacing.BORDER,
-                                    orientation=Gtk.Orientation.VERTICAL)
 
         self.standard_combo = ComboBox("Выбор стандарта ТВ сигнала",
                                        standard_model)
+        self.standard_box = Gtk.Box(spacing=Spacing.ROW_SPACING,
+                                    border_width=Spacing.BORDER,
+                                    orientation=Gtk.Orientation.VERTICAL)
         self.standard_box.add(self.standard_combo)
         self.standard_box.show_all()
 
         # standard settings pages
-        self.dvbt2_box = TunerSettingsBox('DVB-T2')
-        self.dvbt_box = TunerSettingsBox('DVB-T')
-        self.dvbc_box = TunerSettingsBox('DVB-C')
-        self.status_box = TunerStatusBox()
+        self.dvbt2_box = TunerSettingsBox(DVBT2)
+        self.dvbt_box = TunerSettingsBox(DVBT)
+        self.dvbc_box = TunerSettingsBox(DVBC)
+        self.status_box = TunerStatusBox(slot_id, tuner_settings.get(slot_id, {}))
 
         # fill page list with created pages
         self.pages = []
@@ -60,3 +60,30 @@ class TunerPage(Gtk.Box):
         self.pack_start(self.stackSidebar, False, False, 0)
         self.pack_start(separator, False, False, 0)
         self.pack_start(self.stack, True, True, 0)
+
+    def on_new_tuner_settings(self, settings):
+        if "device" in settings:
+            self.standard_combo.combobox.set_active(settings['device'])
+        if "t2_freq" in settings:
+            self.dvbt2_box.frequency = settings['t2_freq']
+        if "t2_bw" in settings:
+            self.dvbt2_box.bandwidth = settings['t2_bw']
+        if "t2_plp_id" in settings:
+            self.dvbt2_box.plp_id = settings['t2_plp_id']
+        if "t_freq" in settings:
+            self.dvbt_box.frequency = settings['t_freq']
+        if "t_bw" in settings:
+            self.dvbt_box.bandwidth = settings['t_bw']
+        if "c_freq" in settings:
+            self.dvbc_box.frequency = settings['c_freq']
+
+        self.status_box.on_new_tuner_settings(settings)
+
+    def on_new_devinfo(self, devinfo):
+        self.status_box.on_new_devinfo(devinfo)
+
+    def on_new_meas(self, meas):
+        self.status_box.on_new_meas(meas)
+
+    def on_new_params(self, params):
+        self.status_box.on_new_params(params)
