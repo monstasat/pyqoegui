@@ -21,16 +21,22 @@ class TunerStatusBox(Gtk.Box):
         self.slot_connected = False
         self.lock = False
         # status color bar
-        self.status_color_bar = Gtk.Label(label="Нет данных от тюнера")
-        self.status_color_bar.set_size_request(-1, 40)
-        self.status_color_bar.connect('draw', self.on_color_label_draw)
+        self.status = Gtk.Label(label="Нет данных от тюнера",
+                                hexpand=True,
+                                halign=Gtk.Align.CENTER)
+        self.status_box = Gtk.Box(hexpand=True,
+                                  vexpand=True,
+                                  halign=Gtk.Align.FILL)
+        self.status_box.set_size_request(-1, 40)
+        self.status_box.add(self.status)
+        self.status_box.connect('draw', self.on_draw)
         # signal parameters
         self.signal_params_view = TunerStatusTreeView(self)
         # measured data
         self.measured_data_view = TunerMeasuredDataTreeView(slot_id, settings)
 
         self.add(Gtk.Label(label="Статус тюнера"))
-        self.add(self.status_color_bar)
+        self.add(self.status_box)
         self.add(Gtk.HSeparator())
         self.add(Gtk.Label(label="Измеренные параметры"))
         self.add(self.measured_data_view)
@@ -38,16 +44,15 @@ class TunerStatusBox(Gtk.Box):
     def set_tuner_status_text_and_color(self):
 
         if self.host_connected is False:
-            self.status_color_bar.set_text("Нет данных от тюнера")
+            self.status.set_text("Нет данных от тюнера")
         elif self.slot_connected is False:
-            self.status_color_bar.set_text("Нет данных от модуля")
+            self.status.set_text("Нет данных от модуля")
         elif self.lock is False:
-            self.status_color_bar.set_text("Нет сигнала")
+            self.status.set_text("Нет сигнала")
         else:
-            self.status_color_bar.set_text("Есть сигнал")
-        self.status_color_bar.queue_draw()
+            self.status.set_text("Есть сигнал")
 
-    def on_color_label_draw(self, widget, cr):
+    def on_draw(self, widget, cr):
         rect = widget.get_allocation()
         cr.rectangle(0, 0, rect.width, rect.height)
         if self.host_connected is False or \

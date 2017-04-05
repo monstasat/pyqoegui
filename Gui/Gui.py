@@ -271,23 +271,28 @@ class Gui(BaseInterface):
     def update_tuner_settings(self, tuner_settings):
         BaseInterface.update_tuner_settings(self, tuner_settings)
         # update tuner dialog
-        self.tunerDlg.update_values(self.tuner_settings)
+        if self.tunerDlg.get_visible():
+            self.tunerDlg.update_values(self.tuner_settings)
 
     # called by Control to update tuner status
     def update_tuner_status(self, devinfo):
         BaseInterface.update_tuner_status(self, devinfo)
-        self.tunerDlg.on_new_devinfo(devinfo)
+        if self.tunerDlg is not None and \
+           self.tunerDlg.get_visible():
+            self.tunerDlg.on_new_devinfo(devinfo)
 
     # called by Control to update tuner parameters
     def update_tuner_params(self, params):
         BaseInterface.update_tuner_params(self, params)
-        if self.tunerDlg.get_visible() is True:
+        if self.tunerDlg is not None and \
+           self.tunerDlg.get_visible():
             self.tunerDlg.on_new_params(params)
 
     # called by Control to update tuner measured data
     def update_tuner_measured_data(self, meas):
         BaseInterface.update_tuner_measured_data(self, meas)
-        if self.tunerDlg.get_visible() is True:
+        if self.tunerDlg is not None and \
+           self.tunerDlg.get_visible():
             self.tunerDlg.on_new_meas(meas)
 
     # called by Error Detector to update analyzed status
@@ -313,8 +318,8 @@ class Gui(BaseInterface):
 
     # Control asks to return tuner settings
     def get_tuner_settings(self):
-        BaseInterface.get_analysis_settings(self)
-        return self.tunerDlg.get_tuner_settings()
+        BaseInterface.get_tuner_settings(self)
+        return self.tuner_settings.copy()
 
     # Control asks to return audio source
     def get_audio_source(self):
@@ -429,10 +434,18 @@ class Gui(BaseInterface):
 
     # rf settings button was clicked
     def on_rf_set_clicked(self, widget):
-        responce = self.tunerDlg.run()
-        if responce == Gtk.ResponseType.APPLY:
-            self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
-        self.tunerDlg.hide()
+        if self.tunerDlg is not None:
+            self.tunerDlg.update_values(self.tuner_settings)
+            self.tunerDlg.on_new_devinfo(self.tuner_devinfo)
+            self.tunerDlg.on_new_meas(self.tuner_meas)
+            self.tunerDlg.on_new_params(self.tuner_params)
+            responce = self.tunerDlg.run()
+
+            if responce == Gtk.ResponseType.APPLY:
+                self.tuner_settings = self.tunerDlg.get_tuner_settings()
+                self.emit(CustomMessages.TUNER_SETTINGS_CHANGED)
+
+            self.tunerDlg.hide()
 
     # analysis settings button was clicked
     def on_analysis_set_clicked(self, widget):
