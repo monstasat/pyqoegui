@@ -1,8 +1,9 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 from Control.DVBTunerConstants import *
 from Gui.BaseDialog import BaseDialog
 from Gui.BaseDialog import ComboBox
+from Gui.Placeholder import Placeholder
 from Gui.TunerSettingsDialog.TunerPage import TunerPage
 from Gui.TunerSettingsDialog.TunerStatusBox import TunerStatusBox
 from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
@@ -15,14 +16,16 @@ class TunerSettingsDialog(BaseDialog):
     def __init__(self, parent, tuner_settings):
         BaseDialog.__init__(self, "Настройки ТВ тюнера", parent.window)
 
+        css = """
+        .TunerNotebook stack {
+        background-color: transparent;
+        }
+        .TunerNotebook stack:active {
+        background-color: transparent;
+        }
+        """
+
         self.tuner_idxs = set([])
-
-        mainBox = self.get_content_area()
-        mainBox.set_halign(Gtk.Align.FILL)
-        mainBox.set_valign(Gtk.Align.FILL)
-        mainBox.set_hexpand(True)
-        mainBox.set_vexpand(True)
-
         self.tuner_settings = tuner_settings.copy()
 
         self.standard_model = Gtk.ListStore(str, int)
@@ -40,22 +43,98 @@ class TunerSettingsDialog(BaseDialog):
         self.slot_selector = Gtk.Notebook()
         self.slot_selector.set_scrollable(False)
         self.slot_selector.set_show_border(False)
+        cssprovider = Gtk.CssProvider()
+        cssprovider.load_from_data(bytes(css.encode()))
+        screen = Gdk.Screen.get_default()
+        stylecontext = Gtk.StyleContext()
+        stylecontext.add_provider_for_screen(screen, cssprovider,
+                                             Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        context = self.slot_selector.get_style_context()
+        context.add_class("TunerNotebook")
+
 
         self.slots = {}
 
-        for slot_id in range(4):
-            slot = TunerPage(slot_id, tuner_settings, self.standard_model)
-            # slot.set_sensitive(False)
-            self.slots.update(dict([(slot_id, slot), ]))
-            self.slot_selector.append_page(
-                self.slots[slot_id],
-                Gtk.Label(label="Модуль " + str(slot_id + 1)))
+        overlay = Gtk.Overlay(valign=Gtk.Align.FILL,
+                              hexpand=True,
+                              vexpand=True)
+        overlay.add(self.slot_selector)
+        self.holder = Placeholder("network-wireless-no-route-symbolic",
+                                  'Тюнер не обнаружен',
+                                  72)
+        overlay.add_overlay(self.holder)
 
         # pack items to main container
-        mainBox.pack_start(self.slot_selector, True, True, 0)
+        mainBox = self.get_content_area()
+        mainBox.set_halign(Gtk.Align.FILL)
+        mainBox.set_valign(Gtk.Align.FILL)
+        mainBox.set_hexpand(True)
+        mainBox.set_vexpand(True)
+        mainBox.pack_start(overlay, True, True, 0)
+
+        self.connect('show', self.on_shown)
+
         self.update_values(self.tuner_settings)
 
+    def on_shown(self, widget):
+        BaseDialog.on_shown(self, widget)
+        if self.slot_selector.get_n_pages() == 0:
+            self.slot_selector.hide()
+            self.holder.show_all()
+        else:
+            self.holder.hide()
+            self.slot_selector.show_all()
+
+    def add_slot(self, index):
+        settings = self.tuner_settings.get(index, {})
+        slot = TunerPage(index, settings, self.standard_model)
+        slot.set_property("margin_top", 5)
+        if index in self.slots:
+            self.slots[index].destroy()
+
+        self.slots.update(dict([(index, slot), ]))
+        self.slot_selector.append_page(
+            slot,
+            Gtk.Label("Модуль " + str(index + 1)))
+
+    def remove_slot(self, index):
+        if index in self.slots:
+            slot = self.slots.pop(index)
+            slot.destroy()
+
+        self.show_all()
+
+    def update_slots(self, new_indexes):
+        """
+        Handles case when modules number changes
+
+        new indexes - indexes of modules which are currently available
+        """
+
+        to_remove = self.tuner_idxs.difference(set(new_indexes))
+        to_add = set(new_indexes).difference(self.tuner_idxs)
+        for i in to_remove:
+            self.remove_slot(i)
+        for i in to_add:
+            self.add_slot(i)
+
+        for i,slot in self.slots.items():
+            self.slot_selector.reorder_child(slot,i)
+
+        if self.slot_selector.get_n_pages() == 0:
+            self.slot_selector.hide()
+            self.holder.show_all()
+        else:
+            self.holder.hide()
+            self.slot_selector.show_all()
+
+        self.tuner_idxs = set(new_indexes)
+
     def show_tuner_info(self, widget):
+        """
+        Shows modal dialog with some tuner info inside, like
+        serial number and different versions
+        """
 
         serial = self.tuner_status.get("serial", -1)
         serial = "-" if (serial == -1) else hex(serial)
@@ -80,13 +159,8 @@ class TunerSettingsDialog(BaseDialog):
         aboutDlg.run()
         aboutDlg.destroy()
 
-    def update_slots(self, new_indexes):
-        self.tuner_idxs = set(new_indexes)
-        # for k,slot in self.slots.items():
-        #     slot.set_sensitive(k in self.tuner_idxs)
-
-    # return tuner settings
     def get_tuner_settings(self):
+        """Return tuner settings (for all modules) to caller"""
 
         tuner_settings = {}
         for i,slot in self.slots.items():
@@ -101,27 +175,23 @@ class TunerSettingsDialog(BaseDialog):
             
         return tuner_settings
 
-    # update values in controls buttons
     def update_values(self, tuner_settings):
-        # update tuner settings list
-        self.tuner_settings = tuner_settings
+        """Updates tuner settings in widgets"""
+
+        self.tuner_settings = tuner_settings.copy()
 
         for k,v in self.tuner_settings.items():
             try:
                 slot = self.slots[int(k)]
-            except (IndexError, ValueError):
+            except:
                 pass
             else:
                 slot.on_new_tuner_settings(v)
 
     def on_new_devinfo(self, devinfo):
         self.tuner_status = devinfo
-        if "connected" in devinfo:
-            connected = devinfo["connected"]
-            if connected is False:
-                self.update_slots(set([]))
 
-        if "hw_cfg" in devinfo and connected:
+        if "hw_cfg" in devinfo:
             hw_cfg = devinfo["hw_cfg"]
             indexes = []
             for idx in range(4):
@@ -145,13 +215,5 @@ class TunerSettingsDialog(BaseDialog):
         if id is not None:
             if id in self.slots:
                 self.slots[id].on_new_params(params)
-        # self.status_box.signal_params_view.set_signal_params(modulation,
-        #                                                      params)
-        # self.status_box.measured_data_view.device = \
-        #                         self.status_box.signal_params_view.device
-        # self.status_box.set_tuner_status_text_and_color(status)
-        # if status == 0x8000:
-        #     self.status_box.measured_data_view.store_filter.refilter()
-        #     self.status_box.signal_params_view.store_filter.refilter()
 
 

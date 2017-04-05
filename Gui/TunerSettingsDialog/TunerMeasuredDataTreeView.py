@@ -76,7 +76,7 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
 
     def set_measured_params(self, data):
 
-        self.measured_data.update(data)
+        self.measured_data = data
         # set rf power
         iter_ = self.store.get_iter_from_string('0')
         rf_power = self.measured_data.get("rf_power", 0xffff)

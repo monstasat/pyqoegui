@@ -41,6 +41,11 @@ class DVBTunerControl(GObject.GObject):
         self.meas = {}
         self.params = {}
 
+        self.emit_flags_lock = threading.Lock()
+        self.new_devinfo = False
+        self.new_meas = False
+        self.new_params = False
+
         self.thread_active = True
         self.reading_thread = threading.Thread(target=self.read_from_port, args=())
         self.reading_thread.start()
@@ -48,11 +53,13 @@ class DVBTunerControl(GObject.GObject):
         self.settings_changed = False
         self.settings_lock = threading.Lock()
 
+        GObject.timeout_add(1000, self.on_pass_data)
+
     def flush(self):
         timeout = self.serial.timeout
-        self.serial.timeout = 0
+        self.set_timeout(0)
         flush_buf = self.read(100000000)
-        self.serial.timeout = timeout
+        self.set_timeout(timeout)
 
     def read(self, size):
         if self.serial.isOpen() is True:
@@ -73,6 +80,14 @@ class DVBTunerControl(GObject.GObject):
                 pass
                 # self.serial.close()
         return n
+
+    def set_timeout(self, t):
+        try:
+            self.serial.timeout = t
+        except:
+            return False
+        else:
+            return True
 
     def serial_ports(self):
         ports = glob.glob('/dev/tty[A-Za-z]*')
@@ -106,7 +121,7 @@ class DVBTunerControl(GObject.GObject):
                 self.serial.xonxoff = False
                 self.serial.dsrdtr = False
                 self.serial.rtscts = False
-                self.serial.timeout = TIME_RESPONSE_MSG
+                self.set_timeout(TIME_RESPONSE_MSG)
             except:
                 self.serial.close()
                 continue
@@ -138,7 +153,7 @@ class DVBTunerControl(GObject.GObject):
 
     def read_rsp_ok(self):
         cnt = 0
-        self.serial.timeout = TIME_RESPONSE_OK
+        self.set_timeout(TIME_RESPONSE_OK)
 
         buf = self.read(UART_RSP_LEN_OK + 5)
         success = True
@@ -156,7 +171,7 @@ class DVBTunerControl(GObject.GObject):
                (buf_list[2] != UART_TAG_OK):
                 success = False
 
-        self.serial.timeout = TIME_RESPONSE_MSG
+        self.set_timeout(TIME_RESPONSE_MSG)
         return success
 
     def get_devinfo(self):
@@ -210,10 +225,10 @@ class DVBTunerControl(GObject.GObject):
                 how_many_tuners = len(indexes)
                 self.tuner_idxs = indexes
 
-                data = {"serial": serial, "hw_ver": hw_ver,
-                        "fpga_ver": fpga_ver, "soft_ver": soft_ver,
-                        "hw_cfg": hw_cfg, "tuner_idxs": indexes,
-                        "asi": asi}
+                data = {"connected": True, "serial": serial,
+                        "hw_ver": hw_ver, "fpga_ver": fpga_ver,
+                        "soft_ver": soft_ver, "hw_cfg": hw_cfg,
+                        "tuner_idxs": indexes, "asi": asi}
 
         # return received data
         return data
@@ -404,6 +419,9 @@ class DVBTunerControl(GObject.GObject):
 
         return answ_dict
 
+    def get_plp_list(self):
+        pass
+
     # computes message crc
     def compute_crc(self, msg):
         crc = 0
@@ -436,7 +454,8 @@ class DVBTunerControl(GObject.GObject):
                 if connected is True:
                     connected = False
                     self.devinfo["connected"] = connected
-                    self.emit_devinfo({"connected": connected})
+                    with self.emit_flags_lock:
+                        self.new_devinfo = True
 
                 self.connect_to_port()
                 # if opening port succeeded
@@ -458,7 +477,11 @@ class DVBTunerControl(GObject.GObject):
                 if connected is False:
                     connected = True
                     self.devinfo["connected"] = connected
-                    self.emit_devinfo(self.devinfo)
+                    devinfo_prev_time = 0
+                    meas_prev_time = 0
+                    params_prev_time = 0
+                    with self.emit_flags_lock:
+                        self.new_devinfo = True
 
                 # apply settings if necessary
                 with self.settings_lock:
@@ -483,8 +506,9 @@ class DVBTunerControl(GObject.GObject):
                     devinfo = self.get_devinfo()
                     devinfo["connected"] = connected
                     if self.devinfo != devinfo:
-                        self.emit_devinfo(devinfo)
                         self.devinfo = devinfo
+                        with self.emit_flags_lock:
+                            self.new_devinfo = True
 
                     devinfo_prev_time = cur_time
 
@@ -493,8 +517,9 @@ class DVBTunerControl(GObject.GObject):
                    len(self.meas) == 0:
                     meas = self.get_meas()
                     if self.meas != meas:
-                        self.emit_meas(meas)
                         self.meas = meas
+                        with self.emit_flags_lock:
+                            self.new_meas = True
 
                     meas_prev_time = cur_time
 
@@ -502,12 +527,29 @@ class DVBTunerControl(GObject.GObject):
                    len(self.params) == 0:
                     params = self.get_params()
                     if self.params != params:
-                        self.emit_params(params)
                         self.params = params
+                        with self.emit_flags_lock:
+                            self.new_params = True
 
                     params_prev_time = cur_time
 
                 time.sleep(0.5)
+
+        return True
+
+    def on_pass_data(self):
+        with self.emit_flags_lock:
+            if self.new_devinfo:
+                self.emit_devinfo(self.devinfo)
+                self.new_devinfo = False
+
+            if self.new_meas:
+                self.emit_meas(self.meas)
+                self.new_meas = False
+
+            if self.new_params:
+                self.emit_params(self.params)
+                self.new_params = False
 
         return True
 

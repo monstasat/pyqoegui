@@ -38,7 +38,7 @@ class BaseDialog(Gtk.Dialog):
 
     # when dialog is to be shown
     def on_shown(self, widget):
-        self.show_all()
+        widget.show_all()
 
     # event when user clicks apply button
     def on_btn_clicked_apply(self, widget):

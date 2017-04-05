@@ -83,6 +83,10 @@ class TunerStatusBox(Gtk.Box):
                 self.slot_connected = slot_connected
                 self.set_tuner_status_text_and_color()
 
+        if self.host_connected is False or \
+           self.slot_connected is False:
+            self.measured_data_view.set_measured_params({})
+
     def on_new_meas(self, meas):
         lock = meas.get("lock", False)
         if self.lock != lock:

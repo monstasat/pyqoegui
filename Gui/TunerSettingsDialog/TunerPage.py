@@ -7,7 +7,7 @@ from Gui.TunerSettingsDialog.TunerSettingsBox import TunerSettingsBox
 from Gui import Spacing
 
 class TunerPage(Gtk.Box):
-    def __init__(self, slot_id, tuner_settings, standard_model):
+    def __init__(self, slot_id, settings, standard_model):
         # standard selection page
         Gtk.Box.__init__(self,
                          spacing=Spacing.ROW_SPACING,
@@ -16,8 +16,6 @@ class TunerPage(Gtk.Box):
                          halign=Gtk.Align.FILL,
                          vexpand=True,
                          hexpand=True)
-
-        self.set_property("margin_top", 5)
 
         self.slot_id = slot_id
 
@@ -33,7 +31,7 @@ class TunerPage(Gtk.Box):
         self.dvbt2_box = TunerSettingsBox(DVBT2)
         self.dvbt_box = TunerSettingsBox(DVBT)
         self.dvbc_box = TunerSettingsBox(DVBC)
-        self.status_box = TunerStatusBox(slot_id, tuner_settings.get(slot_id, {}))
+        self.status_box = TunerStatusBox(slot_id, settings)
 
         # fill page list with created pages
         self.pages = []
@@ -60,6 +58,8 @@ class TunerPage(Gtk.Box):
         self.pack_start(self.stackSidebar, False, False, 0)
         self.pack_start(separator, False, False, 0)
         self.pack_start(self.stack, True, True, 0)
+
+        self.on_new_tuner_settings(settings)
 
     def on_new_tuner_settings(self, settings):
         if "device" in settings:
