@@ -14,8 +14,12 @@ TIME_RESPONSE_MSG          = 2
 TIME_GET_DEVINFO           = 10
 TIME_GET_MEAS              = 1
 TIME_GET_PARAMS            = 10
+TIME_GET_PLP_LIST          = 10
 
 # tags and commands
+HEADER_LEN                 = 3
+TAIL_LEN                   = 2
+
 UART_TAG_START             = 0xAA
 UART_TAG_START_INV         = 0x55
 UART_TAG_STOP              = 0xFE

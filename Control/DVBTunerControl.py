@@ -40,11 +40,13 @@ class DVBTunerControl(GObject.GObject):
         self.devinfo = {}
         self.meas = {}
         self.params = {}
+        self.plp_list = {}
 
         self.emit_flags_lock = threading.Lock()
         self.new_devinfo = False
         self.new_meas = False
         self.new_params = False
+        self.new_plp_list = False
 
         self.thread_active = True
         self.reading_thread = threading.Thread(target=self.read_from_port, args=())
@@ -155,20 +157,23 @@ class DVBTunerControl(GObject.GObject):
         cnt = 0
         self.set_timeout(TIME_RESPONSE_OK)
 
-        buf = self.read(UART_RSP_LEN_OK + 5)
+        length = UART_RSP_LEN_OK + HEADER_LEN + TAIL_LEN
+        buf = self.read(length)
         success = True
-        while (len(buf) != UART_RSP_LEN_OK + 5):
+        while (len(buf) != length):
             if cnt == 2:
                 success = False
                 break
             cnt += 1
-            buf = self.read(UART_RSP_LEN_OK + 5)
+            buf = self.read(length)
 
         if success is True:
             buf_list = struct.unpack("=HBBBBB", buf)
+            crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
             if (self.check_start_tag(buf_list[0]) is False) or \
-               (self.compute_crc(buf_list[2:-2]) != buf_list[-2]) or \
-               (buf_list[2] != UART_TAG_OK):
+               (crc != buf_list[-TAIL_LEN]) or \
+               (buf_list[2] != UART_TAG_OK) or \
+               (buf_list[-1] != UART_TAG_STOP):
                 success = False
 
         self.set_timeout(TIME_RESPONSE_MSG)
@@ -184,34 +189,33 @@ class DVBTunerControl(GObject.GObject):
                           UART_CMD_LEN_DEVINFO,
                           UART_TAG_DEVINFO,
                           0x00)
-
         # compute and append crc to message
-        crc = self.compute_crc(msg[3:])
+        crc = self.compute_crc(msg[HEADER_LEN:])
         msg += struct.pack('B', crc)
-
         # append message_stop
         msg += struct.pack('B', UART_TAG_STOP)
-
         # send message to tuner
         n = self.write(msg)
 
         # read tuner answer
         data = {}
-
         if self.read_rsp_ok() is False:
             self.disconnect()
             return data
 
-        buf = self.read(UART_RSP_LEN_DEVINFO + 5)
-        if len(buf) == (UART_RSP_LEN_DEVINFO + 5):
+        length = UART_RSP_LEN_DEVINFO + HEADER_LEN + TAIL_LEN
+        buf = self.read(length)
+        if len(buf) == length:
             # [tag start, ~tag start], length, command,
             # serial num lsb, serial num msb, hw version,
             # fpga version, soft version, hardware cfg,
             # 0, 0, 0, 0, crc, tag stop
             buf_list = struct.unpack("=HBBBBBBBBBBBBBB", buf)
+            crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
             if self.check_start_tag(buf_list[0]) is True and \
-               self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
-               (buf_list[2] & 0xf0) == UART_TAG_DEVINFO:
+               crc == buf_list[-TAIL_LEN] and \
+               buf_list[2] == UART_TAG_DEVINFO and \
+               buf_list[-1] == UART_TAG_STOP:
                 serial = (buf_list[4] << 8) | buf_list[3]
                 hw_ver = buf_list[5]
                 fpga_ver = buf_list[6]
@@ -279,14 +283,11 @@ class DVBTunerControl(GObject.GObject):
                               frequency,
                               plp_id,
                               0)
-            
             # compute and append crc to message
-            crc = self.compute_crc(msg[3:])
+            crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
-            
             # append message_stop
             msg += struct.pack('B', UART_TAG_STOP)
-
             # send message to tuner
             n = self.write(msg)
 
@@ -295,12 +296,16 @@ class DVBTunerControl(GObject.GObject):
                 self.disconnect()
                 return answ_dict
 
-            answer = self.read(UART_RSP_LEN_TUNER_SET + 5)
-            if len(answer) == UART_RSP_LEN_TUNER_SET + 5:
+            length = UART_RSP_LEN_TUNER_SET + HEADER_LEN + TAIL_LEN
+            answer = self.read(length)
+            if len(answer) == length:
                 buf_list = struct.unpack("=HBBBBBBBBBBBBBB", answer)
+                crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
                 if self.check_start_tag(buf_list[0]) is True and \
-                   self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
-                   (buf_list[2] & 0xf0) == UART_TAG_TUNER_SET:
+                   crc == buf_list[-TAIL_LEN] and \
+                   (buf_list[2] & 0xf0) == UART_TAG_TUNER_SET and \
+                   (buf_list[2] & 0x0f) == k and \
+                   buf_list[-1] == UART_TAG_STOP:
                     # [tag start, tag start inv], length,
                     # tag|addr, mode, bw, hw present, dvbc qam,
                     # freq lsb, freq, freq, freq msb, lock, 0,
@@ -334,14 +339,11 @@ class DVBTunerControl(GObject.GObject):
                               UART_CMD_LEN_PARAMS,            # tag length
                               UART_TAG_PARAMS | int(i),       # cmd setconf | tuner addr
                               0)
-            
             # compute and append crc to message
-            crc = self.compute_crc(msg[3:])
+            crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
-            
             # append message_stop
             msg += struct.pack('B', UART_TAG_STOP)
-
             # send request to tuner
             n = self.write(msg)
 
@@ -350,12 +352,16 @@ class DVBTunerControl(GObject.GObject):
                 self.disconnect()
                 return answ_dict
 
-            answer = self.read(UART_RSP_LEN_PARAMS + 5)
-            if len(answer) == UART_RSP_LEN_PARAMS + 5:
+            length = UART_RSP_LEN_PARAMS + HEADER_LEN + TAIL_LEN
+            answer = self.read(length)
+            if len(answer) == length:
                 buf_list = struct.unpack("=H" + ((UART_RSP_LEN_PARAMS + 3)*'B'), answer)
+                crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
                 if self.check_start_tag(buf_list[0]) is True and \
-                   self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
-                   (buf_list[2] & 0xf0) == UART_TAG_PARAMS:
+                   crc == buf_list[-TAIL_LEN] and \
+                   (buf_list[2] & 0xf0) == UART_TAG_PARAMS and \
+                   (buf_list[2] & 0x0f) == i and \
+                   buf_list[-1] == UART_TAG_STOP:
 
                     data = {"void": None}
 
@@ -378,12 +384,10 @@ class DVBTunerControl(GObject.GObject):
                               0)
             
             # compute and append crc to message
-            crc = self.compute_crc(msg[3:])
+            crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
-            
             # append message_stop
             msg += struct.pack('B', UART_TAG_STOP)
-
             # send request to tuner
             n = self.write(msg)
 
@@ -392,12 +396,16 @@ class DVBTunerControl(GObject.GObject):
                 self.disconnect()
                 return answ_dict
 
-            answer = self.read(UART_RSP_LEN_MEAS + 5)
-            if len(answer) == UART_RSP_LEN_MEAS + 5:
+            length = UART_RSP_LEN_MEAS + HEADER_LEN + TAIL_LEN
+            answer = self.read(length)
+            if len(answer) == length:
                 buf_list = struct.unpack("=H" + ((UART_RSP_LEN_MEAS + 3)*'B'), answer)
+                crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
                 if self.check_start_tag(buf_list[0]) is True and \
-                   self.compute_crc(buf_list[2:-2]) == buf_list[-2] and \
-                   (buf_list[2] & 0xf0) == UART_TAG_MEAS:
+                   crc == buf_list[-TAIL_LEN] and \
+                   (buf_list[2] & 0xf0) == UART_TAG_MEAS and \
+                   (buf_list[2] & 0x0f) == i and \
+                   buf_list[-1] == UART_TAG_STOP:
                     # [tag start, tag start inv], length, tag|addr,
                     # lock, rf power lsb, rf power msb,
                     # mer lsb, mer msb, ber lsb, ber, ber, ber msb,
@@ -420,7 +428,67 @@ class DVBTunerControl(GObject.GObject):
         return answ_dict
 
     def get_plp_list(self):
-        pass
+        self.flush()
+
+        answ_dict = {}
+        for i in self.tuner_idxs:
+            
+            # construct message
+            msg = struct.pack('=BBBBB',
+                              UART_TAG_START,                 # message start
+                              UART_TAG_START_INV,             # message start inverted
+                              UART_CMD_LEN_PLP_LIST,          # tag length
+                              UART_TAG_PLP_LIST | int(i),     # cmd setconf | tuner addr
+                              0)
+            # compute and append crc to message
+            crc = self.compute_crc(msg[HEADER_LEN:])
+            msg += struct.pack('B', crc)
+            # append message_stop
+            msg += struct.pack('B', UART_TAG_STOP)
+            # send request to tuner
+            n = self.write(msg)
+
+            # return tuner answer
+            if self.read_rsp_ok() is False:
+                self.disconnect()
+                return answ_dict
+
+            header = self.read(HEADER_LEN)
+            if len(header) != HEADER_LEN:
+                continue
+            header_buf = struct.unpack("=HB", header)
+            if self.check_start_tag(header_buf[0]) is False:
+                continue
+
+            length = header_buf[1] + TAIL_LEN
+            payload = self.read(length)
+            if len(payload) == length:
+                answer = header + payload
+                buf_list = struct.unpack("=H" + (length+HEADER_LEN-2)*'B',
+                                         answer)
+                crc = self.compute_crc(buf_list[HEADER_LEN-1:-TAIL_LEN])
+                if self.check_start_tag(buf_list[0]) is True and \
+                   crc == buf_list[-TAIL_LEN] and \
+                   (buf_list[2] & 0xf0) == UART_TAG_PLP_LIST and \
+                   (buf_list[2] & 0x0f) == i and \
+                   buf_list[-1] == UART_TAG_STOP and \
+                   buf_list[4] == length - TAIL_LEN - 3:
+                    # [tag start, tag start inv], length, tag|addr,
+                    # lock, plp qty, plp_id[0], ... , plp_id[n],
+                    # crc, tag stop
+
+                    lock = (buf_list[3] == 0xff)
+                    plp_qty = buf_list[4]
+                    plps = []
+                    for k in range(plp_qty):
+                        plps.append(buf_list[5+k])
+
+                    data = {"lock": lock, "plp_qty": plp_qty,
+                            "plps": plps}
+                    answ_dict.update(dict([(i, data),]))
+
+        print(answ_dict)
+        return answ_dict
 
     # computes message crc
     def compute_crc(self, msg):
@@ -441,6 +509,7 @@ class DVBTunerControl(GObject.GObject):
         devinfo_prev_time = 0
         meas_prev_time = 0
         params_prev_time = 0
+        plp_list_prev_time = 0
 
         cur_time = 0
 
@@ -449,6 +518,7 @@ class DVBTunerControl(GObject.GObject):
             devinfo = {}
             meas = {}
             params = {}
+            plp_list = {}
             # try to connect to tuner
             if self.serial.isOpen() is False:
                 if connected is True:
@@ -532,6 +602,15 @@ class DVBTunerControl(GObject.GObject):
                             self.new_params = True
 
                     params_prev_time = cur_time
+
+                if plp_list_prev_time < (cur_time - TIME_GET_PLP_LIST):
+                    plp_list = self.get_plp_list()
+                    if self.plp_list != plp_list:
+                        self.plp_list = plp_list
+                        with self.emit_flags_lock:
+                            self.new_plp_list = True
+
+                    plp_list_prev_time = cur_time
 
                 time.sleep(0.5)
 
