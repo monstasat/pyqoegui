@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 
-from Control.DVBTunerConstants import DVBC, DVBT, DVBT2
+from Control.DVBTunerConstants import DVBUNK, DVBT2, DVBT, DVBC
 
 
 # tree view that displays tuner measured data
@@ -75,33 +75,36 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
         self.settings.update(settings)
 
     def set_measured_params(self, data):
+        MAX_DWORD = 0xffffffff
+        MAX_WORD = 0xffff
+        MAX_BYTE = 0xff
 
         self.measured_data = data
         # set rf power
         iter_ = self.store.get_iter_from_string('0')
-        rf_power = self.measured_data.get("rf_power", 0xffff)
-        self.store[iter_][1] = self.unknown if rf_power == 0xffff \
+        rf_power = self.measured_data.get("rf_power", MAX_WORD)
+        self.store[iter_][1] = self.unknown if rf_power == MAX_WORD \
                                else str(-rf_power / 10)
         # set mer
         iter_ = self.store.get_iter_from_string('1')
-        mer = self.measured_data.get("mer", 0xffff)
-        self.store[iter_][1] = self.unknown if mer == 0xffff \
+        mer = self.measured_data.get("mer", MAX_WORD)
+        self.store[iter_][1] = self.unknown if mer == MAX_WORD \
                                else str(mer / 10.)
         # set ber
         iter_ = self.store.get_iter_from_string('2')
-        ber = self.measured_data.get("ber", -1)
-        self.store[iter_][1] = self.unknown if ber == -1 \
+        ber = self.measured_data.get("ber", MAX_DWORD)
+        self.store[iter_][1] = self.unknown if ber == MAX_DWORD \
                                else "%.3e" % (ber / (2**24))
 
         # set frequency
         iter_ = self.store.get_iter_from_string('3')
-        freq = self.measured_data.get("freq", -1)
-        self.store[iter_][1] = self.unknown if freq == -1 \
+        freq = self.measured_data.get("freq", MAX_DWORD)
+        self.store[iter_][1] = self.unknown if freq == MAX_DWORD \
                                else str(freq)
 
         # set frequency
         iter_ = self.store.get_iter_from_string('4')
-        device = self.settings.get("device", -1)
+        device = self.settings.get("device", DVBUNK)
         # print(self.slot_id, self.settings)
         if device in [DVBT2, DVBT, DVBC]:
             if device == DVBT2:
@@ -111,14 +114,14 @@ class TunerMeasuredDataTreeView(Gtk.TreeView):
             elif device == DVBC:
                 frequency = self.settings.get("c_freq", -1)
             else:
-                frequency = -1
+                frequency = MAX_DWORD
 
-            if frequency != -1:
-                self.store[iter_][1] = self.unknown if freq == -1 \
+            if frequency != MAX_DWORD:
+                self.store[iter_][1] = self.unknown if freq == MAX_DWORD \
                                        else str(frequency - freq)
         # set bitrate
         iter_ = self.store.get_iter_from_string('5')
-        br = self.measured_data.get("bitrate", -1)
-        self.store[iter_][1] = self.unknown if br == -1 \
+        br = self.measured_data.get("bitrate", MAX_DWORD)
+        self.store[iter_][1] = self.unknown if br == MAX_DWORD \
                                else str(br / 1000000.)
 

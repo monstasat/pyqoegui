@@ -4,6 +4,7 @@ import glob
 import struct
 import threading
 import time
+import json
 
 from gi.repository import GObject
 
@@ -15,15 +16,13 @@ class DVBTunerControl(GObject.GObject):
 
     __gsignals__ = {
         CustomMessages.NEW_TUNER_DEVINFO: (GObject.SIGNAL_RUN_FIRST,
-                                           None, (bool, int, int, int, int, int)),
+                                           None, (str,)),
         CustomMessages.NEW_TUNER_MEAS: (GObject.SIGNAL_RUN_FIRST,
-                                        None,
-                                        (int, bool, int, int,
-                                         int, int, int)),
+                                        None, (str,)),
         CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
-                                          None, (int, int, int)),
+                                          None, (str,)),
         CustomMessages.NEW_TUNER_PLP_LIST: (GObject.SIGNAL_RUN_FIRST,
-                                            None, (int, bool, int, str)),
+                                            None, (str,)),
         CustomMessages.TUNER_SETTINGS_APPLIED: (GObject.SIGNAL_RUN_FIRST,
                                                 None, (int,))}
 
@@ -706,38 +705,19 @@ class DVBTunerControl(GObject.GObject):
         return True
 
     def emit_devinfo(self, devinfo):
-        self.emit(CustomMessages.NEW_TUNER_DEVINFO,
-                  devinfo.get("connected", False),
-                  devinfo.get("serial", 0),
-                  devinfo.get("hw_ver", 0),
-                  devinfo.get("fpga_ver", 0),
-                  devinfo.get("soft_ver", 0),
-                  devinfo.get("hw_cfg", 0))
+        s = json.dumps(list(devinfo.items()))
+        self.emit(CustomMessages.NEW_TUNER_DEVINFO, s)
 
     def emit_meas(self, meas):
-        for k,v in meas.items():
-            self.emit(CustomMessages.NEW_TUNER_MEAS,
-                      k,
-                      v["lock"],
-                      v["rf_power"],
-                      v["mer"],
-                      v["ber"],
-                      v["freq"],
-                      v["bitrate"])
+        s = json.dumps(list(meas.items()))
+        self.emit(CustomMessages.NEW_TUNER_MEAS, s)
 
     def emit_params(self, params):
-        for k,v in params.items():
-            pass
+        s = json.dumps(list(params.items()))
+        self.emit(CustomMessages.NEW_TUNER_PARAMS, s)
 
     def emit_plp_list(self, plp_list):
-        for k,v in plp_list.items():
-            l = v.get("plps", [])
-            q = v.get("plp_qty", 0)
-            plp_str = ' '.join([str(x) for x in l])
-            self.emit(CustomMessages.NEW_TUNER_PLP_LIST,
-                      k,
-                      v.get("lock", False),
-                      q,
-                      plp_str)
+        s = json.dumps(list(plp_list.items()))
+        self.emit(CustomMessages.NEW_TUNER_PLP_LIST, s)
 
 

@@ -1,6 +1,7 @@
 import psutil
 import os
 import re
+import json
 
 from gi.repository import Gio, GObject
 
@@ -387,36 +388,25 @@ class Control(GObject.GObject):
         pass
 
     # Tuner control sent a message with new status
-    def on_new_tuner_status(self, source, connected, serial, hw_ver,
-                            fpga_ver, soft_ver, hw_cfg):
-        devinfo = {"connected": connected, "serial": serial,
-                   "hw_ver": hw_ver, "fpga_ver": fpga_ver,
-                   "soft_ver": soft_ver, "hw_cfg": hw_cfg}
+    def on_new_tuner_status(self, source, jdevinfo):
+        devinfo = dict(json.loads(jdevinfo))
         for interface in self.interfaces:
             interface.update_tuner_status(devinfo)
 
     # Tuner control sent a message with new measured data
-    def on_new_tuner_measured_data(self, source, tuner_id, lock, rf_power,
-                                   mer, ber, freq, bitrate):
-
-        measured_data = {"id": tuner_id, "lock": lock,
-                         "rf_power": rf_power, "mer": mer, "ber": ber,
-                         "freq": freq, "bitrate": bitrate}
-
-        list(map(lambda x: x.update_tuner_measured_data(measured_data),
+    def on_new_tuner_measured_data(self, source, jmeas):
+        meas = dict(json.loads(jmeas))
+        list(map(lambda x: x.update_tuner_measured_data(meas),
                  self.interfaces))
 
     # Tuner control sent a message with new tuner params
-    def on_new_tuner_params(self, source, status, modulation, params):
+    def on_new_tuner_params(self, source, jparams):
+        params = dict(json.loads(jparams))
         for interface in self.interfaces:
-            interface.update_tuner_params(status, modulation, params)
+            interface.update_tuner_params(params)
 
-    def on_new_tuner_plp_list(self, source, tuner_id, lock,
-                              plp_qty, plps_str):
-        plps = [int(s) for s in plps_str.split() if s.isdigit()]
-        plp_list = {"id": tuner_id, "lock": lock,
-                    "plp_qty": plp_qty, "plps": plps}
-        
+    def on_new_tuner_plp_list(self, source, jplp_list):
+        plp_list = dict(json.loads(jplp_list))
         for interface in self.interfaces:
             interface.update_tuner_plp_list(plp_list)
 

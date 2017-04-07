@@ -1,4 +1,5 @@
 # standard constants
+DVBUNK = -1
 DVBT2 = 0
 DVBT = 1
 DVBC = 2

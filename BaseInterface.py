@@ -110,20 +110,14 @@ class BaseInterface(GObject.GObject):
 
     # called by Control to update tuner parameters
     def update_tuner_params(self, params):
-        index = params.get('id', None)
-        if index is not None:
-            self.tuner_params[index] = params.copy()
+        self.tuner_params = params.copy()
 
     # called by Control to update tuner measured data
     def update_tuner_measured_data(self, meas):
-        index = meas.get('id', None)
-        if index is not None:
-            self.tuner_meas[index] = meas.copy()
+        self.tuner_meas = meas.copy()
 
     def update_tuner_plp_list(self, plp_list):
-        index = plp_list.get('id', None)
-        if index is not None:
-            self.tuner_plp_list[index] = plp_list.copy()
+        self.tuner_plp_list = plp_list.copy()
 
     # called by Error Detector to update analysis results
     def update_analysis_results(self, results):

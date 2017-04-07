@@ -201,35 +201,27 @@ class TunerSettingsDialog(BaseDialog):
     def on_new_devinfo(self, devinfo):
         self.tuner_status = devinfo
 
-        if "hw_cfg" in devinfo:
-            hw_cfg = devinfo["hw_cfg"]
-            indexes = []
-            for idx in range(4):
-                if (hw_cfg & (2**idx)) > 0:
-                    indexes.append(idx)
-
-            if len(self.tuner_idxs.symmetric_difference(indexes)) > 0:
-                self.update_slots(indexes)
+        if "tuner_idxs" in devinfo:
+            tuner_idxs = devinfo['tuner_idxs']
+            if len(self.tuner_idxs.symmetric_difference(tuner_idxs)) > 0:
+                self.update_slots(tuner_idxs)
 
         for i,slot in self.slots.items():
             slot.on_new_devinfo(devinfo)
 
     def on_new_meas(self, meas):
-        id = meas.get("id", None)
-        if id is not None:
+        for id,v in meas.items():
             if id in self.slots:
-                self.slots[id].on_new_meas(meas)
+                self.slots[id].on_new_meas(v)
 
     def on_new_params(self, params):
-        id = params.get("id", None)
-        if id is not None:
+        for id,v in params.items():
             if id in self.slots:
-                self.slots[id].on_new_params(params)
+                self.slots[id].on_new_params(v)
 
     def on_new_plp_list(self, plp_list):
-        id = plp_list.get("id", None)
-        if id is not None:
+        for id,v in plp_list.items():
             if id in self.slots:
-                self.slots[id].on_new_plp_list(plp_list)
+                self.slots[id].on_new_plp_list(v)
 
 
