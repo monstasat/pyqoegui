@@ -89,6 +89,7 @@ class TunerSettingsDialog(BaseDialog):
         settings = self.tuner_settings.get(index, {})
         slot = TunerPage(index, settings, self.standard_model)
         slot.set_property("margin_top", 5)
+        slot.stack.connect("notify::visible-child", self.stack_page_switched, index)
         if index in self.slots:
             self.slots[index].destroy()
 
@@ -96,6 +97,14 @@ class TunerSettingsDialog(BaseDialog):
         self.slot_selector.append_page(
             slot,
             Gtk.Label("Модуль " + str(index + 1)))
+
+    def stack_page_switched(self, *args):
+        stack = args[0]
+        index = args[2]
+        name = stack.get_visible_child_name()
+        for i,slot in self.slots.items():
+            if i != index:
+                slot.stack.set_visible_child_name(name)
 
     def remove_slot(self, index):
         if index in self.slots:

@@ -44,6 +44,7 @@ class TunerPage(Gtk.Box):
         # create stack
         self.stack = Gtk.Stack(halign=Gtk.Align.FILL, hexpand=True)
         self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_UP_DOWN)
+        # add callback when page is switched
         list(map(lambda x: self.stack.add_titled(x[0], x[1], x[2]),
                  self.pages))
 

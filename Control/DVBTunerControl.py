@@ -325,7 +325,7 @@ class DVBTunerControl(GObject.GObject):
                                           (buf_list[9] << 16) |
                                           (buf_list[8] << 8) |
                                           buf_list[7]),
-                            "lock": buf_list[11]}
+                            "lock": (buf_list[11] == 0xff)}
 
                     answ_dict.update(dict([(k, data),]))
                     self.emit(CustomMessages.TUNER_SETTINGS_APPLIED,
@@ -373,8 +373,40 @@ class DVBTunerControl(GObject.GObject):
                    (buf_list[2] & 0xf0) == UART_TAG_PARAMS and \
                    (buf_list[2] & 0x0f) == i and \
                    buf_list[-1] == UART_TAG_STOP:
-
-                    data = {"void": None}
+                    # [tag start, tag start inv](0),
+                    # length(1),
+                    # tag|addr(2),
+                    data = {'lock': (buf_list[3] == 0xff),
+                            'fft': buf_list[4],
+                            'guard': buf_list[5],
+                            'bw_ext': buf_list[6],
+                            'papr': buf_list[7],
+                            'l1_rept': buf_list[8],
+                            'l1_qam': buf_list[9],
+                            'l1_ch_freq': (buf_list[10] | (buf_list[11] << 8) | \
+                                           (buf_list[12] << 16) | (buf_list[13] << 24)),
+                            'l1_post_size': buf_list[14] | (buf_list[15] << 8),
+                            'l1_pos_info_size': buf_list[16] | (buf_list[17] << 8),
+                            'miso': buf_list[18],
+                            'sys_id': buf_list[19] | (buf_list[20] << 8),
+                            'net_id': buf_list[21] | (buf_list[22] << 8),
+                            'cell_id': buf_list[23] | (buf_list[24] << 8),
+                            't2_frames': buf_list[25],
+                            'ofdm_syms': buf_list[26] | (buf_list[27] << 8),
+                            'pp': buf_list[28],
+                            'plp_qty': buf_list[29],
+                            'tx_id_avail': buf_list[30],
+                            'num_rf': buf_list[31],
+                            'cur_rf_id': buf_list[32],
+                            'rfu': buf_list[33],
+                            'cur_plp_id': buf_list[34],
+                            'type_': buf_list[35],
+                            'code_rate': buf_list[36],
+                            'plp_qam': buf_list[37],
+                            'rotation': buf_list[38],
+                            'fec_size': buf_list[39],
+                            'fec_block_num': buf_list[40] | (buf_list[41] << 8),
+                            'in_band_flag': buf_list[42]}
 
                     answ_dict.update(dict([(i, data),]))
 
