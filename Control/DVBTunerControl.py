@@ -22,6 +22,8 @@ class DVBTunerControl(GObject.GObject):
                                          int, int, int)),
         CustomMessages.NEW_TUNER_PARAMS: (GObject.SIGNAL_RUN_FIRST,
                                           None, (int, int, int)),
+        CustomMessages.NEW_TUNER_PLP_LIST: (GObject.SIGNAL_RUN_FIRST,
+                                            None, (int, bool, int, str)),
         CustomMessages.TUNER_SETTINGS_APPLIED: (GObject.SIGNAL_RUN_FIRST,
                                                 None, (int,))}
 
@@ -36,6 +38,7 @@ class DVBTunerControl(GObject.GObject):
         self.serial_ports()
 
         self.tuner_idxs = set([])
+        self.locks = {}
 
         self.devinfo = {}
         self.meas = {}
@@ -263,7 +266,7 @@ class DVBTunerControl(GObject.GObject):
             elif device == DVBC:
                 frequency = slot_settings['c_freq']
                 modulation = 0 #modulation = slot_settings['c_mod']
-                width = 0 #width = slot_settings['c_bw']
+                width = slot_settings['c_bw']
                 plp_id = 0
                 # if standard is unknown, return empty array
             else:
@@ -271,18 +274,22 @@ class DVBTunerControl(GObject.GObject):
                 continue
         
             # construct message
-            msg = struct.pack('=BBBBBBBBIBB',
-                              UART_TAG_START,                 # message start
-                              UART_TAG_START_INV,             # message start inverted
-                              UART_CMD_LEN_TUNER_SET,         # tag length
-                              UART_TAG_TUNER_SET | int(k),    # cmd setconf | tuner addr
-                              device + 1,                     # tuner mode
-                              3 - width,                      # tuner bandwidth
-                              0,
-                              modulation,
-                              frequency,
-                              plp_id,
-                              0)
+            try:
+                msg = struct.pack('=BBBBBBBBIBB',
+                                  UART_TAG_START,                 # message start
+                                  UART_TAG_START_INV,             # message start inverted
+                                  UART_CMD_LEN_TUNER_SET,         # tag length
+                                  UART_TAG_TUNER_SET | int(k),    # cmd setconf | tuner addr
+                                  device + 1,                     # tuner mode
+                                  3 - width,                      # tuner bandwidth
+                                  0,
+                                  modulation,
+                                  frequency,
+                                  plp_id,
+                                  0)
+            except:
+                continue
+
             # compute and append crc to message
             crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
@@ -333,12 +340,16 @@ class DVBTunerControl(GObject.GObject):
         for i in self.tuner_idxs:
             
             # construct message
-            msg = struct.pack('=BBBBB',
-                              UART_TAG_START,                 # message start
-                              UART_TAG_START_INV,             # message start inverted
-                              UART_CMD_LEN_PARAMS,            # tag length
-                              UART_TAG_PARAMS | int(i),       # cmd setconf | tuner addr
-                              0)
+            try:
+                msg = struct.pack('=BBBBB',
+                                  UART_TAG_START,                 # message start
+                                  UART_TAG_START_INV,             # message start inverted
+                                  UART_CMD_LEN_PARAMS,            # tag length
+                                  UART_TAG_PARAMS | int(i),       # cmd setconf | tuner addr
+                                  0)
+            except:
+                continue
+
             # compute and append crc to message
             crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
@@ -376,12 +387,15 @@ class DVBTunerControl(GObject.GObject):
         for i in self.tuner_idxs:
             
             # construct message
-            msg = struct.pack('=BBBBB',
-                              UART_TAG_START,                 # message start
-                              UART_TAG_START_INV,             # message start inverted
-                              UART_CMD_LEN_MEAS,              # tag length
-                              UART_TAG_MEAS | int(i),         # cmd setconf | tuner addr
-                              0)
+            try:
+                msg = struct.pack('=BBBBB',
+                                  UART_TAG_START,                 # message start
+                                  UART_TAG_START_INV,             # message start inverted
+                                  UART_CMD_LEN_MEAS,              # tag length
+                                  UART_TAG_MEAS | int(i),         # cmd setconf | tuner addr
+                                  0)
+            except:
+                continue
             
             # compute and append crc to message
             crc = self.compute_crc(msg[HEADER_LEN:])
@@ -434,12 +448,16 @@ class DVBTunerControl(GObject.GObject):
         for i in self.tuner_idxs:
             
             # construct message
-            msg = struct.pack('=BBBBB',
-                              UART_TAG_START,                 # message start
-                              UART_TAG_START_INV,             # message start inverted
-                              UART_CMD_LEN_PLP_LIST,          # tag length
-                              UART_TAG_PLP_LIST | int(i),     # cmd setconf | tuner addr
-                              0)
+            try:
+                msg = struct.pack('=BBBBB',
+                                  UART_TAG_START,                 # message start
+                                  UART_TAG_START_INV,             # message start inverted
+                                  UART_CMD_LEN_PLP_LIST,          # tag length
+                                  UART_TAG_PLP_LIST | int(i),     # cmd setconf | tuner addr
+                                  0)
+            except:
+                continue
+
             # compute and append crc to message
             crc = self.compute_crc(msg[HEADER_LEN:])
             msg += struct.pack('B', crc)
@@ -487,7 +505,6 @@ class DVBTunerControl(GObject.GObject):
                             "plps": plps}
                     answ_dict.update(dict([(i, data),]))
 
-        print(answ_dict)
         return answ_dict
 
     # computes message crc
@@ -505,6 +522,7 @@ class DVBTunerControl(GObject.GObject):
     def read_from_port(self):
 
         connected = False
+        locks = {}
 
         devinfo_prev_time = 0
         meas_prev_time = 0
@@ -570,7 +588,9 @@ class DVBTunerControl(GObject.GObject):
 
                 cur_time = time.perf_counter()
 
-                # get devinfo
+                # get devinfo if
+                #   * timeout reached
+                #   * devinfo has not been fetched yet
                 if devinfo_prev_time < (cur_time - TIME_GET_DEVINFO) or \
                    len(self.devinfo) == 0:
                     devinfo = self.get_devinfo()
@@ -582,10 +602,14 @@ class DVBTunerControl(GObject.GObject):
 
                     devinfo_prev_time = cur_time
 
-                # get meas
+                # get meas if
+                #   * timeout reached
+                #   * meas has not been fetched yet
                 if meas_prev_time < (cur_time - TIME_GET_MEAS) or \
                    len(self.meas) == 0:
                     meas = self.get_meas()
+                    for k,v in meas.items():
+                        locks[k] = v.get('lock', False)
                     if self.meas != meas:
                         self.meas = meas
                         with self.emit_flags_lock:
@@ -593,8 +617,13 @@ class DVBTunerControl(GObject.GObject):
 
                     meas_prev_time = cur_time
 
+                # get params if
+                #   * timeout reached
+                #   * params has not been fetched yet
+                #   * tuner locks changed (e.g. lock lost or found)
                 if params_prev_time < (cur_time - TIME_GET_PARAMS) or \
-                   len(self.params) == 0:
+                   len(self.params) == 0 or \
+                   self.locks != locks:
                     params = self.get_params()
                     if self.params != params:
                         self.params = params
@@ -603,7 +632,13 @@ class DVBTunerControl(GObject.GObject):
 
                     params_prev_time = cur_time
 
-                if plp_list_prev_time < (cur_time - TIME_GET_PLP_LIST):
+                # get plp list if
+                #   * timeout reached
+                #   * plp list has not been fetched yet
+                #   * tuner locks changed (e.g. lock lost or found)
+                if plp_list_prev_time < (cur_time - TIME_GET_PLP_LIST) or \
+                   len(self.plp_list) == 0 or \
+                   self.locks != locks:
                     plp_list = self.get_plp_list()
                     if self.plp_list != plp_list:
                         self.plp_list = plp_list
@@ -611,6 +646,8 @@ class DVBTunerControl(GObject.GObject):
                             self.new_plp_list = True
 
                     plp_list_prev_time = cur_time
+
+                self.locks = locks.copy()
 
                 time.sleep(0.5)
 
@@ -629,6 +666,10 @@ class DVBTunerControl(GObject.GObject):
             if self.new_params:
                 self.emit_params(self.params)
                 self.new_params = False
+
+            if self.new_plp_list:
+                self.emit_plp_list(self.plp_list)
+                self.new_plp_list = False
 
         return True
 
@@ -655,4 +696,16 @@ class DVBTunerControl(GObject.GObject):
     def emit_params(self, params):
         for k,v in params.items():
             pass
+
+    def emit_plp_list(self, plp_list):
+        for k,v in plp_list.items():
+            l = v.get("plps", [])
+            q = v.get("plp_qty", 0)
+            plp_str = ' '.join([str(x) for x in l])
+            self.emit(CustomMessages.NEW_TUNER_PLP_LIST,
+                      k,
+                      v.get("lock", False),
+                      q,
+                      plp_str)
+
 

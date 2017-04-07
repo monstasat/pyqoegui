@@ -20,8 +20,10 @@ TUNER_SETTINGS_CHANGED = 'tuner_settings_changed'
 NEW_TUNER_DEVINFO = 'new_tuner_status'
 # new tuner measured data received
 NEW_TUNER_MEAS = 'new_tuner_measured_data'
-# new tuner signal params
+# new tuner params received
 NEW_TUNER_PARAMS = 'new_tuner_params'
+# on tuner plp list received
+NEW_TUNER_PLP_LIST = 'new_tuner_plp_list'
 # on tuner received new settings
 TUNER_SETTINGS_APPLIED = 'tuner_settings_applied'
 # on remote client connected/disconnected

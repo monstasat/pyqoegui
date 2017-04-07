@@ -74,10 +74,9 @@ class ComboBox(Gtk.Box):
         self.add(self.combobox)
         self.show_all()
 
-
 # box with label and spin button
 class SettingEntry(Gtk.Box):
-    def __init__(self, index, label, min_, max_, switch=False):
+    def __init__(self, index, label, min_, max_, switch=False, aux_widget=None):
         Gtk.Box.__init__(self, hexpand=True, vexpand=False,
                          orientation=Gtk.Orientation.HORIZONTAL,
                          spacing=Spacing.COL_SPACING)
@@ -85,6 +84,7 @@ class SettingEntry(Gtk.Box):
         self.index = index
 
         # value entry
+        self.aux_widget = aux_widget
         self.spinBtn = Gtk.SpinButton(numeric=True, digits=2, climb_rate=2,
                                       hexpand=True, vexpand=True,
                                       halign=Gtk.Align.END,
@@ -92,17 +92,26 @@ class SettingEntry(Gtk.Box):
         self.spinBtn.set_range(min_, max_)
         self.spinBtn.set_increments(0.1, 1)
         self.spinBtn.set_size_request(150, -1)
-
-        self.switch = Gtk.Switch(halign=Gtk.Align.END)
+        if switch is True:
+            self.switch = Gtk.Switch(halign=Gtk.Align.END)
+        self.value_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                 hexpand=False)
+        # self.value_box.set_layout(Gtk.ButtonBoxStyle.EXPAND)
+        self.value_box.add(self.spinBtn)
+        if switch is True:
+            self.value_box.add(self.switch)
+        if self.aux_widget is not None:
+            self.value_box.add(self.aux_widget)
+        self.value_box.set_homogeneous(False)
+        self.value_box.set_spacing(0)
+            # self.value_box.set_child_non_homogeneous(self.aux_widget, True)
 
         # setting name
         self.label = Gtk.Label(label=label, hexpand=True, vexpand=False,
                                halign=Gtk.Align.START, valign=Gtk.Align.CENTER)
 
         self.add(self.label)
-        self.add(self.spinBtn)
-        if switch is True:
-            self.add(self.switch)
+        self.add(self.value_box)
         self.show_all()
 
     def set_label(self, text):

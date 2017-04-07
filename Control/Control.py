@@ -118,6 +118,8 @@ class Control(GObject.GObject):
                               self.on_new_tuner_measured_data)
         self.rf_tuner.connect(CustomMessages.NEW_TUNER_PARAMS,
                               self.on_new_tuner_params)
+        self.rf_tuner.connect(CustomMessages.NEW_TUNER_PLP_LIST,
+                              self.on_new_tuner_plp_list)
         self.rf_tuner.connect(CustomMessages.TUNER_SETTINGS_APPLIED,
                               self.on_tuner_settings_applied)
 
@@ -397,7 +399,7 @@ class Control(GObject.GObject):
     def on_new_tuner_measured_data(self, source, tuner_id, lock, rf_power,
                                    mer, ber, freq, bitrate):
 
-        measured_data = {"id":tuner_id, "lock": lock,
+        measured_data = {"id": tuner_id, "lock": lock,
                          "rf_power": rf_power, "mer": mer, "ber": ber,
                          "freq": freq, "bitrate": bitrate}
 
@@ -408,6 +410,15 @@ class Control(GObject.GObject):
     def on_new_tuner_params(self, source, status, modulation, params):
         for interface in self.interfaces:
             interface.update_tuner_params(status, modulation, params)
+
+    def on_new_tuner_plp_list(self, source, tuner_id, lock,
+                              plp_qty, plps_str):
+        plps = [int(s) for s in plps_str.split() if s.isdigit()]
+        plp_list = {"id": tuner_id, "lock": lock,
+                    "plp_qty": plp_qty, "plps": plps}
+        
+        for interface in self.interfaces:
+            interface.update_tuner_plp_list(plp_list)
 
     # Methods for interaction with backend
 

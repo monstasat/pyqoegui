@@ -32,7 +32,7 @@ ANALYSIS_DEFAULT = {'vloss': 2, 'aloss': 2,
 TUNER_SLOT_DEFAULT = {'device': DVBT2,
                       't2_freq': 586000000, 't2_bw': BW8, 't2_plp_id': 0,
                       't_freq': 586000000, 't_bw': BW8,
-                      'c_freq': 586000000} 
+                      'c_freq': 586000000, 'c_bw': BW8}
 
 TUNER_DEFAULT = {0: TUNER_SLOT_DEFAULT,
                  1: TUNER_SLOT_DEFAULT,

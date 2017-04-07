@@ -170,7 +170,8 @@ class TunerSettingsDialog(BaseDialog):
                              ('t2_plp_id', slot.dvbt2_box.plp_id),
                              ('t_freq', slot.dvbt_box.frequency),
                              ('t_bw', slot.dvbt_box.bandwidth),
-                             ('c_freq', slot.dvbc_box.frequency)])
+                             ('c_freq', slot.dvbc_box.frequency),
+                             ('c_bw', slot.dvbc_box.bandwidth)])
             tuner_settings.update({int(slot.slot_id): slot_dic})
             
         return tuner_settings
@@ -215,5 +216,11 @@ class TunerSettingsDialog(BaseDialog):
         if id is not None:
             if id in self.slots:
                 self.slots[id].on_new_params(params)
+
+    def on_new_plp_list(self, plp_list):
+        id = plp_list.get("id", None)
+        if id is not None:
+            if id in self.slots:
+                self.slots[id].on_new_plp_list(plp_list)
 
 

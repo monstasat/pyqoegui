@@ -295,6 +295,12 @@ class Gui(BaseInterface):
            self.tunerDlg.get_visible():
             self.tunerDlg.on_new_meas(meas)
 
+    def update_tuner_plp_list(self, plp_list):
+        BaseInterface.update_tuner_plp_list(self, plp_list)
+        if self.tunerDlg is not None and \
+           self.tunerDlg.get_visible():
+            self.tunerDlg.on_new_plp_list(plp_list)
+
     # called by Error Detector to update analyzed status
     def update_analysis_results(self, results):
         BaseInterface.update_analysis_results(self, results)
@@ -437,8 +443,12 @@ class Gui(BaseInterface):
         if self.tunerDlg is not None:
             self.tunerDlg.update_values(self.tuner_settings)
             self.tunerDlg.on_new_devinfo(self.tuner_devinfo)
-            self.tunerDlg.on_new_meas(self.tuner_meas)
-            self.tunerDlg.on_new_params(self.tuner_params)
+            for v in self.tuner_meas.values():
+                self.tunerDlg.on_new_meas(v)
+            for v in self.tuner_params.values():
+                self.tunerDlg.on_new_params(v)
+            for v in self.tuner_plp_list.values():
+                self.tunerDlg.on_new_plp_list(v)
             responce = self.tunerDlg.run()
 
             if responce == Gtk.ResponseType.APPLY:

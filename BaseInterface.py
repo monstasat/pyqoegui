@@ -63,6 +63,7 @@ class BaseInterface(GObject.GObject):
         self.tuner_devinfo = {}
         self.tuner_meas = {}
         self.tuner_params = {}
+        self.tuner_plp_list = {}
 
         self.app.hold()
 
@@ -105,15 +106,24 @@ class BaseInterface(GObject.GObject):
 
     # called by Control to update tuner status
     def update_tuner_status(self, devinfo):
-        self.tuner_devinfo = devinfo
+        self.tuner_devinfo = devinfo.copy()
 
     # called by Control to update tuner parameters
     def update_tuner_params(self, params):
-        self.tuner_params = params
+        index = params.get('id', None)
+        if index is not None:
+            self.tuner_params[index] = params.copy()
 
     # called by Control to update tuner measured data
     def update_tuner_measured_data(self, meas):
-        self.tuner_meas = meas
+        index = meas.get('id', None)
+        if index is not None:
+            self.tuner_meas[index] = meas.copy()
+
+    def update_tuner_plp_list(self, plp_list):
+        index = plp_list.get('id', None)
+        if index is not None:
+            self.tuner_plp_list[index] = plp_list.copy()
 
     # called by Error Detector to update analysis results
     def update_analysis_results(self, results):

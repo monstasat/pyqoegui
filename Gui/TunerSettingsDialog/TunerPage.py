@@ -76,6 +76,8 @@ class TunerPage(Gtk.Box):
             self.dvbt_box.bandwidth = settings['t_bw']
         if "c_freq" in settings:
             self.dvbc_box.frequency = settings['c_freq']
+        if "c_bw" in settings:
+            self.dvbc_box.bandwidth = settings['c_bw']
 
         self.status_box.on_new_tuner_settings(settings)
 
@@ -87,3 +89,6 @@ class TunerPage(Gtk.Box):
 
     def on_new_params(self, params):
         self.status_box.on_new_params(params)
+
+    def on_new_plp_list(self, plp_list):
+        self.dvbt2_box.on_new_plp_list(plp_list)
